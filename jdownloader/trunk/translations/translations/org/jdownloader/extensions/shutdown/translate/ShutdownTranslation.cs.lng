@@ -1,0 +1,28 @@
+action_tooltip=Povolte tuto volbu pro vypnutí systému po dokončení všech stahování
+addons_jdshutdown_statusmessage_disabled=Systém se NEVYPNE pomocí JD
+addons_jdshutdown_statusmessage_enabled=JD vypne systém po dokončení stahování
+config_active_by_default=Ponechat vypnutí povoleno
+config_toolbarbutton=Zobrazit tlačítko na Nástrojové liště
+gui_config_jdshutdown_close=Zavřít JDownloader
+gui_config_jdshutdown_forceshutdown=Vynutit vypnutí (Ne pro všechny OS)
+gui_config_jdshutdown_hibernate=Hibernovat (ne na všech OS)
+gui_config_jdshutdown_mode=Režim:
+gui_config_jdshutdown_shutdown=Vypnutí
+gui_config_jdshutdown_standby=Spánek (ne ve všech OS)
+install_force=Nainstalovat Vynucené vypnutí
+install_msg=Chcete připravit váš systém pro funkci vynuceného vypnutí?
+install_title=Nainstalovat Vynucené vypnutí
+interaction_shutdown_dialog_msg_closejd=<h2><font color="red">JDownloader se zavře!</font></h2>
+interaction_shutdown_dialog_msg_hibernate=<h2><font color="red">Systém se přepne do Režimu spánku!</font></h2>
+interaction_shutdown_dialog_msg_shutdown=<h2><font color="red">Systém se vypne!</font></h2>
+interaction_shutdown_dialog_msg_standby=<h2><font color="red">Systém se přepne do Úsporného režimu!</font></h2>
+interaction_shutdown_dialog_title_closejd=Zavřít JDownloader?
+interaction_shutdown_dialog_title_hibernate=Hibernovat?
+interaction_shutdown_dialog_title_shutdown=Vypnout?
+interaction_shutdown_dialog_title_standby=Úsporný režim?
+jd_plugins_optional_jdshutdown=JD Shutdown
+jd_plugins_optional_jdshutdown_description=Automaticky vypne nebo uspí Váš počítač nebo zavře JD, když jsou všechna stahování dokončena.
+lit_shutdownn=Vypnutí
+show_admin=Pro nastavení Hibernace nebo Úsporného režimu jsou nutná administrátorská oprávnění
+shutdown_toggle_action_disabled2=Vypnout po stahování
+shutdown_toggle_action_enabled2=Vypnout po stahování

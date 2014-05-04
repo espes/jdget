@@ -1,0 +1,156 @@
+<!doctype html>
+<head>
+  <meta charset="utf-8">
+
+  <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
+       Remove this if you use the .htaccess -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>JD API Test Console</title>
+
+  <style>
+  pre {
+    margin: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  pre:hover {
+    background-color: #f6f6f6;
+  }
+  pre:active {
+    background-color: #ddd;
+  }
+  pre.activated {
+    border-color: hsl(120, 39%, 90%);
+  }
+</style>
+  
+</head>
+
+<body>
+ 
+<pre class=prettyprint>
+api = new jd.API(new jd.RemoteTransport({
+  user: "foo",
+  pass: "bar"
+}));
+//Crypto key: 4ed70b11193bc5000f8fb7106a43b439a5ab2b3613bb1d840d6eab98f2b4ef3a
+console.log(api.transport.getHash("Server").toString( CryptoJS.enc.Hex ));
+console.log($.ajax({
+        url: api.transport.options.apiRoot + "/my/crypted", 
+        type: "POST",
+        data: api.transport._encryptJSON("Server",{
+          url:"/my/crypted",
+          param:["foo",42,true,[1,2,3,4]],
+          timestamp:(new Date()).getTime()
+        }),
+        contentType: "application/aesjson-server; charset=utf-8",
+        dataType: "aesjson-server",
+        converters: { "* aesjson-server": api.transport._decryptJSON.bind(api.transport._decryptJSON,"Server")  }
+      }).done(console.log.bind(console)));
+</pre>
+
+
+<pre class=prettyprint>
+var transport = new jd.RemoteTransport();
+transport.registerUser({
+  user: "foo",
+  pass: "bar",
+  mail: "foo@maximilianhils.com",
+  captcha_challenge: "1",
+  captcha_response: "2"
+});
+</pre>
+      
+<pre class=prettyprint>
+api = new jd.API(new jd.RemoteTransport({
+  user: "foo",
+  pass: "bar"
+}));
+</pre>
+      
+<pre class=prettyprint>
+api = new jd.API(new jd.LocalTransport({
+  user: "foo",
+  pass: "bar"
+}));
+</pre>
+      
+<pre class=prettyprint>
+console.log(api.getAuth());
+</pre>
+      
+<pre class=prettyprint>
+api.connect().done(function(){
+	console.log("Connected!",arguments);
+}).fail(function(){
+	console.error("Connection failed");
+});;
+</pre>
+      
+<pre class=prettyprint>
+api.disconnect();
+</pre>
+      
+<pre class=prettyprint>
+function printStatus(attr){
+  console.log(attr+".state(): ",  api[attr].state());
+  if(api[attr].state() !== "pending")
+    api[attr].always(console.log.bind(console,attr+".arguments:"));
+}
+["handshake","connection","listener"].forEach(printStatus);
+</pre>
+      
+<pre class=prettyprint>
+api.send("/action",["param1","param2"]).done(function(response){
+	console.log(response);
+}).fail(function(){
+	console.error(arguments);
+});
+</pre>
+      
+<pre class=prettyprint>
+api.send("/action",{a:1,b:2});
+</pre>
+  
+  
+<pre class=prettyprint>
+/* Log promise status */
+if(!window._watching && api) {
+  window._watching = true;
+  var watched = {};
+  var watch = function(){
+    var names = ["handshake", "connection", "listener"];
+    names.forEach(function(name){
+      var def = api[name];
+      if(watched[name] !== def) {
+        console.log("new: "+name);
+	    watched[name] = def;
+        def.done(  console.log.bind(console,"done: "  +name))
+           .fail(  console.log.bind(console,"fail: "  +name))
+           .notify(console.log.bind(console,"notify: "+name))
+      }
+    });
+  };
+  window.setInterval(watch,200);
+}
+</pre>
+
+
+
+  <!-- JavaScript at the bottom for fast page loading -->
+
+  <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if necessary -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+  <script>window.jQuery || document.write("<script src='../libs/jquery-latest.js'>\x3C/script>")</script>
+
+  <script src="../src/jdapi.js"></script>
+  <script src="../libs/cryptojs.js"></script>
+  <script src="../src/jdapi.remote.js"></script>
+  <script src="../src/jdapi.local.js"></script>
+  <script src="debug.js"></script>
+  
+  <script src="../libs/prettify/run_prettify.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+<script src="../src/jdapi.jquery.js"></script>
+<script>
+/*
+JDownloader API Examples - Captcha
+------------------------------------
+Get a list of all active captchas and give the user the possibility to solve them.
+This example both uses polling and streaming to get active captchas.
+Using Firebug or Chrome Dev tools to inspect the console output of this example is highly recommended.
+*/
+
+//! http://paulirish.com/2009/log-a-lightweight-wrapper-for-consolelog/
+window.log = function() {log.history = log.history || [];log.history.push(arguments);if (this.console) {console.log(Array.prototype.slice.call(arguments))}}; 
+
+//Basic Setup
+//-----------
+$.jd.setOptions({
+	apiServer : "http://192.168.2.110:3128/",
+	user : "user",
+	pass : "pass",
+	debug : true,
+	onerror : log,
+	onmessage: log
+});
+
+//To get both a list of currently active captchas and a connection to the event stream, we need an authenticated session.
+$.jd.startSession(function(e) {
+	if (e.status == $.jd.e.sessionStatus.REGISTERED)
+		onSession();
+	else
+		log(e, "Session could not be started.");
+});
+
+//Poll all captchas that are currently active and listen for either new or expired captchas.
+function onSession() {
+	getCaptchas();
+	$.jd.subscribe("captcha",onCaptcha);
+	$.jd.startPolling();
+}
+
+/*
+Get a list of all active captchas
+---------------------------------
+**API-Syntax:** `captcha/list`<br/>
+**Returns** an array of  all active captchas' CaptchaObjects.<br/>
+**CaptchaObject specification:** 
+	{
+		"id": 42,
+		"link": null,
+		"hoster": "hoster.com",
+		"type": "NORMAL"
+	}
+**id:** An integer containing the unique captcha id.<br/>
+**link:** An integer containing the corresponding link id (unimplemented)<br/>
+**hoster:** A string containing the corresponding hoster.<br/>
+**type:** A string containing the captcha type
+	`NORMAL`: Normal Captcha
+*/
+function getCaptchas() {
+	$.jd.send("captcha/list", function onCaptchaList(captchas) {
+		log("Current Captchas:", captchas);
+
+		$.each(captchas, function(i, captcha) {
+			addCaptcha(captcha);
+
+		});
+
+	}, log);
+}
+
+/*
+Listen to the captcha event stream
+--------------------------
+**Captcha Module Event specification:**<br/>
+	{
+		"message":   eventMessage,
+		"data":   captchaObj
+	}
+**message:** A string containing the event type
+	`new`: Disable current link
+	`expired`: Disable all captchas from this hoster
+**data:** A captcha object as defined above
+*/
+function onCaptcha(event) {
+	log("onCaptcha",event);
+	switch(event.message)
+	{
+	case "new":
+		addCaptcha(event.data);
+		break;
+	case "expired":
+		$("#"+ event.data.id).slideUp(function(){$(this).remove();});
+		break;
+	default:
+		log("Unknown event type", event);
+	}
+}
+
+
+function addCaptcha(captcha) 
+{
+	//Limitations
+	//----------------
+	//Currently, only normal captchas are supported by the server side API (no clickable captchas etc).
+	if (captcha.type !== "NORMAL") {
+		log("Warning: Captcha type " + captcha.type + " is not supported.");
+	}
+
+	/*
+	Get a captchas image location
+	-----------------------------
+	**API-Syntax:** `captcha/get` ( `captchaID` )<br/>
+	**Returns** Captcha Image
+	*/
+	var captchaImage = $.jd.getURL("captcha/get", captcha.id);
+	var $container = $("<div>", {
+		"id" : captcha.id,
+		"class" : "captcha"
+	}).appendTo("body").hide();
+
+
+	$("<img>", {
+		src : captchaImage
+	}).appendTo($container);
+	$("<input>", {
+		placeholder : captcha.hoster + " (" + captcha.link + ")" //valid html5 for truly awesome compatibility
+	}).appendTo($container);
+	$("<button>", {
+		text : "Solve",
+		click : solveCaptcha
+	}).appendTo($container);
+
+	$("<button>", {
+		text : "Dismiss",
+		click : abortCaptcha
+	}).appendTo($container);
+
+	$container.slideDown();	
+}
+
+/*
+Solve a Captcha
+---------------
+ **API-Syntax:** `captcha/solve` ( `captchaID`,  `text` )<br/>
+ **Returns** `true` if captcha has not timed out before, `false` otherwise.
+ */
+function solveCaptcha() {
+	
+	var $parent = $(this).parent();
+	var id = $parent.attr("id");	
+	var text = $parent.children("input").val();
+
+	$.jd.send("captcha/solve", [ id, text ], function(wasStillValid) {
+		if (wasStillValid)
+			log("Captcha was still valid when submitting response.");
+		else
+			log("Captchas has already been submitted before.");
+		$parent.slideUp(); //Hide Captcha
+
+	});
+}
+
+/*
+Abort a Captcha
+---------------
+**API-Syntax:** `captcha/abort` ( `captchaID`,  `blockType` )<br/>
+**blockType:** A string defining how many captchas to block
+	`BLOCKTHIS`: Disable current link
+	`BLOCKHOSTER`: Disable all captchas from this hoster
+	`BLOCKALL`: Disable captchas in general
+ */
+function abortCaptcha() {
+	
+	var $parent = $(this).parent();
+	var id = $parent.attr("id");	
+	
+	$.jd.send("captcha/abort", [ id, "BLOCKTHIS" ]);
+	$parent.slideUp();
+}
+
+</script>
+</head>
+<body>
+
+</body>
+</html>

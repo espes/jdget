@@ -1,0 +1,137 @@
+<!doctype html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<!-- Consider adding an manifest.appcache: h5bp.com/d/Offline -->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+<meta charset="utf-8">
+
+  <!-- Use the .htaccess and remove these lines to avoid edge case issues.
+       More info: h5bp.com/b/378 -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+<title>CaptchaPush for JDownloader</title>
+<meta name="description" content="Solve your captchas from everywhere.">
+<meta name="author" content="JDownloader Team">
+
+<!-- Mobile viewport optimized: j.mp/bplateviewport -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+
+<!-- Place favicon.ico & apple-touch-icon.png in the root of your domain and delete these references -->
+  <link rel="shortcut icon" href="./favicon.ico">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png"> <!-- -->
+
+<!-- CSS: implied media=all -->
+<!-- CSS concatenated and minified via ant build script-->
+<link rel="stylesheet" href="css/style.css">
+<!-- end CSS-->
+<link href='http://fonts.googleapis.com/css?family=Kreon|Carter+One&v2' rel='stylesheet' type='text/css'>
+
+  <!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
+
+  <!-- All JavaScript at the bottom, except for Modernizr / Respond.
+       Modernizr enables HTML5 elements & feature detects; Respond is a polyfill for min/max-width CSS3 Media Queries
+       For optimal performance, use a custom Modernizr build: www.modernizr.com/download/ -->
+  <script src="js/libs/modernizr-2.0.6.min.js"></script>
+</head>
+
+<body>
+
+	<div id="container">
+		<header>JD Captcha Push</header>
+		<div id="main" role="main">
+		<div class="drop-shadow curled">
+			<form class="active" id="connect">
+				<label for="apiurl">API-URL:</label>
+				<input id="apiurl" name="apiurl" type="url" placeholder="http://127.0.0.1:3128/"
+					value="http://127.0.0.1:3128/" required>
+				<input type="submit" data-href="auth" class="do" value="Connect" autofocus>
+			</form>
+			<form id="auth" style="display: none;">
+				<label for="user">Username: </label>
+				<input type="text" id="user" name="user" placeholder="user" required>
+				<label for="password">Password: </label>
+				<input type="password" id="pass" placeholder="password" required>
+				<table id="settingswrapper">
+				<tr>
+					<td>
+						<input id="sound" name="sound" type="checkbox" checked="checked" >
+					</td>
+					<td>
+						<label for="sound">Enable Sound</label>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<input id="remember" name="remember" type="checkbox">
+					</td>
+					<td>
+						<label for="remember">Remember me</label>
+					</td>
+				</tr>
+				<tr style="display: none;">
+					<td>
+						<input id="autologin" name="autologin" type="checkbox">
+					</td>
+					<td>
+						<label for="autologin">Auto-Login</label>
+					</td>
+				</tr>
+				</table>
+				<input type="submit" data-href="captcha" class="do" value="Login">
+				<a href="" class="back" >back</a>
+			</form>
+			<form id="captcha" style="display: none;">
+				<div id="display" style="display: none;">
+					<img src="" alt="Captcha Image">
+					<input id="captchaInput" name="captchaInput" required>
+					<input type="submit" class="solve" value="Solve">
+				</div>
+				
+				<a href="" class="back">back</a>
+			</form>
+			<span id="status">init...</span>
+			</div>
+		</div>
+		<footer> </footer>
+	</div>
+	<!--! end of #container -->
+
+
+	<!-- JavaScript at the bottom for fast page loading -->
+
+  <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.3/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="js/libs/jquery-1.6.3.min.js"><\/script>')</script>
+
+	<script src="phonegap.js"></script>
+	
+	<!-- scripts concatenated and minified via ant build script-->
+	<script src="js/mylibs/jdapi.jquery.js"></script>
+	<script src="js/mylibs/jquery.webStorage.min.js"></script>
+	<script src="js/mylibs/jquery.history.js"></script>
+	<script src="js/mylibs/buzz.js"></script>
+	<script src="js/plugins.js"></script>
+	<script src="js/script.js"></script>
+	<!-- end scripts-->
+
+  <!-- Change UA-XXXXX-X to be your site's ID -->
+  <script>
+    window._gaq = [['_setAccount','UAXXXXXXXX1'],['_trackPageview'],['_trackPageLoadTime']];
+    Modernizr.load({
+      load: ('https:' == location.protocol ? '//ssl' : '//www') + '.google-analytics.com/ga.js'
+    });
+  </script>
+
+
+  <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.
+       chromium.org/developers/how-tos/chrome-frame-getting-started -->
+  <!--[if lt IE 7 ]>
+    <script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
+    <script>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
+  <![endif]-->
+
+</body>
+</html>

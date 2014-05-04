@@ -1,0 +1,10 @@
+LogAction_actionPerformed_wait_=Molimo sačekajte...
+LogAction_actionPerformed_zip_title_=Kreiranje Log Paketa
+LogAction_getString_uploading_=Priprema vaših logova
+LogModel_getStringValue_between_=Između %s1 i %s2
+LogModel_initColumns_time_=Vrijeme
+LogModel_initColumns_x_=Provjeri
+LogTable_onContextMenu_disable_=Deselektuj
+LogTable_onContextMenu_enable_=Selektuj
+SendLogDialog_SendLogDialog_title_=Pošalji izvještaj o Greški
+SendLogDialog_layoutDialogContent_desc_=Kada se problem pojavio? Molimo provjerite sve unose koji su vrijedni razmatranja!

@@ -1,0 +1,333 @@
+package org.jdownloader.updatev2.gui;
+
+import org.appwork.storage.config.ConfigInterface;
+import org.appwork.storage.config.annotations.AboutConfig;
+import org.appwork.storage.config.annotations.DefaultBooleanValue;
+import org.appwork.storage.config.annotations.DefaultIntArrayValue;
+import org.appwork.storage.config.annotations.DefaultStringValue;
+import org.appwork.storage.config.annotations.DescriptionForConfigEntry;
+import org.appwork.storage.config.annotations.HexColorString;
+import org.appwork.storage.config.annotations.RequiresRestart;
+
+public interface LAFSettings extends ConfigInterface {
+    public static final String ALICE_BLUE_APPROX                                 = "ffF5FCFF";
+    public static final String ALPHA_CC_TROPICAL_BLUE_APPROX                     = "ccCAE8FA";
+
+    public static final String BLACK                                             = "FF000000";
+    public static final String DE_JAVASOFT_PLAF_SYNTHETICA_SIMPLE2D_MENU_PAINTER = "de.javasoft.plaf.synthetica.simple2D.MenuPainter";
+    public static final String GRAY                                              = "ffC0C0C0";
+    public static final String GREEN                                             = "FF00FF00";
+    public static final String JAGGED_ICE_APPROX                                 = "ffD7E7F0";
+    public static final String MYSTIC_APPROX                                     = "FFDEE7ED";
+    public static final String ORANGE                                            = "ffFFC800";
+    public static final String PIGEON_POST_APPROX                                = "ffABC7D8";
+    public static final String RED                                               = "FFFF0000";
+    public static final String TROPICAL_BLUE_APPROX                              = "ffCAE8FA";
+
+    // private String colorForDownloadOverviewHeader = null;
+    // private String colorForErrorForeground = "FFFF0000";
+    //
+    // private String colorForSortedColumnView = toHex(Color.ORANGE);
+    //
+    // private String colorForFilteredTableView = toHex(Color.GREEN);
+    //
+    // private String menuBackgroundPainterClass = "de.javasoft.plaf.synthetica.simple2D.MenuPainter";
+    //
+    // private boolean paintStatusbarTopBorder = false;
+    //
+    // private String colorForPanelBackground = "ffF5FCFF";
+    //
+    // private String colorForPanelHeader = "ffD7E7F0";
+    //
+    // private String colorForPanelHeaderForeground = BLACK;
+    // private String colorForPanelHeaderLine = "ffC0C0C0";
+    //
+    // private int[] popupBorderInsets = new int[] { 0, 2, 4, 2 };
+    //
+    // private String colorForTablePackageRowBackground = "FFDEE7ED";
+    // private String colorForTablePackageRowForeground = BLACK;
+    // private String colorForTooltipForeground = "ffF5FCFF";
+    // private String colorForSelectedRowsForeground = BLACK;
+    // private String colorForSelectedRowsBackground = "ffCAE8FA";
+    // private String colorForMouseOverRowBackground = "ccCAE8FA";
+    // private String colorForMouseOverRowForeground = null;
+    // private String colorForAlternateRowForeground = null;
+    // private String colorForAlternateRowBackground = "03000000";
+    // private String colorForScrollbarsNormalState = "ffD7E7F0";
+    // private String colorForScrollbarsMouseOverState = "ffABC7D8";
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue(RED)
+    public String getColorForErrorForeground();
+
+    // if (StringUtils.isNotEmpty(c)) lafOptions.setPanelBackgroundColor(c);
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue(ALICE_BLUE_APPROX)
+    String getColorForPanelBackground();
+
+    // if (StringUtils.isNotEmpty(c)) lafOptions.setPanelHeaderColor(c);
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue(JAGGED_ICE_APPROX)
+    String getColorForPanelHeaderBackground();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue(BLACK)
+    public String getColorForPanelHeaderForeground();
+
+    // if (StringUtils.isNotEmpty(c)) lafOptions.setPanelHeaderLineColor(c);
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue(GRAY)
+    String getColorForPanelHeaderLine();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue(PIGEON_POST_APPROX)
+    String getColorForScrollbarsMouseOverState();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue(JAGGED_ICE_APPROX)
+    String getColorForScrollbarsNormalState();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue("FF359E35")
+    public String getColorForSpeedMeterAverage();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue("CC3DC83D")
+    public String getColorForSpeedmeterCurrentBottom();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue("2051F251")
+    public String getColorForSpeedmeterCurrentTop();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue("00FF0000")
+    public String getColorForSpeedmeterLimiterBottom();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue("ccFF0000")
+    public String getColorForSpeedmeterLimiterTop();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue("7FFF0000")
+    public String getColorForTableAccountErrorRowBackground();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue("FF000000")
+    public String getColorForTableAccountErrorRowForeground();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue("7FFFC800")
+    public String getColorForTableAccountTempErrorRowBackground();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue("FF000000")
+    public String getColorForTableAccountTempErrorRowForeground();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue("06000000")
+    String getColorForTableAlternateRowBackground();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    String getColorForTableAlternateRowForeground();
+
+    // if (StringUtils.isNotEmpty(c)) lafOptions.setHighlightColor2(c);
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue(GREEN)
+    String getColorForTableFilteredView();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue("ffC9E0ED")
+    String getColorForTableMouseOverRowBackground();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    String getColorForTableMouseOverRowForeground();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue(MYSTIC_APPROX)
+    public String getColorForTablePackageRowBackground();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    public String getColorForTablePackageRowForeground();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue(TROPICAL_BLUE_APPROX)
+    String getColorForTableSelectedRowsBackground();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    String getColorForTableSelectedRowsForeground();
+
+    // if (StringUtils.isNotEmpty(c)) lafOptions.setHighlightColor1(c);
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue(ORANGE)
+    String getColorForTableSortedColumnView();
+
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue("ff3B3B3B")
+    public String getColorForTooltipBackground();
+
+    // if (StringUtils.isNotEmpty(c)) lafOptions.setTooltipForegroundColor(c);
+    @DescriptionForConfigEntry("Customized Color in aRGB Format (Pure red: #ffFF0000)")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @HexColorString
+    @DefaultStringValue(ALICE_BLUE_APPROX)
+    public String getColorForTooltipForeground();
+
+    @DescriptionForConfigEntry("This Painter class is used to paint Main Menu Items without a popdown menu")
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @DefaultStringValue(DE_JAVASOFT_PLAF_SYNTHETICA_SIMPLE2D_MENU_PAINTER)
+    public abstract String getMenuBackgroundPainterClass();
+
+    @AboutConfig
+    @DefaultIntArrayValue({ 0, 2, 4, 2 })
+    public abstract int[] getPopupBorderInsets();
+
+    @AboutConfig
+    @RequiresRestart("A JDownloader Restart is Required")
+    @DefaultBooleanValue(false)
+    public abstract boolean isPaintStatusbarTopBorder();
+
+    public void setColorForErrorForeground(String errorForeground);
+
+    void setColorForPanelBackground(String colorHex);
+
+    void setColorForPanelHeaderBackground(String colorHex);
+
+    void setColorForPanelHeaderForeground(String colorHex);
+
+    void setColorForPanelHeaderLine(String colorHex);
+
+    void setColorForScrollbarsMouseOverState(String color);
+
+    void setColorForScrollbarsNormalState(String color);
+
+    public void setColorForSpeedMeterAverage(String color);
+
+    void setColorForSpeedmeterCurrentBottom(String colorHex);
+
+    void setColorForSpeedmeterCurrentTop(String colorHex);
+
+    void setColorForSpeedmeterLimiterBottom(String colorHex);
+
+    void setColorForSpeedmeterLimiterTop(String colorHex);
+
+    public void setColorForTableAccountErrorRowBackground(String tableAccountErrorRowBackground);
+
+    public void setColorForTableAccountErrorRowForeground(String tableAccountErrorRowForeground);
+
+    public void setColorForTableAccountTempErrorRowBackground(String tableAccountTempErrorRowBackground);
+
+    public void setColorForTableAccountTempErrorRowForeground(String tableAccountTempErrorRowForeground);
+
+    void setColorForTableAlternateRowBackground(String color);
+
+    void setColorForTableAlternateRowForeground(String color);
+
+    void setColorForTableFilteredView(String colorHex);
+
+    void setColorForTableMouseOverRowBackground(String color);
+
+    void setColorForTableMouseOverRowForeground(String color);
+
+    public void setColorForTablePackageRowBackground(String tablePackageRowBackground);
+
+    public void setColorForTablePackageRowForeground(String tablePackageRowForeground);
+
+    void setColorForTableSelectedRowsBackground(String color);
+
+    void setColorForTableSelectedRowsForeground(String color);
+
+    void setColorForTableSortedColumnView(String colorHex);
+
+    public void setColorForTooltipBackground(String background);
+
+    public void setColorForTooltipForeground(String colorHex);
+
+    public abstract void setMenuBackgroundPainterClass(String menuBackgroundPainterClass);
+
+    public abstract void setPaintStatusbarTopBorder(boolean paintStatusbarTopBorder);
+
+    public abstract void setPopupBorderInsets(int[] popupBorderInsets);
+
+}
