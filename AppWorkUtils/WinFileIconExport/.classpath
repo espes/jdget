@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/AppWorkUtils"/>
+	<classpathentry kind="lib" path="libs/image4j.jar"/>
+	<classpathentry kind="lib" path="libs/jna.jar" sourcepath="C:/Users/thomas/Downloads/twall-jna-3.3.0-68-gb5dbe3b.zip">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/WinFileIconExport/libs/doc.zip!/javadoc"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="libs/platform.jar" sourcepath="C:/Users/thomas/Downloads/twall-jna-3.3.0-68-gb5dbe3b.zip">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/WinFileIconExport/libs/doc.zip!/javadoc"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="libs/win32-x86.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/WinFileIconExport/libs/doc.zip!/javadoc"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/JDBrowser"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

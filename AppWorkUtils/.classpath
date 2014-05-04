@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="themes"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="libs/miglayout.jar"/>
+	<classpathentry kind="lib" path="libs/jackson-core.jar"/>
+	<classpathentry kind="lib" path="libs/jackson-mapper.jar"/>
+	<classpathentry kind="lib" path="dev_libs/AppleJavaExtensions.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="http://developer.apple.com/library/mac/documentation/Java/Reference/JavaSE6_AppleExtensionsRef/api"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="dev_libs/commons-lang-2.6.jar"/>
+	<classpathentry kind="lib" path="libs/sequence-library-1.0.0.jar"/>
+	<classpathentry kind="lib" path="libs/svnkit.jar"/>
+	<classpathentry kind="lib" path="dev_libs/synthetica.jar"/>
+	<classpathentry kind="lib" path="libs/proxyVole.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
