@@ -859,7 +859,7 @@ public class Browser {
         }
         if (this.isVerbose()) {
             if (llogger != null) {
-                llogger.finest("\r\n" + lRequest + "\r\n");
+                llogger.finest("\r\n" + lRequest.getHTMLSource() + "\r\n");
             }
         }
         return lRequest.getHtmlCode();

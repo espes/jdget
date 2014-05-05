@@ -377,7 +377,7 @@ public abstract class Request {
                 if (location != null) { return "Not HTML Code. Redirect to: " + location; }
                 return "No htmlCode read";
             }
-        } catch (final Exception e) {
+        } catch (final Throwable e) {
             return "NOTEXT: " + e.getMessage();
         }
         return this.htmlCode;
