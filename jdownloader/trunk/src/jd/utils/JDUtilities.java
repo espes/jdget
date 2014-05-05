@@ -28,10 +28,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import jd.SecondLevelLaunch;
+// import jd.SecondLevelLaunch;
 import jd.config.Configuration;
-import jd.config.DatabaseConnector;
-import jd.config.NoOldJDDataBaseFoundException;
+// import jd.config.DatabaseConnector;
+// import jd.config.NoOldJDDataBaseFoundException;
 import jd.controlling.JDController;
 import jd.nutils.Executer;
 import jd.nutils.Formatter;
@@ -64,7 +64,7 @@ public class JDUtilities {
      */
     private static Configuration     CONFIGURATION = null;
 
-    private static DatabaseConnector DB_CONNECT    = null;
+    // private static DatabaseConnector DB_CONNECT    = null;
 
     private static File              JD_HOME       = null;
 
@@ -80,17 +80,17 @@ public class JDUtilities {
      */
     @Deprecated
     public static synchronized Configuration getConfiguration() {
-        if (CONFIGURATION == null) {
-            try {
-                Object obj = JDUtilities.getDatabaseConnector().getData(Configuration.NAME);
-                if (obj != null) {
-                    CONFIGURATION = (Configuration) obj;
-                }
-            } catch (NoOldJDDataBaseFoundException e) {
-            } catch (Throwable e) {
-                LogController.CL().log(e);
-            }
-        }
+        // if (CONFIGURATION == null) {
+        //     try {
+        //         Object obj = JDUtilities.getDatabaseConnector().getData(Configuration.NAME);
+        //         if (obj != null) {
+        //             CONFIGURATION = (Configuration) obj;
+        //         }
+        //     } catch (NoOldJDDataBaseFoundException e) {
+        //     } catch (Throwable e) {
+        //         LogController.CL().log(e);
+        //     }
+        // }
         if (CONFIGURATION == null) CONFIGURATION = new Configuration();
         return CONFIGURATION;
     }
@@ -122,22 +122,23 @@ public class JDUtilities {
      * @return ein File, dass das Basisverzeichnis angibt
      */
     public static File getJDHomeDirectoryFromEnvironment() {
-        if (JD_HOME != null) {
-            return JD_HOME;
-        } else {
-            // do not use hardcoded classpathes if possible
-            URL ressource = Thread.currentThread().getContextClassLoader().getResource(SecondLevelLaunch.class.getName().replace(".", "/") + ".class");
+        // if (JD_HOME != null) {
+        //     return JD_HOME;
+        // } else {
+        //     // do not use hardcoded classpathes if possible
+        //     URL ressource = Thread.currentThread().getContextClassLoader().getResource(SecondLevelLaunch.class.getName().replace(".", "/") + ".class");
 
-            if (ressource != null) {
-                JD_HOME = new File(Application.getRoot(jd.SecondLevelLaunch.class));
-            } else {
-                throw new NullPointerException("jd/Main.class not found");
-            }
-            if (!JD_HOME.exists()) {
-                FileCreationManager.getInstance().mkdir(JD_HOME);
-            }
-            return JD_HOME;
-        }
+        //     if (ressource != null) {
+        //         JD_HOME = new File(Application.getRoot(jd.SecondLevelLaunch.class));
+        //     } else {
+        //         throw new NullPointerException("jd/Main.class not found");
+        //     }
+        //     if (!JD_HOME.exists()) {
+        //         FileCreationManager.getInstance().mkdir(JD_HOME);
+        //     }
+        //     return JD_HOME;
+        // }
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     public static String getJDTitle(int waitingupdates) {
@@ -261,23 +262,23 @@ public class JDUtilities {
         return exec.getOutputStream() + " \r\n " + exec.getErrorStream();
     }
 
-    public synchronized static DatabaseConnector getDatabaseConnector() throws NoOldJDDataBaseFoundException {
-        if (oldDBExists == null) oldDBExists = Application.getResource("/config/database.script").exists();
-        if (Boolean.FALSE.equals(oldDBExists)) throw new NoOldJDDataBaseFoundException();
-        if (DB_CONNECT != null) return DB_CONNECT;
-        if (DB_CONNECT == null) {
-            try {
-                DB_CONNECT = new DatabaseConnector();
-            } catch (Throwable e) {
-                /* we no longer use old DataBase, so no need to retry or create fresh one */
-                LogController.CL().severe("Rename old Database to avoid loading it again!: " + Application.getResource("/config/database.script").renameTo(Application.getResource("/config/database.scriptBAK")));
-                LogController.CL().log(e);
-                oldDBExists = false;
-                throw new NoOldJDDataBaseFoundException();
-            }
-        }
-        return DB_CONNECT;
-    }
+    // public synchronized static DatabaseConnector getDatabaseConnector() throws NoOldJDDataBaseFoundException {
+    //     if (oldDBExists == null) oldDBExists = Application.getResource("/config/database.script").exists();
+    //     if (Boolean.FALSE.equals(oldDBExists)) throw new NoOldJDDataBaseFoundException();
+    //     if (DB_CONNECT != null) return DB_CONNECT;
+    //     if (DB_CONNECT == null) {
+    //         try {
+    //             DB_CONNECT = new DatabaseConnector();
+    //         } catch (Throwable e) {
+    //             /* we no longer use old DataBase, so no need to retry or create fresh one */
+    //             LogController.CL().severe("Rename old Database to avoid loading it again!: " + Application.getResource("/config/database.script").renameTo(Application.getResource("/config/database.scriptBAK")));
+    //             LogController.CL().log(e);
+    //             oldDBExists = false;
+    //             throw new NoOldJDDataBaseFoundException();
+    //         }
+    //     }
+    //     return DB_CONNECT;
+    // }
 
     public static Document parseXmlString(final String xmlString, final boolean validating) {
         if (xmlString == null) return null;

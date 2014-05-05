@@ -28,7 +28,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.regex.Pattern;
 
-import javax.swing.JComponent;
+// import javax.swing.JComponent;
 
 import jd.PluginWrapper;
 import jd.captcha.JACMethod;
@@ -46,7 +46,7 @@ import jd.plugins.download.DownloadInterface;
 import jd.plugins.download.DownloadInterfaceFactory;
 
 import org.appwork.storage.config.JsonConfig;
-import org.appwork.uio.UIOManager;
+// import org.appwork.uio.UIOManager;
 import org.appwork.utils.Application;
 import org.appwork.utils.Exceptions;
 import org.appwork.utils.IO;
@@ -54,11 +54,11 @@ import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.logging2.LogSource;
 import org.appwork.utils.os.CrossSystem;
-import org.appwork.utils.swing.dialog.AbstractDialog;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogCanceledException;
-import org.appwork.utils.swing.dialog.DialogClosedException;
-import org.appwork.utils.swing.dialog.DialogNoAnswerException;
+// import org.appwork.utils.swing.dialog.AbstractDialog;
+// import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.DialogCanceledException;
+// import org.appwork.utils.swing.dialog.DialogClosedException;
+// import org.appwork.utils.swing.dialog.DialogNoAnswerException;
 import org.jdownloader.DomainInfo;
 import org.jdownloader.captcha.blacklist.BlockAllDownloadCaptchasEntry;
 import org.jdownloader.captcha.blacklist.BlockDownloadCaptchasByHost;
@@ -74,19 +74,19 @@ import org.jdownloader.captcha.v2.challenge.stringcaptcha.BasicCaptchaChallenge;
 import org.jdownloader.captcha.v2.solverjob.ResponseList;
 import org.jdownloader.controlling.FileCreationManager;
 import org.jdownloader.controlling.linkcrawler.LinkVariant;
-import org.jdownloader.gui.dialog.AskToUsePremiumDialog;
-import org.jdownloader.gui.dialog.AskToUsePremiumDialogInterface;
-import org.jdownloader.gui.helpdialogs.HelpDialog;
+// import org.jdownloader.gui.dialog.AskToUsePremiumDialog;
+// import org.jdownloader.gui.dialog.AskToUsePremiumDialogInterface;
+// import org.jdownloader.gui.helpdialogs.HelpDialog;
 import org.jdownloader.gui.translate._GUI;
-import org.jdownloader.gui.views.SelectionInfo.PluginView;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.gui.views.SelectionInfo.PluginView;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.logging.LogController;
-import org.jdownloader.plugins.CaptchaStepProgress;
+// import org.jdownloader.plugins.CaptchaStepProgress;
 import org.jdownloader.plugins.PluginTaskID;
 import org.jdownloader.plugins.SleepPluginProgress;
 import org.jdownloader.plugins.accounts.AccountFactory;
 import org.jdownloader.plugins.controller.host.LazyHostPlugin;
-import org.jdownloader.settings.staticreferences.CFG_GUI;
+// import org.jdownloader.settings.staticreferences.CFG_GUI;
 import org.jdownloader.translate._JDT;
 
 /**
@@ -253,105 +253,106 @@ public abstract class PluginForHost extends Plugin {
 
     protected String getCaptchaCode(final String method, File file, final int flag, final DownloadLink link, final String defaultValue, final String explain) throws PluginException {
 
-        CaptchaStepProgress progress = new CaptchaStepProgress(0, 1, null);
-        progress.setProgressSource(this);
-        this.hasCaptchas = true;
-        PluginProgress old = null;
-        try {
-            // try {
-            // final BufferedImage img = ImageProvider.read(file);
-            // progress.setIcon(new ImageIcon(IconIO.getScaledInstance(img, 16, 16)));
-            // } catch (Throwable e) {
-            // e.printStackTrace();
-            // }
-            old = link.setPluginProgress(progress);
-            String orgCaptchaImage = link.getStringProperty("orgCaptchaFile", null);
-            if (orgCaptchaImage != null && new File(orgCaptchaImage).exists()) {
-                file = new File(orgCaptchaImage);
-            }
-            if (this.getDownloadLink() == null) this.setDownloadLink(link);
-            final boolean insideAccountChecker = Thread.currentThread() instanceof AccountCheckerThread;
-            BasicCaptchaChallenge c = new BasicCaptchaChallenge(method, file, defaultValue, explain, this, flag) {
+        // CaptchaStepProgress progress = new CaptchaStepProgress(0, 1, null);
+        // progress.setProgressSource(this);
+        // this.hasCaptchas = true;
+        // PluginProgress old = null;
+        // try {
+        //     // try {
+        //     // final BufferedImage img = ImageProvider.read(file);
+        //     // progress.setIcon(new ImageIcon(IconIO.getScaledInstance(img, 16, 16)));
+        //     // } catch (Throwable e) {
+        //     // e.printStackTrace();
+        //     // }
+        //     old = link.setPluginProgress(progress);
+        //     String orgCaptchaImage = link.getStringProperty("orgCaptchaFile", null);
+        //     if (orgCaptchaImage != null && new File(orgCaptchaImage).exists()) {
+        //         file = new File(orgCaptchaImage);
+        //     }
+        //     if (this.getDownloadLink() == null) this.setDownloadLink(link);
+        //     final boolean insideAccountChecker = Thread.currentThread() instanceof AccountCheckerThread;
+        //     BasicCaptchaChallenge c = new BasicCaptchaChallenge(method, file, defaultValue, explain, this, flag) {
 
-                @Override
-                public boolean canBeSkippedBy(SkipRequest skipRequest, ChallengeSolver<?> solver, Challenge<?> challenge) {
-                    if (insideAccountChecker) {
-                        /* we don't want to skip login captcha inside fetchAccountInfo(Thread is AccountCheckerThread) */
-                        return false;
-                    }
-                    Plugin challengePlugin = Challenge.getPlugin(challenge);
-                    if (challengePlugin != null && !(challengePlugin instanceof PluginForHost)) {
-                        /* we only want block PluginForHost captcha here */
-                        return false;
-                    }
-                    switch (skipRequest) {
-                    case BLOCK_ALL_CAPTCHAS:
-                        /* user wants to block all captchas (current session) */
-                        return true;
-                    case BLOCK_HOSTER:
-                        /* user wants to block captchas from specific hoster */
-                        return StringUtils.equals(link.getHost(), Challenge.getHost(challenge));
-                    case BLOCK_PACKAGE:
-                        /* user wants to block captchas from current FilePackage */
-                        DownloadLink lLink = Challenge.getDownloadLink(challenge);
-                        if (lLink == null || lLink.getDefaultPlugin() == null) return false;
-                        return link.getFilePackage() == lLink.getFilePackage();
-                    default:
-                        return false;
-                    }
-                }
-            };
-            c.setTimeout(getCaptchaTimeout());
-            invalidateLastChallengeResponse();
-            if (CaptchaBlackList.getInstance().matches(c)) {
-                logger.warning("Cancel. Blacklist Matching");
-                throw new PluginException(LinkStatus.ERROR_CAPTCHA);
-            }
-            ChallengeResponseController.getInstance().handle(c);
-            if (!c.isSolved()) {
-                throw new PluginException(LinkStatus.ERROR_CAPTCHA);
-            } else {
-                setLastChallengeResponse(c.getResult());
-            }
-            return c.getResult().getValue();
-        } catch (InterruptedException e) {
-            logger.warning(Exceptions.getStackTrace(e));
-            throw new PluginException(LinkStatus.ERROR_CAPTCHA);
-        } catch (SkipException e) {
-            if (getDownloadLink() != null) {
-                switch (e.getSkipRequest()) {
-                case BLOCK_ALL_CAPTCHAS:
-                    CaptchaBlackList.getInstance().add(new BlockAllDownloadCaptchasEntry());
+        //         @Override
+        //         public boolean canBeSkippedBy(SkipRequest skipRequest, ChallengeSolver<?> solver, Challenge<?> challenge) {
+        //             if (insideAccountChecker) {
+        //                 /* we don't want to skip login captcha inside fetchAccountInfo(Thread is AccountCheckerThread) */
+        //                 return false;
+        //             }
+        //             Plugin challengePlugin = Challenge.getPlugin(challenge);
+        //             if (challengePlugin != null && !(challengePlugin instanceof PluginForHost)) {
+        //                 /* we only want block PluginForHost captcha here */
+        //                 return false;
+        //             }
+        //             switch (skipRequest) {
+        //             case BLOCK_ALL_CAPTCHAS:
+        //                 /* user wants to block all captchas (current session) */
+        //                 return true;
+        //             case BLOCK_HOSTER:
+        //                 /* user wants to block captchas from specific hoster */
+        //                 return StringUtils.equals(link.getHost(), Challenge.getHost(challenge));
+        //             case BLOCK_PACKAGE:
+        //                 /* user wants to block captchas from current FilePackage */
+        //                 DownloadLink lLink = Challenge.getDownloadLink(challenge);
+        //                 if (lLink == null || lLink.getDefaultPlugin() == null) return false;
+        //                 return link.getFilePackage() == lLink.getFilePackage();
+        //             default:
+        //                 return false;
+        //             }
+        //         }
+        //     };
+        //     c.setTimeout(getCaptchaTimeout());
+        //     invalidateLastChallengeResponse();
+        //     if (CaptchaBlackList.getInstance().matches(c)) {
+        //         logger.warning("Cancel. Blacklist Matching");
+        //         throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+        //     }
+        //     ChallengeResponseController.getInstance().handle(c);
+        //     if (!c.isSolved()) {
+        //         throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+        //     } else {
+        //         setLastChallengeResponse(c.getResult());
+        //     }
+        //     return c.getResult().getValue();
+        // } catch (InterruptedException e) {
+        //     logger.warning(Exceptions.getStackTrace(e));
+        //     throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+        // } catch (SkipException e) {
+        //     if (getDownloadLink() != null) {
+        //         switch (e.getSkipRequest()) {
+        //         case BLOCK_ALL_CAPTCHAS:
+        //             CaptchaBlackList.getInstance().add(new BlockAllDownloadCaptchasEntry());
 
-                    if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
-                    break;
-                case BLOCK_HOSTER:
-                    CaptchaBlackList.getInstance().add(new BlockDownloadCaptchasByHost(getDownloadLink().getHost()));
-                    if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
-                    break;
+        //             if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             break;
+        //         case BLOCK_HOSTER:
+        //             CaptchaBlackList.getInstance().add(new BlockDownloadCaptchasByHost(getDownloadLink().getHost()));
+        //             if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             break;
 
-                case BLOCK_PACKAGE:
-                    CaptchaBlackList.getInstance().add(new BlockDownloadCaptchasByPackage(getDownloadLink().getParentNode()));
-                    if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
-                    break;
-                case SINGLE:
-                    CaptchaBlackList.getInstance().add(new BlockDownloadCaptchasByLink(getDownloadLink()));
-                    if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
-                    break;
-                case TIMEOUT:
-                    if (JsonConfig.create(CaptchaSettings.class).isSkipDownloadLinkOnCaptchaTimeoutEnabled()) {
-                        CaptchaBlackList.getInstance().add(new BlockDownloadCaptchasByLink(getDownloadLink()));
-                        if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
-                    }
-                case REFRESH:
-                    // we should forward the refresh request to a new pluginstructure soon. For now. the plugin will just retry
-                    break;
-                }
-            }
-            throw new PluginException(LinkStatus.ERROR_CAPTCHA);
-        } finally {
-            link.compareAndSetPluginProgress(progress, old);
-        }
+        //         case BLOCK_PACKAGE:
+        //             CaptchaBlackList.getInstance().add(new BlockDownloadCaptchasByPackage(getDownloadLink().getParentNode()));
+        //             if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             break;
+        //         case SINGLE:
+        //             CaptchaBlackList.getInstance().add(new BlockDownloadCaptchasByLink(getDownloadLink()));
+        //             if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             break;
+        //         case TIMEOUT:
+        //             if (JsonConfig.create(CaptchaSettings.class).isSkipDownloadLinkOnCaptchaTimeoutEnabled()) {
+        //                 CaptchaBlackList.getInstance().add(new BlockDownloadCaptchasByLink(getDownloadLink()));
+        //                 if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             }
+        //         case REFRESH:
+        //             // we should forward the refresh request to a new pluginstructure soon. For now. the plugin will just retry
+        //             break;
+        //         }
+        //     }
+        //     throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+        // } finally {
+        //     link.compareAndSetPluginProgress(progress, old);
+        // }
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     protected volatile DownloadInterface dl                                           = null;
@@ -764,7 +765,7 @@ public abstract class PluginForHost extends Plugin {
                 super.updateValues(current, total);
             }
         };
-        progress.setIcon(NewTheme.I().getIcon("wait", 16));
+        // progress.setIcon(NewTheme.I().getIcon("wait", 16));
         progress.setProgressSource(this);
         PluginProgress old = null;
         try {
@@ -1200,9 +1201,9 @@ public abstract class PluginForHost extends Plugin {
      * @param dialog
      * @return
      */
-    public JComponent layoutPremiumInfoPanel(AbstractDialog dialog) {
-        return null;
-    }
+    // public JComponent layoutPremiumInfoPanel(AbstractDialog dialog) {
+    //     return null;
+    // }
 
     /**
      * Can be overridden to support special accounts like login tokens instead of username/password
@@ -1211,8 +1212,9 @@ public abstract class PluginForHost extends Plugin {
      */
     public AccountFactory getAccountFactory() {
         // this should be plugincode as soon as we can ignore 0.9 compatibility
-        if (getHost().equalsIgnoreCase("letitbit.net")) { return new LetitBitAccountFactory(); }
-        return new DefaultAccountFactory();
+        // if (getHost().equalsIgnoreCase("letitbit.net")) { return new LetitBitAccountFactory(); }
+        // return new DefaultAccountFactory();
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     public void resumeDownloadlink(DownloadLink downloadLink) {
@@ -1230,19 +1232,19 @@ public abstract class PluginForHost extends Plugin {
         return null;
     }
 
-    public JComponent getVariantPopupComponent(DownloadLink downloadLink) {
-        return null;
-    }
+    // public JComponent getVariantPopupComponent(DownloadLink downloadLink) {
+    //     return null;
+    // }
 
     public boolean hasVariantToChooseFrom(DownloadLink downloadLink) {
         return false;
     }
 
-    public void extendLinkgrabberContextMenu(JComponent parent, PluginView<CrawledLink> pv) {
-    }
+    // public void extendLinkgrabberContextMenu(JComponent parent, PluginView<CrawledLink> pv) {
+    // }
 
-    public void extendDownloadsTableContextMenu(JComponent parent, PluginView<DownloadLink> pv) {
-    }
+    // public void extendDownloadsTableContextMenu(JComponent parent, PluginView<DownloadLink> pv) {
+    // }
 
     /**
      * THIS IS JDOWNLOADER 2 ONLY!
@@ -1252,21 +1254,21 @@ public abstract class PluginForHost extends Plugin {
      * @throws DialogClosedException
      */
     protected void showFreeDialog(final String domain) {
-        AskToUsePremiumDialog d = new AskToUsePremiumDialog(domain, this) {
-            @Override
-            public String getDontShowAgainKey() {
-                return "adsPremium_" + domain;
-            }
-        };
-        try {
-            UIOManager.I().show(AskToUsePremiumDialogInterface.class, d).throwCloseExceptions();
-            CrossSystem.openURL(new URL(d.getPremiumUrl()));
-        } catch (DialogNoAnswerException e) {
-            LogSource.exception(logger, e);
-        } catch (IOException e) {
-            LogSource.exception(logger, e);
-        }
-
+        // AskToUsePremiumDialog d = new AskToUsePremiumDialog(domain, this) {
+        //     @Override
+        //     public String getDontShowAgainKey() {
+        //         return "adsPremium_" + domain;
+        //     }
+        // };
+        // try {
+        //     UIOManager.I().show(AskToUsePremiumDialogInterface.class, d).throwCloseExceptions();
+        //     CrossSystem.openURL(new URL(d.getPremiumUrl()));
+        // } catch (DialogNoAnswerException e) {
+        //     LogSource.exception(logger, e);
+        // } catch (IOException e) {
+        //     LogSource.exception(logger, e);
+        // }
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     /**

@@ -66,8 +66,8 @@ import org.jdownloader.extensions.extraction.Item;
 import org.jdownloader.extensions.extraction.Signature;
 import org.jdownloader.extensions.extraction.content.ContentView;
 import org.jdownloader.extensions.extraction.content.PackedFile;
-import org.jdownloader.extensions.extraction.gui.iffileexistsdialog.IfFileExistsDialog;
-import org.jdownloader.settings.IfFileExistsAction;
+// import org.jdownloader.extensions.extraction.gui.iffileexistsdialog.IfFileExistsDialog;
+// import org.jdownloader.settings.IfFileExistsAction;
 
 /**
  * Extracts rar, zip, 7z. tar.gz, tar.bz2.
@@ -866,60 +866,60 @@ public class Multi extends IExtraction {
         logger.info("Extract " + filename);
         if (extractTo.exists()) {
             /* file already exists */
-            
-            IfFileExistsAction action = controller.getIfFileExistsAction();
-            while (action == null || action == IfFileExistsAction.ASK_FOR_EACH_FILE) {
-                IfFileExistsDialog d = new IfFileExistsDialog(extractTo, new Item(path, item.getSize(), extractTo), archive);
-                d.show();
+            throw new UnsupportedOperationException("jdget TODO");
+            // IfFileExistsAction action = controller.getIfFileExistsAction();
+            // while (action == null || action == IfFileExistsAction.ASK_FOR_EACH_FILE) {
+            //     IfFileExistsDialog d = new IfFileExistsDialog(extractTo, new Item(path, item.getSize(), extractTo), archive);
+            //     d.show();
                 
-                try {
-                    d.throwCloseExceptions();
-                } catch (Exception e) {
-                    throw new SevenZipException(e);
-                }
-                action = d.getAction();
-                if (action == null) throw new SevenZipException("Cannot handle if file exists");
-                if (action == IfFileExistsAction.AUTO_RENAME) {
-                    extractTo = new File(extractTo.getParentFile(), d.getNewName());
-                    if (extractTo.exists()) {
-                        action = IfFileExistsAction.ASK_FOR_EACH_FILE;
-                    }
-                }
-            }
-            switch (action) {
-                case OVERWRITE_FILE:
+            //     try {
+            //         d.throwCloseExceptions();
+            //     } catch (Exception e) {
+            //         throw new SevenZipException(e);
+            //     }
+            //     action = d.getAction();
+            //     if (action == null) throw new SevenZipException("Cannot handle if file exists");
+            //     if (action == IfFileExistsAction.AUTO_RENAME) {
+            //         extractTo = new File(extractTo.getParentFile(), d.getNewName());
+            //         if (extractTo.exists()) {
+            //             action = IfFileExistsAction.ASK_FOR_EACH_FILE;
+            //         }
+            //     }
+            // }
+            // switch (action) {
+            //     case OVERWRITE_FILE:
                     
-                    if (!FileCreationManager.getInstance().delete(extractTo, null)) {
-                        setException(new Exception("Could not overwrite(delete) " + extractTo));
-                        archive.setExitCode(ExtractionControllerConstants.EXIT_CODE_CREATE_ERROR);
-                        return null;
-                    }
-                    break;
+            //         if (!FileCreationManager.getInstance().delete(extractTo, null)) {
+            //             setException(new Exception("Could not overwrite(delete) " + extractTo));
+            //             archive.setExitCode(ExtractionControllerConstants.EXIT_CODE_CREATE_ERROR);
+            //             return null;
+            //         }
+            //         break;
                 
-                case SKIP_FILE:
-                    /* skip file */
-                    archive.addExtractedFiles(extractTo);
-                    ctrl.addAndGetProcessedBytes(item.getSize());
-                    skipped.set(true);
-                    return null;
-                case AUTO_RENAME:
-                    String extension = Files.getExtension(extractTo.getName());
-                    String name = StringUtils.isEmpty(extension) ? extractTo.getName() : extractTo.getName().substring(0, extractTo.getName().length() - extension.length() - 1);
-                    int i = 1;
-                    while (extractTo.exists()) {
-                        if (StringUtils.isEmpty(extension)) {
-                            extractTo = new File(extractTo.getParentFile(), name + "_" + i);
+            //     case SKIP_FILE:
+            //         /* skip file */
+            //         archive.addExtractedFiles(extractTo);
+            //         ctrl.addAndGetProcessedBytes(item.getSize());
+            //         skipped.set(true);
+            //         return null;
+            //     case AUTO_RENAME:
+            //         String extension = Files.getExtension(extractTo.getName());
+            //         String name = StringUtils.isEmpty(extension) ? extractTo.getName() : extractTo.getName().substring(0, extractTo.getName().length() - extension.length() - 1);
+            //         int i = 1;
+            //         while (extractTo.exists()) {
+            //             if (StringUtils.isEmpty(extension)) {
+            //                 extractTo = new File(extractTo.getParentFile(), name + "_" + i);
                             
-                        } else {
-                            extractTo = new File(extractTo.getParentFile(), name + "_" + i + "." + extension);
+            //             } else {
+            //                 extractTo = new File(extractTo.getParentFile(), name + "_" + i + "." + extension);
                             
-                        }
-                        i++;
-                    }
+            //             }
+            //             i++;
+            //         }
                     
-                    break;
+            //         break;
             
-            }
+            // }
             
         }
         if ((!extractTo.getParentFile().exists() && !extractTo.getParentFile().mkdirs())) {

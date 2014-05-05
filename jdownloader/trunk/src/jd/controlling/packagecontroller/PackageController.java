@@ -19,7 +19,7 @@ import org.appwork.utils.event.queue.QueueAction;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.logging2.LogSource;
 import org.jdownloader.controlling.UniqueAlltimeID;
-import org.jdownloader.gui.views.components.packagetable.dragdrop.MergePosition;
+// import org.jdownloader.gui.views.components.packagetable.dragdrop.MergePosition;
 import org.jdownloader.logging.LogController;
 
 public abstract class PackageController<PackageType extends AbstractPackageNode<ChildType, PackageType>, ChildType extends AbstractPackageChildrenNode<PackageType>> implements AbstractNodeNotifier {
@@ -427,47 +427,47 @@ public abstract class PackageController<PackageType extends AbstractPackageNode<
         return ret;
     }
 
-    public void merge(final PackageType dest, final java.util.List<ChildType> srcLinks, final java.util.List<PackageType> srcPkgs, final MergePosition mergeposition) {
-        if (dest == null) return;
-        if (srcLinks == null && srcPkgs == null) return;
-        QUEUE.add(new QueueAction<Void, RuntimeException>() {
-            @Override
-            protected Void run() throws RuntimeException {
-                int positionMerge = 0;
+    // public void merge(final PackageType dest, final java.util.List<ChildType> srcLinks, final java.util.List<PackageType> srcPkgs, final MergePosition mergeposition) {
+    //     if (dest == null) return;
+    //     if (srcLinks == null && srcPkgs == null) return;
+    //     QUEUE.add(new QueueAction<Void, RuntimeException>() {
+    //         @Override
+    //         protected Void run() throws RuntimeException {
+    //             int positionMerge = 0;
 
-                switch (mergeposition) {
-                case BOTTOM:
-                    positionMerge = dest.getChildren().size();
-                    break;
-                case TOP:
-                    positionMerge = 0;
-                    break;
-                default:
-                    positionMerge = -1;
-                }
-                if (srcLinks != null) {
-                    /* move srcLinks to dest */
-                    moveOrAddAt(dest, srcLinks, positionMerge);
-                    if (positionMerge != -1) {
-                        /* update positionMerge in case we want merge@top */
-                        positionMerge += srcLinks.size();
-                    }
-                }
-                if (srcPkgs != null) {
-                    for (PackageType pkg : srcPkgs) {
-                        /* move links from srcPkgs to dest */
-                        int size = pkg.getChildren().size();
-                        moveOrAddAt(dest, pkg.getChildren(), positionMerge);
-                        if (positionMerge != -1) {
-                            /* update positionMerge in case we want merge@top */
-                            positionMerge += size;
-                        }
-                    }
-                }
-                return null;
-            }
-        });
-    }
+    //             switch (mergeposition) {
+    //             case BOTTOM:
+    //                 positionMerge = dest.getChildren().size();
+    //                 break;
+    //             case TOP:
+    //                 positionMerge = 0;
+    //                 break;
+    //             default:
+    //                 positionMerge = -1;
+    //             }
+    //             if (srcLinks != null) {
+    //                 /* move srcLinks to dest */
+    //                 moveOrAddAt(dest, srcLinks, positionMerge);
+    //                 if (positionMerge != -1) {
+    //                     /* update positionMerge in case we want merge@top */
+    //                     positionMerge += srcLinks.size();
+    //                 }
+    //             }
+    //             if (srcPkgs != null) {
+    //                 for (PackageType pkg : srcPkgs) {
+    //                     /* move links from srcPkgs to dest */
+    //                     int size = pkg.getChildren().size();
+    //                     moveOrAddAt(dest, pkg.getChildren(), positionMerge);
+    //                     if (positionMerge != -1) {
+    //                         /* update positionMerge in case we want merge@top */
+    //                         positionMerge += size;
+    //                     }
+    //                 }
+    //             }
+    //             return null;
+    //         }
+    //     });
+    // }
 
     public void moveOrAddAt(final PackageType pkg, final List<ChildType> movechildren, final int moveChildrenindex) {
         moveOrAddAt(pkg, movechildren, moveChildrenindex, -1);

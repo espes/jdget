@@ -63,8 +63,8 @@ import jd.controlling.reconnect.ReconnecterEvent;
 import jd.controlling.reconnect.ReconnecterListener;
 import jd.controlling.reconnect.ipcheck.IPController;
 import jd.gui.UserIO;
-import jd.gui.swing.jdgui.JDGui;
-import jd.gui.swing.jdgui.WarnLevel;
+// import jd.gui.swing.jdgui.JDGui;
+// import jd.gui.swing.jdgui.WarnLevel;
 import jd.parser.Regex;
 import jd.plugins.Account;
 import jd.plugins.Account.AccountError;
@@ -95,8 +95,8 @@ import org.appwork.storage.config.JsonConfig;
 import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.events.GenericConfigEventListener;
 import org.appwork.storage.config.handler.KeyHandler;
-import org.appwork.uio.CloseReason;
-import org.appwork.uio.UIOManager;
+// import org.appwork.uio.CloseReason;
+// import org.appwork.uio.UIOManager;
 import org.appwork.utils.ConcatIterator;
 import org.appwork.utils.NullsafeAtomicReference;
 import org.appwork.utils.StringUtils;
@@ -105,7 +105,7 @@ import org.appwork.utils.logging2.LogSource;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 import org.appwork.utils.net.httpconnection.ProxyAuthException;
 import org.appwork.utils.os.CrossSystem;
-import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.Dialog;
 import org.jdownloader.captcha.blacklist.CaptchaBlackList;
 import org.jdownloader.controlling.DownloadLinkWalker;
 import org.jdownloader.controlling.FileCreationEvent;
@@ -117,8 +117,8 @@ import org.jdownloader.controlling.download.DownloadControllerListener;
 import org.jdownloader.controlling.hosterrule.AccountUsageRule;
 import org.jdownloader.controlling.hosterrule.HosterRuleController;
 import org.jdownloader.controlling.hosterrule.HosterRuleControllerListener;
-import org.jdownloader.gui.views.SelectionInfo;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.gui.views.SelectionInfo;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.plugins.ConditionalSkipReason;
 import org.jdownloader.plugins.ConditionalSkipReasonException;
@@ -1543,7 +1543,7 @@ public class DownloadWatchDog implements DownloadControllerListener, StateMachin
     private void unSkipLink(DownloadLink link, DownloadSession session) {
         if (link.isSkipped()) {
             if (SkipReason.FFMPEG_MISSING.equals(link.getSkipReason()) || SkipReason.UPDATE_RESTART_REQUIRED.equals(link.getSkipReason())) {
-                getSession().removeProperty(org.jdownloader.controlling.ffmpeg.FFmpegProvider.FFMPEG_INSTALL_CHECK);
+                // getSession().removeProperty(org.jdownloader.controlling.ffmpeg.FFmpegProvider.FFMPEG_INSTALL_CHECK);
             }
             link.setSkipReason(null);
         }
@@ -3045,20 +3045,21 @@ public class DownloadWatchDog implements DownloadControllerListener, StateMachin
                         DownloadSession currentSession = getSession();
                         doAction = currentSession.getOnFileExistsAction(downloadLink.getFilePackage());
                         if (doAction == null || doAction == IfFileExistsAction.ASK_FOR_EACH_FILE) {
-                            IfFileExistsDialogInterface io = new IfFileExistsDialog(downloadLink).show();
-                            if (io.getCloseReason() == CloseReason.TIMEOUT) { throw new SkipReasonException(SkipReason.FILE_EXISTS); }
-                            if (io.getCloseReason() == CloseReason.INTERRUPT) { throw new InterruptedException("IFFileExistsDialog Interrupted"); }
-                            if (io.getCloseReason() != CloseReason.OK) {
-                                doAction = IfFileExistsAction.SKIP_FILE;
-                            } else {
-                                doAction = io.getAction();
-                            }
-                            if (doAction == null) doAction = IfFileExistsAction.SKIP_FILE;
-                            if (io.isDontShowAgainSelected() && io.getCloseReason() == CloseReason.OK) {
-                                currentSession.setOnFileExistsAction(downloadLink.getFilePackage(), doAction);
-                            } else {
-                                currentSession.setOnFileExistsAction(downloadLink.getFilePackage(), null);
-                            }
+                            // IfFileExistsDialogInterface io = new IfFileExistsDialog(downloadLink).show();
+                            // if (io.getCloseReason() == CloseReason.TIMEOUT) { throw new SkipReasonException(SkipReason.FILE_EXISTS); }
+                            // if (io.getCloseReason() == CloseReason.INTERRUPT) { throw new InterruptedException("IFFileExistsDialog Interrupted"); }
+                            // if (io.getCloseReason() != CloseReason.OK) {
+                            //     doAction = IfFileExistsAction.SKIP_FILE;
+                            // } else {
+                            //     doAction = io.getAction();
+                            // }
+                            // if (doAction == null) doAction = IfFileExistsAction.SKIP_FILE;
+                            // if (io.isDontShowAgainSelected() && io.getCloseReason() == CloseReason.OK) {
+                            //     currentSession.setOnFileExistsAction(downloadLink.getFilePackage(), doAction);
+                            // } else {
+                            //     currentSession.setOnFileExistsAction(downloadLink.getFilePackage(), null);
+                            // }
+                            throw new UnsupportedOperationException("jdget TODO");
                         }
                     }
                     switch (doAction) {
@@ -3202,16 +3203,17 @@ public class DownloadWatchDog implements DownloadControllerListener, StateMachin
                 }
             }
             if (dialogTitle != null) {
-                if (request.isSilent() == false) {
-                    if (JDGui.bugme(WarnLevel.NORMAL)) {
-                        if (UIOManager.I().showConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL, dialogTitle, _JDT._.DownloadWatchDog_onShutdownRequest_msg(), NewTheme.I().getIcon("download", 32), _JDT._.literally_yes(), null)) { return; }
-                    } else {
-                        return;
-                    }
-                    throw new ShutdownVetoException(dialogTitle, this);
-                } else {
-                    throw new ShutdownVetoException(dialogTitle, this);
-                }
+                // if (request.isSilent() == false) {
+                //     if (JDGui.bugme(WarnLevel.NORMAL)) {
+                //         if (UIOManager.I().showConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL, dialogTitle, _JDT._.DownloadWatchDog_onShutdownRequest_msg(), NewTheme.I().getIcon("download", 32), _JDT._.literally_yes(), null)) { return; }
+                //     } else {
+                //         return;
+                //     }
+                //     throw new ShutdownVetoException(dialogTitle, this);
+                // } else {
+                //     throw new ShutdownVetoException(dialogTitle, this);
+                // }
+                throw new ShutdownVetoException(dialogTitle, this);
             }
         }
     }
@@ -3221,18 +3223,18 @@ public class DownloadWatchDog implements DownloadControllerListener, StateMachin
         return 0;
     }
 
-    public long getNonResumableBytes(SelectionInfo<FilePackage, DownloadLink> selection) {
-        long i = 0;
-        if (this.stateMachine.isState(RUNNING_STATE, PAUSE_STATE, STOPPING_STATE)) {
-            for (final SingleDownloadController con : getSession().getControllers()) {
-                DownloadInterface dl = con.getDownloadInstance();
-                if (dl != null && !con.getDownloadLink().isResumeable() && selection.contains(con.getDownloadLink())) {
-                    i += con.getDownloadLink().getView().getBytesLoaded();
-                }
-            }
-        }
-        return i;
-    }
+    // public long getNonResumableBytes(SelectionInfo<FilePackage, DownloadLink> selection) {
+    //     long i = 0;
+    //     if (this.stateMachine.isState(RUNNING_STATE, PAUSE_STATE, STOPPING_STATE)) {
+    //         for (final SingleDownloadController con : getSession().getControllers()) {
+    //             DownloadInterface dl = con.getDownloadInstance();
+    //             if (dl != null && !con.getDownloadLink().isResumeable() && selection.contains(con.getDownloadLink())) {
+    //                 i += con.getDownloadLink().getView().getBytesLoaded();
+    //             }
+    //         }
+    //     }
+    //     return i;
+    // }
 
     public int getNonResumableRunningCount() {
         int i = 0;

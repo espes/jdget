@@ -31,11 +31,11 @@ import java.util.Locale;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
 
-import javax.imageio.IIOException;
-import javax.imageio.ImageIO;
-import javax.swing.GrayFilter;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
+// import javax.imageio.IIOException;
+// import javax.imageio.ImageIO;
+// import javax.swing.GrayFilter;
+// import javax.swing.Icon;
+// import javax.swing.ImageIcon;
 
 import org.appwork.storage.config.MinTimeWeakReference;
 import org.appwork.storage.config.MinTimeWeakReferenceCleanup;
@@ -65,25 +65,25 @@ public class ImageProvider {
                                                                                                         }
                                                                                                     }
                                                                                                 };
-    private static HashMap<String, MinTimeWeakReference<ImageIcon>>     IMAGEICON_CACHE         = new HashMap<String, MinTimeWeakReference<ImageIcon>>();
-    private static MinTimeWeakReferenceCleanup                          IMAGEICON_CACHE_CLEANUP = new MinTimeWeakReferenceCleanup() {
+    // private static HashMap<String, MinTimeWeakReference<ImageIcon>>     IMAGEICON_CACHE         = new HashMap<String, MinTimeWeakReference<ImageIcon>>();
+    // private static MinTimeWeakReferenceCleanup                          IMAGEICON_CACHE_CLEANUP = new MinTimeWeakReferenceCleanup() {
 
-                                                                                                    @Override
-                                                                                                    public void onMinTimeWeakReferenceCleanup(final MinTimeWeakReference<?> minTimeWeakReference) {
-                                                                                                        synchronized (ImageProvider.LOCK) {
-                                                                                                            ImageProvider.IMAGEICON_CACHE.remove(minTimeWeakReference.getID());
-                                                                                                        }
-                                                                                                    }
-                                                                                                };
-    private static WeakHashMap<Icon, MinTimeWeakReference<Icon>>        DISABLED_ICON_CACHE     = new WeakHashMap<Icon, MinTimeWeakReference<Icon>>();
+    //                                                                                                 @Override
+    //                                                                                                 public void onMinTimeWeakReferenceCleanup(final MinTimeWeakReference<?> minTimeWeakReference) {
+    //                                                                                                     synchronized (ImageProvider.LOCK) {
+    //                                                                                                         ImageProvider.IMAGEICON_CACHE.remove(minTimeWeakReference.getID());
+    //                                                                                                     }
+    //                                                                                                 }
+    //                                                                                             };
+    // private static WeakHashMap<Icon, MinTimeWeakReference<Icon>>        DISABLED_ICON_CACHE     = new WeakHashMap<Icon, MinTimeWeakReference<Icon>>();
 
     private static Object                                               LOCK                    = new Object();
     // stringbuilder die concat strings fast
 
-    static {
-        /* we dont want images to get cached on disk */
-        ImageIO.setUseCache(false);
-    }
+    // static {
+    //     /* we dont want images to get cached on disk */
+    //     ImageIO.setUseCache(false);
+    // }
 
     /* Thx to flubshi */
     public static BufferedImage convertToGrayScale(final BufferedImage bufferedImage) {
@@ -222,24 +222,24 @@ public class ImageProvider {
      * @param icon
      * @return
      */
-    public static Icon getDisabledIcon(Icon icon) {
-        if (icon == null) { return null; }
-        synchronized (ImageProvider.LOCK) {
-            final MinTimeWeakReference<Icon> cache = ImageProvider.DISABLED_ICON_CACHE.get(icon);
-            Icon ret = cache == null ? null : cache.get();
-            if (ret != null) {
-                //
-                return ret; }
-            if (!(icon instanceof ImageIcon)) {
-                // getDisabledIcon only works for imageicons
-                icon = ImageProvider.toImageIcon(icon);
-            }
-            ret = new ImageIcon(GrayFilter.createDisabledImage(((ImageIcon) icon).getImage()));
+    // public static Icon getDisabledIcon(Icon icon) {
+    //     if (icon == null) { return null; }
+    //     synchronized (ImageProvider.LOCK) {
+    //         final MinTimeWeakReference<Icon> cache = ImageProvider.DISABLED_ICON_CACHE.get(icon);
+    //         Icon ret = cache == null ? null : cache.get();
+    //         if (ret != null) {
+    //             //
+    //             return ret; }
+    //         if (!(icon instanceof ImageIcon)) {
+    //             // getDisabledIcon only works for imageicons
+    //             icon = ImageProvider.toImageIcon(icon);
+    //         }
+    //         ret = new ImageIcon(GrayFilter.createDisabledImage(((ImageIcon) icon).getImage()));
 
-            ImageProvider.DISABLED_ICON_CACHE.put(icon, new MinTimeWeakReference<Icon>(ret, ImageProvider.MIN_LIFETIME, "disabled icon"));
-            return ret;
-        }
-    }
+    //         ImageProvider.DISABLED_ICON_CACHE.put(icon, new MinTimeWeakReference<Icon>(ret, ImageProvider.MIN_LIFETIME, "disabled icon"));
+    //         return ret;
+    //     }
+    // }
 
     /**
      * @param string
@@ -247,16 +247,16 @@ public class ImageProvider {
      * @param j
      * @return
      */
-    public static ImageIcon getImageIcon(final String name, final int x, final int y) {
-        // TODO Auto-generated method stub
-        try {
-            return ImageProvider.getImageIcon(name, x, y, true);
-        } catch (final IOException e) {
-            // can not happen. true creates a dummyicon in case of io errors
-            Log.exception(e);
-            return null;
-        }
-    }
+    // public static ImageIcon getImageIcon(final String name, final int x, final int y) {
+    //     // TODO Auto-generated method stub
+    //     try {
+    //         return ImageProvider.getImageIcon(name, x, y, true);
+    //     } catch (final IOException e) {
+    //         // can not happen. true creates a dummyicon in case of io errors
+    //         Log.exception(e);
+    //         return null;
+    //     }
+    // }
 
     /**
      * Loads the image, scales it to the desired size and returns it as an
@@ -270,51 +270,51 @@ public class ImageProvider {
      * @return
      * @throws IOException
      */
-    public static ImageIcon getImageIcon(final String name, final int width, final int height, final boolean createDummy) throws IOException {
-        return ImageProvider.getImageIcon(name, width, height, createDummy, true);
-    }
+    // public static ImageIcon getImageIcon(final String name, final int width, final int height, final boolean createDummy) throws IOException {
+    //     return ImageProvider.getImageIcon(name, width, height, createDummy, true);
+    // }
 
-    public static ImageIcon getImageIcon(final String name, int width, int height, final boolean createDummy, final boolean putIntoCache) throws IOException {
-        synchronized (ImageProvider.LOCK) {
-            final StringBuilder SB = new StringBuilder();
-            SB.append(name);
-            SB.append('_');
-            SB.append(width);
-            SB.append('_');
-            SB.append(height);
-            String key;
-            if (ImageProvider.IMAGEICON_CACHE.containsKey(key = SB.toString())) {
-                final MinTimeWeakReference<ImageIcon> cache = ImageProvider.IMAGEICON_CACHE.get(key);
-                if (cache.get() != null) { return cache.get(); }
-            }
-            final BufferedImage image = ImageProvider.getBufferedImage(name, createDummy, putIntoCache);
-            final double faktor = Math.max((double) image.getWidth(null) / width, (double) image.getHeight(null) / height);
-            width = (int) (image.getWidth(null) / faktor);
-            height = (int) (image.getHeight(null) / faktor);
-            /**
-             * WARNING: getScaledInstance will return a scaled image, BUT keeps
-             * a reference to original unscaled image
-             */
-            final Image scaledWithFuckingReference = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-            final BufferedImage referencelessVersion = ImageProvider.dereferenceImage(scaledWithFuckingReference);
-            final ImageIcon imageicon = new ImageIcon(referencelessVersion);
-            if (putIntoCache) {
-                ImageProvider.IMAGEICON_CACHE.put(key, new MinTimeWeakReference<ImageIcon>(imageicon, ImageProvider.MIN_LIFETIME, key, ImageProvider.IMAGEICON_CACHE_CLEANUP));
-            }
-            return imageicon;
-        }
-    }
+    // public static ImageIcon getImageIcon(final String name, int width, int height, final boolean createDummy, final boolean putIntoCache) throws IOException {
+    //     synchronized (ImageProvider.LOCK) {
+    //         final StringBuilder SB = new StringBuilder();
+    //         SB.append(name);
+    //         SB.append('_');
+    //         SB.append(width);
+    //         SB.append('_');
+    //         SB.append(height);
+    //         String key;
+    //         if (ImageProvider.IMAGEICON_CACHE.containsKey(key = SB.toString())) {
+    //             final MinTimeWeakReference<ImageIcon> cache = ImageProvider.IMAGEICON_CACHE.get(key);
+    //             if (cache.get() != null) { return cache.get(); }
+    //         }
+    //         final BufferedImage image = ImageProvider.getBufferedImage(name, createDummy, putIntoCache);
+    //         final double faktor = Math.max((double) image.getWidth(null) / width, (double) image.getHeight(null) / height);
+    //         width = (int) (image.getWidth(null) / faktor);
+    //         height = (int) (image.getHeight(null) / faktor);
+    //         /**
+    //          * WARNING: getScaledInstance will return a scaled image, BUT keeps
+    //          * a reference to original unscaled image
+    //          */
+    //         final Image scaledWithFuckingReference = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+    //         final BufferedImage referencelessVersion = ImageProvider.dereferenceImage(scaledWithFuckingReference);
+    //         final ImageIcon imageicon = new ImageIcon(referencelessVersion);
+    //         if (putIntoCache) {
+    //             ImageProvider.IMAGEICON_CACHE.put(key, new MinTimeWeakReference<ImageIcon>(imageicon, ImageProvider.MIN_LIFETIME, key, ImageProvider.IMAGEICON_CACHE_CLEANUP));
+    //         }
+    //         return imageicon;
+    //     }
+    // }
 
-    public static ImageIcon getImageIconUnCached(final String name, final int x, final int y) {
-        // TODO Auto-generated method stub
-        try {
-            return ImageProvider.getImageIcon(name, x, y, true, false);
-        } catch (final IOException e) {
-            // can not happen. true creates a dummyicon in case of io errors
-            Log.exception(e);
-            return null;
-        }
-    }
+    // public static ImageIcon getImageIconUnCached(final String name, final int x, final int y) {
+    //     // TODO Auto-generated method stub
+    //     try {
+    //         return ImageProvider.getImageIcon(name, x, y, true, false);
+    //     } catch (final IOException e) {
+    //         // can not happen. true creates a dummyicon in case of io errors
+    //         Log.exception(e);
+    //         return null;
+    //     }
+    // }
 
     /**
      * Taken from http://today.java.net/pub/a/today/2007/04/03/perils-of-image-
@@ -417,59 +417,61 @@ public class ImageProvider {
         return ImageProvider.merge(back, front, xoffsetTop, yoffsetTop, xoffsetBottom, yoffsetBottom);
     }
 
-    public static BufferedImage merge(final Icon back, final Icon front, final int xoffsetBack, final int yoffsetBack, final int xoffsetFront, final int yoffsetFront, final Composite backComposite, final Composite frontComposite) {
-        final int width = Math.max(xoffsetBack + back.getIconWidth(), xoffsetFront + front.getIconWidth());
-        final int height = Math.max(yoffsetBack + back.getIconHeight(), yoffsetFront + front.getIconHeight());
-        final BufferedImage dest = new BufferedImage(width, height, Transparency.TRANSLUCENT);
-        final Graphics2D g2 = dest.createGraphics();
+    // public static BufferedImage merge(final Icon back, final Icon front, final int xoffsetBack, final int yoffsetBack, final int xoffsetFront, final int yoffsetFront, final Composite backComposite, final Composite frontComposite) {
+    //     final int width = Math.max(xoffsetBack + back.getIconWidth(), xoffsetFront + front.getIconWidth());
+    //     final int height = Math.max(yoffsetBack + back.getIconHeight(), yoffsetFront + front.getIconHeight());
+    //     final BufferedImage dest = new BufferedImage(width, height, Transparency.TRANSLUCENT);
+    //     final Graphics2D g2 = dest.createGraphics();
 
-        if (backComposite != null) {
-            final Composite old = g2.getComposite();
-            g2.setComposite(backComposite);
-            back.paintIcon(null, g2, xoffsetBack, yoffsetBack);
-            g2.setComposite(old);
-        } else {
+    //     if (backComposite != null) {
+    //         final Composite old = g2.getComposite();
+    //         g2.setComposite(backComposite);
+    //         back.paintIcon(null, g2, xoffsetBack, yoffsetBack);
+    //         g2.setComposite(old);
+    //     } else {
 
-            back.paintIcon(null, g2, xoffsetBack, yoffsetBack);
-        }
-        if (frontComposite != null) {
-            final Composite old = g2.getComposite();
-            g2.setComposite(frontComposite);
-            front.paintIcon(null, g2, xoffsetFront, yoffsetFront);
-            g2.setComposite(old);
-        } else {
+    //         back.paintIcon(null, g2, xoffsetBack, yoffsetBack);
+    //     }
+    //     if (frontComposite != null) {
+    //         final Composite old = g2.getComposite();
+    //         g2.setComposite(frontComposite);
+    //         front.paintIcon(null, g2, xoffsetFront, yoffsetFront);
+    //         g2.setComposite(old);
+    //     } else {
 
-            front.paintIcon(null, g2, xoffsetFront, yoffsetFront);
-        }
+    //         front.paintIcon(null, g2, xoffsetFront, yoffsetFront);
+    //     }
 
-        g2.dispose();
+    //     g2.dispose();
 
-        return dest;
+    //     return dest;
 
-    }
+    // }
 
-    public static BufferedImage merge(final Icon back, final Icon front, final int xoffsetBack, final int yoffsetBack, final int xoffsetFront, final int yoffsetFront) {
+    // public static BufferedImage merge(final Icon back, final Icon front, final int xoffsetBack, final int yoffsetBack, final int xoffsetFront, final int yoffsetFront) {
 
-        return merge(back, front, xoffsetBack, yoffsetBack, xoffsetFront, yoffsetFront, null, null);
-    }
+    //     return merge(back, front, xoffsetBack, yoffsetBack, xoffsetFront, yoffsetFront, null, null);
+    // }
 
     public static BufferedImage merge(final Image back, final Image front, final int xoffsetBack, final int yoffsetBack, final int xoffsetFront, final int yoffsetFront) {
-        return merge(new ImageIcon(back), new ImageIcon(front), xoffsetBack, yoffsetBack, xoffsetFront, yoffsetFront);
+        // return merge(new ImageIcon(back), new ImageIcon(front), xoffsetBack, yoffsetBack, xoffsetFront, yoffsetFront);
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     /* copied from ImageIO, to close the inputStream */
     public static BufferedImage read(final File input) throws IOException {
-        if (!input.canRead()) { throw new IIOException("Can't read input file!"); }
-        FileInputStream is = null;
-        try {
-            is = new FileInputStream(input);
-            return ImageIO.read(is);
-        } finally {
-            try {
-                is.close();
-            } catch (final Throwable e) {
-            }
-        }
+        // if (!input.canRead()) { throw new IIOException("Can't read input file!"); }
+        // FileInputStream is = null;
+        // try {
+        //     is = new FileInputStream(input);
+        //     return ImageIO.read(is);
+        // } finally {
+        //     try {
+        //         is.close();
+        //     } catch (final Throwable e) {
+        //     }
+        // }
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     /**
@@ -478,20 +480,21 @@ public class ImageProvider {
      * @throws IOException
      */
     private static BufferedImage read(final URL absolutePath) throws IOException {
-        if (absolutePath == null) { throw new IllegalArgumentException("input == null!"); }
-        InputStream is = null;
-        BufferedImage bi = null;
-        try {
-            is = absolutePath.openStream();
-            if (is == null) { throw new IIOException("Can't create an ImageInputStream!"); }
-            bi = ImageIO.read(is);
-        } finally {
-            try {
-                is.close();
-            } catch (final Throwable e) {
-            }
-        }
-        return bi;
+        // if (absolutePath == null) { throw new IllegalArgumentException("input == null!"); }
+        // InputStream is = null;
+        // BufferedImage bi = null;
+        // try {
+        //     is = absolutePath.openStream();
+        //     if (is == null) { throw new IIOException("Can't create an ImageInputStream!"); }
+        //     bi = ImageIO.read(is);
+        // } finally {
+        //     try {
+        //         is.close();
+        //     } catch (final Throwable e) {
+        //     }
+        // }
+        // return bi;
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     /**
@@ -550,23 +553,23 @@ public class ImageProvider {
      * @param h
      * @return
      */
-    public static ImageIcon scaleImageIcon(final ImageIcon img, final int w, final int h) {
-        // already has the desired size?
-        if (img.getIconHeight() == h && img.getIconWidth() == w) { return img; }
+    // public static ImageIcon scaleImageIcon(final ImageIcon img, final int w, final int h) {
+    //     // already has the desired size?
+    //     if (img.getIconHeight() == h && img.getIconWidth() == w) { return img; }
 
-        BufferedImage dest;
+    //     BufferedImage dest;
 
-        if (img.getImage() instanceof ToolkitImage) {
-            dest = new BufferedImage(w, h, Transparency.TRANSLUCENT);
-            final Graphics2D g2 = dest.createGraphics();
-            g2.drawImage(img.getImage(), 0, 0, null);
-            g2.dispose();
-        } else {
-            dest = (BufferedImage) img.getImage();
-        }
+    //     if (img.getImage() instanceof ToolkitImage) {
+    //         dest = new BufferedImage(w, h, Transparency.TRANSLUCENT);
+    //         final Graphics2D g2 = dest.createGraphics();
+    //         g2.drawImage(img.getImage(), 0, 0, null);
+    //         g2.dispose();
+    //     } else {
+    //         dest = (BufferedImage) img.getImage();
+    //     }
 
-        return new ImageIcon(ImageProvider.scaleBufferedImage(dest, w, h));
-    }
+    //     return new ImageIcon(ImageProvider.scaleBufferedImage(dest, w, h));
+    // }
 
     /**
      * Converts an Icon to an Imageicon.
@@ -574,28 +577,28 @@ public class ImageProvider {
      * @param icon
      * @return
      */
-    public static ImageIcon toImageIcon(final Icon icon) {
+    // public static ImageIcon toImageIcon(final Icon icon) {
 
-        if (icon == null) { return null; }
-        if (icon instanceof ImageIcon) {
-            return (ImageIcon) icon;
-        } else {
-            final int w = icon.getIconWidth();
-            final int h = icon.getIconHeight();
-            final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            final GraphicsDevice gd = ge.getDefaultScreenDevice();
-            final GraphicsConfiguration gc = gd.getDefaultConfiguration();
-            final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.TRANSLUCENT);
+    //     if (icon == null) { return null; }
+    //     if (icon instanceof ImageIcon) {
+    //         return (ImageIcon) icon;
+    //     } else {
+    //         final int w = icon.getIconWidth();
+    //         final int h = icon.getIconHeight();
+    //         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    //         final GraphicsDevice gd = ge.getDefaultScreenDevice();
+    //         final GraphicsConfiguration gc = gd.getDefaultConfiguration();
+    //         final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.TRANSLUCENT);
 
-            final Graphics2D g = image.createGraphics();
-            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-            // g.setColor(Color.RED);
-            // g.fillRect(0, 0, w, h);
-            icon.paintIcon(null, g, 0, 0);
-            g.dispose();
-            return new ImageIcon(image);
+    //         final Graphics2D g = image.createGraphics();
+    //         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+    //         // g.setColor(Color.RED);
+    //         // g.fillRect(0, 0, w, h);
+    //         icon.paintIcon(null, g, 0, 0);
+    //         g.dispose();
+    //         return new ImageIcon(image);
 
-        }
+    //     }
 
-    }
+    // }
 }

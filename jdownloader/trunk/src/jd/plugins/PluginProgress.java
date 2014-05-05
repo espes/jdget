@@ -18,9 +18,9 @@ package jd.plugins;
 
 import java.awt.Color;
 
-import javax.swing.Icon;
+// import javax.swing.Icon;
 
-import org.jdownloader.gui.views.downloads.columns.ETAColumn;
+// import org.jdownloader.gui.views.downloads.columns.ETAColumn;
 import org.jdownloader.plugins.PluginTaskID;
 
 public abstract class PluginProgress {
@@ -29,7 +29,7 @@ public abstract class PluginProgress {
     protected long   eta            = -1;
 
     protected Color  color;
-    protected Icon   icon           = null;
+    // protected Icon   icon           = null;
     protected Object progressSource = null;
     private long     started;
 
@@ -87,14 +87,14 @@ public abstract class PluginProgress {
         }
     }
 
-    public Icon getIcon(Object requestor) {
-        if (requestor instanceof ETAColumn) return null;
-        return icon;
-    }
+    // public Icon getIcon(Object requestor) {
+    //     if (requestor instanceof ETAColumn) return null;
+    //     return icon;
+    // }
 
-    public void setIcon(Icon icon) {
-        this.icon = icon;
-    }
+    // public void setIcon(Icon icon) {
+    //     this.icon = icon;
+    // }
 
     public Object getProgressSource() {
         return progressSource;

@@ -47,8 +47,9 @@ public class PluginClassLoader extends URLClassLoader {
         }
 
         public PluginClassLoaderChild(PluginClassLoader parent) {
-            super(new URL[] { Application.getRootUrlByClass(jd.SecondLevelLaunch.class, null) }, parent);
+            super(new URL[] { /*Application.getRootUrlByClass(jd.SecondLevelLaunch.class, null)*/ }, parent);
             this.parent = parent;
+            throw new UnsupportedOperationException("jdget TODO");
         }
 
         public boolean isUpdateRequired(String name) {
@@ -227,8 +228,8 @@ public class PluginClassLoader extends URLClassLoader {
     }
 
     private PluginClassLoader() {
-        super(new URL[] { Application.getRootUrlByClass(jd.SecondLevelLaunch.class, null) }, PluginClassLoader.class.getClassLoader());
-
+        super(new URL[] { /*Application.getRootUrlByClass(jd.SecondLevelLaunch.class, null)*/ }, PluginClassLoader.class.getClassLoader());
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     public PluginClassLoaderChild getChild() {

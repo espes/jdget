@@ -20,7 +20,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URI;
 
-import jd.captcha.JAntiCaptcha;
+// import jd.captcha.JAntiCaptcha;
 import jd.captcha.pixelgrid.Captcha;
 import jd.http.Browser;
 import jd.http.URLConnectionAdapter;
@@ -143,29 +143,30 @@ public class LoadImage {
     }
 
     public boolean renameCaptcha(File file, String destination) {
-        long b = 0;
+        // long b = 0;
 
-        try {
-            BufferedImage ret = ImageProvider.read(file);
-            Captcha captcha = new JAntiCaptcha("easycaptcha").createCaptcha(ret);
-            for (int x = 0; x < captcha.getWidth(); x++) {
-                for (int y = 0; y < captcha.getHeight(); y++) {
-                    Color c = new Color(captcha.grid[x][y]);
-                    b += c.getBlue();
-                }
-            }
-        } catch (Exception e) {
-            // TODO: handle exception
-        }
-        File dest = new File(destination, b + "_" + JDHash.getMD5(file) + getFileType());
+        // try {
+        //     BufferedImage ret = ImageProvider.read(file);
+        //     Captcha captcha = new JAntiCaptcha("easycaptcha").createCaptcha(ret);
+        //     for (int x = 0; x < captcha.getWidth(); x++) {
+        //         for (int y = 0; y < captcha.getHeight(); y++) {
+        //             Color c = new Color(captcha.grid[x][y]);
+        //             b += c.getBlue();
+        //         }
+        //     }
+        // } catch (Exception e) {
+        //     // TODO: handle exception
+        // }
+        // File dest = new File(destination, b + "_" + JDHash.getMD5(file) + getFileType());
 
-        if (dest.exists()) {
-            FileCreationManager.getInstance().delete(file, null);
-            return false;
-        }
-        file.renameTo(dest);
-        this.file = dest;
-        return true;
+        // if (dest.exists()) {
+        //     FileCreationManager.getInstance().delete(file, null);
+        //     return false;
+        // }
+        // file.renameTo(dest);
+        // this.file = dest;
+        // return true;
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     /**

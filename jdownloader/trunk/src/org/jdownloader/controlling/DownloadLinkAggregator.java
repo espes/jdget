@@ -9,7 +9,7 @@ import jd.plugins.DownloadLink;
 import jd.plugins.FilePackage;
 
 import org.jdownloader.extensions.extraction.ExtractionStatus;
-import org.jdownloader.gui.views.SelectionInfo;
+// import org.jdownloader.gui.views.SelectionInfo;
 import org.jdownloader.plugins.FinalLinkState;
 
 public class DownloadLinkAggregator implements MirrorPackageSetup {
@@ -96,11 +96,11 @@ public class DownloadLinkAggregator implements MirrorPackageSetup {
 
     }
 
-    public DownloadLinkAggregator(SelectionInfo<FilePackage, DownloadLink> si) {
+    // public DownloadLinkAggregator(SelectionInfo<FilePackage, DownloadLink> si) {
 
-        update(si.getChildren());
+    //     update(si.getChildren());
 
-    }
+    // }
 
     public void update(List<DownloadLink> children) {
         int total = 0;

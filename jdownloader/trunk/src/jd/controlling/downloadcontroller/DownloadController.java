@@ -417,14 +417,14 @@ public class DownloadController extends PackageController<FilePackage, DownloadL
                         logger.log(e);
                     }
                 }
-                try {
-                    if (lpackages == null) {
-                        logger.info("Try to import old LinkList");
-                        lpackages = loadDownloadLinks();
-                    }
-                } catch (final Throwable e) {
-                    logger.log(e);
-                }
+                // try {
+                //     if (lpackages == null) {
+                //         logger.info("Try to import old LinkList");
+                //         lpackages = loadDownloadLinks();
+                //     }
+                // } catch (final Throwable e) {
+                //     logger.log(e);
+                // }
                 if (lpackages != null) {
                     int links = 0;
                     for (FilePackage fp : lpackages) {
@@ -578,16 +578,16 @@ public class DownloadController extends PackageController<FilePackage, DownloadL
      * @return
      * @throws Exception
      */
-    private LinkedList<FilePackage> loadDownloadLinks() throws Exception {
-        Object obj = null;
-        try {
-            obj = JDUtilities.getDatabaseConnector().getLinks();
-        } catch (final NoOldJDDataBaseFoundException e) {
-            return null;
-        }
-        if (obj != null && obj instanceof ArrayList && (((java.util.List<?>) obj).size() == 0 || ((java.util.List<?>) obj).size() > 0 && ((java.util.List<?>) obj).get(0) instanceof FilePackage)) { return new LinkedList<FilePackage>((java.util.List<FilePackage>) obj); }
-        throw new Exception("Linklist incompatible");
-    }
+    // private LinkedList<FilePackage> loadDownloadLinks() throws Exception {
+    //     Object obj = null;
+    //     try {
+    //         obj = JDUtilities.getDatabaseConnector().getLinks();
+    //     } catch (final NoOldJDDataBaseFoundException e) {
+    //         return null;
+    //     }
+    //     if (obj != null && obj instanceof ArrayList && (((java.util.List<?>) obj).size() == 0 || ((java.util.List<?>) obj).size() > 0 && ((java.util.List<?>) obj).get(0) instanceof FilePackage)) { return new LinkedList<FilePackage>((java.util.List<FilePackage>) obj); }
+    //     throw new Exception("Linklist incompatible");
+    // }
 
     public void processFinalLinkState(DownloadLink localLink) {
         FinalLinkState currentFinalLinkState = localLink.getFinalLinkState();

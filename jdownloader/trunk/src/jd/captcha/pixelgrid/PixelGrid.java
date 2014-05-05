@@ -31,7 +31,7 @@ import java.util.Vector;
 import javax.imageio.ImageIO;
 
 import jd.captcha.JAntiCaptcha;
-import jd.captcha.gui.ScrollPaneWindow;
+// import jd.captcha.gui.ScrollPaneWindow;
 import jd.captcha.pixelobject.PixelObject;
 import jd.captcha.utils.Utilities;
 import jd.config.Property;
@@ -1279,16 +1279,16 @@ public class PixelGrid extends Property {
         PixelObject lastObject = null;
         PixelObject object;
         boolean showdebug = false;
-        ScrollPaneWindow w = null;
-        if (showdebug) {
-            w = new ScrollPaneWindow();
-        }
-        if (showdebug) {
-            w.setTitle("getObjects2");
-        }
-        if (showdebug) {
-            w.setImage(0, 0, this.getImage());
-        }
+        // ScrollPaneWindow w = null;
+        // if (showdebug) {
+        //     w = new ScrollPaneWindow();
+        // }
+        // if (showdebug) {
+        //     w.setTitle("getObjects2");
+        // }
+        // if (showdebug) {
+        //     w.setImage(0, 0, this.getImage());
+        // }
         int line = 1;
 
         for (int x = 0; x < getWidth(); x++) {
@@ -1328,11 +1328,11 @@ public class PixelGrid extends Property {
                         // "+contrast+" : "+objectContrast);
                         object.setWhiteContrast(objectContrast);
                     }
-                    if (showdebug) {
-                        if (object.getArea() > 20) {
-                            w.setImage(0, line, getImage());
-                        }
-                    }
+                    // if (showdebug) {
+                    //     if (object.getArea() > 20) {
+                    //         w.setImage(0, line, getImage());
+                    //     }
+                    // }
                     int tmp = object.getSize();
                     getObject(x, y, tmpGrid, object);
                     if (tmp == object.getSize()) {
@@ -1347,24 +1347,24 @@ public class PixelGrid extends Property {
                     // ()+"
                     // avg "+object.getAverage()+" area: "+object.getArea());
                     if (object.getArea() > 20) {
-                        if (showdebug) {
-                            w.setImage(1, line, getImage());
-                        }
-                        if (showdebug) {
-                            w.setText(2, line, "Size: " + object.getSize());
-                        }
-                        if (showdebug) {
-                            w.setText(3, line, "AVG: " + object.getAverage());
-                        }
-                        if (showdebug) {
-                            w.setText(4, line, "Area: " + object.getArea());
-                        }
-                        if (showdebug) {
-                            w.setImage(5, line, object.toLetter().getImage());
-                        }
-                        if (showdebug) {
-                            w.setText(6, line, object.toLetter().getDim());
-                        }
+                        // if (showdebug) {
+                        //     w.setImage(1, line, getImage());
+                        // }
+                        // if (showdebug) {
+                        //     w.setText(2, line, "Size: " + object.getSize());
+                        // }
+                        // if (showdebug) {
+                        //     w.setText(3, line, "AVG: " + object.getAverage());
+                        // }
+                        // if (showdebug) {
+                        //     w.setText(4, line, "Area: " + object.getArea());
+                        // }
+                        // if (showdebug) {
+                        //     w.setImage(5, line, object.toLetter().getImage());
+                        // }
+                        // if (showdebug) {
+                        //     w.setText(6, line, object.toLetter().getDim());
+                        // }
                     }
                     line++;
                     lastObject = object;
@@ -1398,9 +1398,9 @@ public class PixelGrid extends Property {
                 }
             }
         }
-        if (showdebug) {
-            w.refreshUI();
-        }
+        // if (showdebug) {
+        //     w.refreshUI();
+        // }
         return ret;
 
     }

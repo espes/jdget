@@ -1,6 +1,6 @@
 package org.appwork.utils.event;
 
-import javax.swing.ImageIcon;
+// import javax.swing.ImageIcon;
 
 public interface ProcessCallBack {
     public void setProgress(Object caller, int percent);
@@ -13,7 +13,7 @@ public interface ProcessCallBack {
      * @param liveHeaderDetectionWizard_runOnlineScan_notalive
      * @param icon
      */
-    public void showDialog(Object caller, String title, String message, ImageIcon icon);
+    // public void showDialog(Object caller, String title, String message, ImageIcon icon);
 
     /**
      * @param liveHeaderDetectionWizard

@@ -48,8 +48,8 @@ import org.jdownloader.extensions.extraction.ExtractionControllerConstants;
 import org.jdownloader.extensions.extraction.IExtraction;
 import org.jdownloader.extensions.extraction.Item;
 import org.jdownloader.extensions.extraction.content.PackedFile;
-import org.jdownloader.extensions.extraction.gui.iffileexistsdialog.IfFileExistsDialog;
-import org.jdownloader.settings.IfFileExistsAction;
+// import org.jdownloader.extensions.extraction.gui.iffileexistsdialog.IfFileExistsDialog;
+// import org.jdownloader.settings.IfFileExistsAction;
 
 /**
  * Joins XtreamSplit files.
@@ -101,46 +101,47 @@ public class XtreamSplit extends IExtraction {
         try {
             /* file already exists */
             if (file.exists()) {
-                IfFileExistsAction action = controller.getIfFileExistsAction();
-                while (action == null || action == IfFileExistsAction.ASK_FOR_EACH_FILE) {
-                    IfFileExistsDialog d = new IfFileExistsDialog(file, controller.getCurrentActiveItem(), archive);
-                    d.show();
-                    try {
-                        d.throwCloseExceptions();
-                    } catch (Exception e) {
-                        throw new SevenZipException(e);
-                    }
-                    action = d.getAction();
-                    if (action == null) throw new SevenZipException("Cannot handle if file exists");
-                    if (action == IfFileExistsAction.AUTO_RENAME) {
-                        file = new File(file.getParentFile(), d.getNewName());
-                        if (file.exists()) {
-                            action = IfFileExistsAction.ASK_FOR_EACH_FILE;
-                        }
-                    }
-                }
-                switch (action) {
-                case OVERWRITE_FILE:
-                    if (!FileCreationManager.getInstance().delete(file, null)) { throw new ExtSevenZipException(ExtractionControllerConstants.EXIT_CODE_CREATE_ERROR, "Could not overwrite(delete) " + file); }
-                    break;
-                case SKIP_FILE:
-                    /* skip file */
-                    archive.addExtractedFiles(file);
-                    throw new ExtSevenZipException(ExtractionControllerConstants.EXIT_CODE_OUTPUTFILE_EXIST, "Outputfile exists: " + file);
-                case AUTO_RENAME:
-                    String extension = Files.getExtension(file.getName());
-                    String name = StringUtils.isEmpty(extension) ? file.getName() : file.getName().substring(0, file.getName().length() - extension.length() - 1);
-                    int i = 1;
-                    while (file.exists()) {
-                        if (StringUtils.isEmpty(extension)) {
-                            file = new File(file.getParentFile(), name + "_" + i);
-                        } else {
-                            file = new File(file.getParentFile(), name + "_" + i + "." + extension);
-                        }
-                        i++;
-                    }
-                    break;
-                }
+                throw new UnsupportedOperationException("jdget TODO");
+                // IfFileExistsAction action = controller.getIfFileExistsAction();
+                // while (action == null || action == IfFileExistsAction.ASK_FOR_EACH_FILE) {
+                //     IfFileExistsDialog d = new IfFileExistsDialog(file, controller.getCurrentActiveItem(), archive);
+                //     d.show();
+                //     try {
+                //         d.throwCloseExceptions();
+                //     } catch (Exception e) {
+                //         throw new SevenZipException(e);
+                //     }
+                //     action = d.getAction();
+                //     if (action == null) throw new SevenZipException("Cannot handle if file exists");
+                //     if (action == IfFileExistsAction.AUTO_RENAME) {
+                //         file = new File(file.getParentFile(), d.getNewName());
+                //         if (file.exists()) {
+                //             action = IfFileExistsAction.ASK_FOR_EACH_FILE;
+                //         }
+                //     }
+                // }
+                // switch (action) {
+                // case OVERWRITE_FILE:
+                //     if (!FileCreationManager.getInstance().delete(file, null)) { throw new ExtSevenZipException(ExtractionControllerConstants.EXIT_CODE_CREATE_ERROR, "Could not overwrite(delete) " + file); }
+                //     break;
+                // case SKIP_FILE:
+                //     /* skip file */
+                //     archive.addExtractedFiles(file);
+                //     throw new ExtSevenZipException(ExtractionControllerConstants.EXIT_CODE_OUTPUTFILE_EXIST, "Outputfile exists: " + file);
+                // case AUTO_RENAME:
+                //     String extension = Files.getExtension(file.getName());
+                //     String name = StringUtils.isEmpty(extension) ? file.getName() : file.getName().substring(0, file.getName().length() - extension.length() - 1);
+                //     int i = 1;
+                //     while (file.exists()) {
+                //         if (StringUtils.isEmpty(extension)) {
+                //             file = new File(file.getParentFile(), name + "_" + i);
+                //         } else {
+                //             file = new File(file.getParentFile(), name + "_" + i + "." + extension);
+                //         }
+                //         i++;
+                //     }
+                //     break;
+                // }
             }
             if ((!file.getParentFile().exists() && !FileCreationManager.getInstance().mkdir(file.getParentFile())) || !file.createNewFile()) {
                 archive.setExitCode(ExtractionControllerConstants.EXIT_CODE_CREATE_ERROR);
@@ -224,15 +225,15 @@ public class XtreamSplit extends IExtraction {
                     }
                 }
             }
-        } catch (ExtSevenZipException e) {
-            setException(e);
-            logger.log(e);
-            archive.setExitCode(e.getExitCode());
-        } catch (SevenZipException e) {
-            setException(e);
-            logger.log(e);
-            archive.setExitCode(ExtractionControllerConstants.EXIT_CODE_FATAL_ERROR);
-            return;
+        // } catch (ExtSevenZipException e) {
+        //     setException(e);
+        //     logger.log(e);
+        //     archive.setExitCode(e.getExitCode());
+        // } catch (SevenZipException e) {
+        //     setException(e);
+        //     logger.log(e);
+        //     archive.setExitCode(ExtractionControllerConstants.EXIT_CODE_FATAL_ERROR);
+        //     return;
         } catch (FileNotFoundException e) {
             controller.setExeption(e);
             archive.setExitCode(ExtractionControllerConstants.EXIT_CODE_WRITE_ERROR);

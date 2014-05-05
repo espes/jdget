@@ -107,29 +107,30 @@ public class EasyMethodFile implements JDLabelContainer, Serializable {
         final File folder2 = this.getCaptchaFolder();
         if (showLoadDialog) {
             if (!folder2.exists() || folder2.list().length < 1) {
-                final int res = UserIO.getInstance().requestConfirmDialog(0, T._.easycaptcha_loadcaptchas_title(), T._.easycaptcha_needCaptchas(), null, T._.easycaptcha_openCaptchaFolder(), T._.easycaptcha_loadcaptchas());
-                if (JDFlags.hasSomeFlags(res, UserIO.RETURN_OK)) {
-                    FileCreationManager.getInstance().mkdir(folder2);
-                    this.openCaptchaFolder();
-                    return "jpg";
-                } else {
-                    return new EDTHelper<String>() {
-                        public String edtRun() {
-                            if (!new LoadCaptchas(EasyCaptchaTool.ownerFrame, EasyMethodFile.this.file.getName()).start()) {
-                                EasyMethodFile.this.openCaptchaFolder();
-                                return "jpg";
-                            }
-                            String filetype = "jpg";
-                            final File[] fl = folder2.listFiles();
-                            if (fl.length > 0 && fl[fl.length - 1].getName().toLowerCase().contains("png")) {
-                                filetype = "png";
-                            } else if (fl.length > 0 && fl[fl.length - 1].getName().toLowerCase().contains("gif")) {
-                                filetype = "gif";
-                            }
-                            return filetype;
-                        }
-                    }.getReturnValue();
-                }
+                // final int res = UserIO.getInstance().requestConfirmDialog(0, T._.easycaptcha_loadcaptchas_title(), T._.easycaptcha_needCaptchas(), null, T._.easycaptcha_openCaptchaFolder(), T._.easycaptcha_loadcaptchas());
+                // if (JDFlags.hasSomeFlags(res, UserIO.RETURN_OK)) {
+                //     FileCreationManager.getInstance().mkdir(folder2);
+                //     this.openCaptchaFolder();
+                //     return "jpg";
+                // } else {
+                //     return new EDTHelper<String>() {
+                //         public String edtRun() {
+                //             if (!new LoadCaptchas(EasyCaptchaTool.ownerFrame, EasyMethodFile.this.file.getName()).start()) {
+                //                 EasyMethodFile.this.openCaptchaFolder();
+                //                 return "jpg";
+                //             }
+                //             String filetype = "jpg";
+                //             final File[] fl = folder2.listFiles();
+                //             if (fl.length > 0 && fl[fl.length - 1].getName().toLowerCase().contains("png")) {
+                //                 filetype = "png";
+                //             } else if (fl.length > 0 && fl[fl.length - 1].getName().toLowerCase().contains("gif")) {
+                //                 filetype = "gif";
+                //             }
+                //             return filetype;
+                //         }
+                //     }.getReturnValue();
+                // }
+                throw new UnsupportedOperationException("jdget TODO");
             }
         }
         String filetype = "jpg";

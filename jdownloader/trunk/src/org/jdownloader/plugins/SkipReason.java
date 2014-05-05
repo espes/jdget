@@ -2,10 +2,10 @@ package org.jdownloader.plugins;
 
 import javax.swing.Icon;
 
-import org.appwork.swing.components.ExtMergedIcon;
+// import org.appwork.swing.components.ExtMergedIcon;
 import org.jdownloader.gui.IconKey;
-import org.jdownloader.images.AbstractIcon;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.AbstractIcon;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.translate._JDT;
 
 public enum SkipReason {
@@ -27,18 +27,18 @@ public enum SkipReason {
         this.iconKey = iconKey;
     }
 
-    public Icon getIcon(Object requestor, int size) {
-        String id;
-        Icon ret = NewTheme.I().getCached(id = "Skipped" + iconKey + "-" + size);
-        // if (ret != null) return ret;
+    // public Icon getIcon(Object requestor, int size) {
+    //     String id;
+    //     Icon ret = NewTheme.I().getCached(id = "Skipped" + iconKey + "-" + size);
+    //     // if (ret != null) return ret;
 
-        if (iconKey == null) return new AbstractIcon(IconKey.ICON_SKIPPED, size);
-        int main = (int) (size * 0.75d);
-        int badge = (int) (size * 0.75d);
-        ret = new ExtMergedIcon(new AbstractIcon(IconKey.ICON_SKIPPED, main), -1, -1).add(new AbstractIcon(iconKey, badge), size - badge, size - badge).crop(size, size);
-        NewTheme.I().cache(ret, id);
-        return ret;
-    }
+    //     if (iconKey == null) return new AbstractIcon(IconKey.ICON_SKIPPED, size);
+    //     int main = (int) (size * 0.75d);
+    //     int badge = (int) (size * 0.75d);
+    //     ret = new ExtMergedIcon(new AbstractIcon(IconKey.ICON_SKIPPED, main), -1, -1).add(new AbstractIcon(iconKey, badge), size - badge, size - badge).crop(size, size);
+    //     NewTheme.I().cache(ret, id);
+    //     return ret;
+    // }
 
     private SkipReason(String exp) {
         this.exp = exp;

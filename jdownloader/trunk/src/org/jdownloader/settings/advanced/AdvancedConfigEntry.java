@@ -3,20 +3,20 @@ package org.jdownloader.settings.advanced;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 
-import jd.gui.swing.jdgui.JDGui;
-import jd.gui.swing.jdgui.WarnLevel;
+// import jd.gui.swing.jdgui.JDGui;
+// import jd.gui.swing.jdgui.WarnLevel;
 
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.annotations.DescriptionForConfigEntry;
 import org.appwork.storage.config.annotations.RequiresRestart;
 import org.appwork.storage.config.annotations.SpinnerValidator;
 import org.appwork.storage.config.handler.KeyHandler;
-import org.appwork.uio.UIOManager;
-import org.appwork.utils.swing.dialog.ConfirmDialog;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.jdownloader.gui.IconKey;
+// import org.appwork.uio.UIOManager;
+// import org.appwork.utils.swing.dialog.ConfirmDialog;
+// import org.appwork.utils.swing.dialog.Dialog;
+// import org.jdownloader.gui.IconKey;
 import org.jdownloader.gui.translate._GUI;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.NewTheme;
 
 public class AdvancedConfigEntry {
 
@@ -70,18 +70,18 @@ public class AdvancedConfigEntry {
             if (!equals(v, value)) {
 
                 if (keyHandler.getAnnotation(RequiresRestart.class) != null) {
-                    if (JDGui.bugme(WarnLevel.NORMAL)) {
-                        ConfirmDialog d = new ConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | UIOManager.BUTTONS_HIDE_CANCEL, _GUI._.AdvancedConfigEntry_setValue_restart_warning_title(keyHandler.getKey()), _GUI._.AdvancedConfigEntry_setValue_restart_warning(keyHandler.getKey()), NewTheme.I().getIcon(IconKey.ICON_WARNING, 32), null, null) {
+                    // if (JDGui.bugme(WarnLevel.NORMAL)) {
+                    //     ConfirmDialog d = new ConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | UIOManager.BUTTONS_HIDE_CANCEL, _GUI._.AdvancedConfigEntry_setValue_restart_warning_title(keyHandler.getKey()), _GUI._.AdvancedConfigEntry_setValue_restart_warning(keyHandler.getKey()), NewTheme.I().getIcon(IconKey.ICON_WARNING, 32), null, null) {
 
-                            @Override
-                            public String getDontShowAgainKey() {
-                                return "RestartRequiredAdvancedConfig";
-                            }
+                    //         @Override
+                    //         public String getDontShowAgainKey() {
+                    //             return "RestartRequiredAdvancedConfig";
+                    //         }
 
-                        };
-                        d.show();
+                    //     };
+                    //     d.show();
 
-                    }
+                    // }
                 }
             }
         } catch (IllegalArgumentException e) {

@@ -25,14 +25,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import jd.SecondLevelLaunch;
+// import jd.SecondLevelLaunch;
 import jd.config.SubConfiguration;
 import jd.controlling.downloadcontroller.DownloadController;
 import jd.controlling.downloadcontroller.SingleDownloadController;
 import jd.controlling.linkcollector.LinkCollector;
 import jd.controlling.packagecontroller.PackageControllerModifyVetoListener;
-import jd.gui.swing.jdgui.menu.actions.sendlogs.LogAction;
-import jd.plugins.AddonPanel;
+// import jd.gui.swing.jdgui.menu.actions.sendlogs.LogAction;
+// import jd.plugins.AddonPanel;
 import jd.plugins.DownloadLink;
 import jd.plugins.FilePackage;
 
@@ -40,45 +40,45 @@ import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownRequest;
 import org.appwork.shutdown.ShutdownVetoException;
 import org.appwork.shutdown.ShutdownVetoListener;
-import org.appwork.uio.UIOManager;
+// import org.appwork.uio.UIOManager;
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.StringUtils;
-import org.appwork.utils.swing.EDTHelper;
-import org.appwork.utils.swing.EDTRunner;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.ExceptionDialog;
+// import org.appwork.utils.swing.EDTHelper;
+// import org.appwork.utils.swing.EDTRunner;
+// import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.ExceptionDialog;
 import org.jdownloader.controlling.FileCreationListener;
 import org.jdownloader.controlling.FileCreationManager;
-import org.jdownloader.controlling.contextmenu.ActionData;
-import org.jdownloader.controlling.contextmenu.ContextMenuManager;
-import org.jdownloader.controlling.contextmenu.MenuContainerRoot;
-import org.jdownloader.controlling.contextmenu.MenuExtenderHandler;
-import org.jdownloader.controlling.contextmenu.MenuItemData;
-import org.jdownloader.controlling.contextmenu.SeperatorData;
+// import org.jdownloader.controlling.contextmenu.ActionData;
+// import org.jdownloader.controlling.contextmenu.ContextMenuManager;
+// import org.jdownloader.controlling.contextmenu.MenuContainerRoot;
+// import org.jdownloader.controlling.contextmenu.MenuExtenderHandler;
+// import org.jdownloader.controlling.contextmenu.MenuItemData;
+// import org.jdownloader.controlling.contextmenu.SeperatorData;
 import org.jdownloader.controlling.packagizer.PackagizerController;
 import org.jdownloader.extensions.AbstractExtension;
-import org.jdownloader.extensions.ExtensionConfigPanel;
+// import org.jdownloader.extensions.ExtensionConfigPanel;
 import org.jdownloader.extensions.StartException;
 import org.jdownloader.extensions.StopException;
-import org.jdownloader.extensions.extraction.actions.ExtractAction;
+// import org.jdownloader.extensions.extraction.actions.ExtractAction;
 import org.jdownloader.extensions.extraction.bindings.crawledlink.CrawledLinkFactory;
 import org.jdownloader.extensions.extraction.bindings.downloadlink.DownloadLinkArchive;
 import org.jdownloader.extensions.extraction.bindings.downloadlink.DownloadLinkArchiveFactory;
 import org.jdownloader.extensions.extraction.bindings.file.FileArchiveFactory;
-import org.jdownloader.extensions.extraction.contextmenu.ArchivesSubMenu;
-import org.jdownloader.extensions.extraction.contextmenu.downloadlist.ArchiveValidator;
-import org.jdownloader.extensions.extraction.contextmenu.downloadlist.CleanupSubMenu;
-import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.AutoExtractEnabledToggleAction;
-import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.CleanupAutoDeleteFilesEnabledToggleAction;
-import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.CleanupAutoDeleteLinksEnabledToggleAction;
-import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.ExtractArchiveNowAction;
-import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.SetExtractPasswordAction;
-import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.SetExtractToAction;
-import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.ShowExtractionResultAction;
-import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.ValidateArchivesAction;
-import org.jdownloader.extensions.extraction.gui.bubble.ExtractionBubbleSupport;
-import org.jdownloader.extensions.extraction.gui.config.ExtractionConfigPanel;
+// import org.jdownloader.extensions.extraction.contextmenu.ArchivesSubMenu;
+// import org.jdownloader.extensions.extraction.contextmenu.downloadlist.ArchiveValidator;
+// import org.jdownloader.extensions.extraction.contextmenu.downloadlist.CleanupSubMenu;
+// import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action. ;
+// import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.CleanupAutoDeleteFilesEnabledToggleAction;
+// import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.CleanupAutoDeleteLinksEnabledToggleAction;
+// import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.ExtractArchiveNowAction;
+// import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.SetExtractPasswordAction;
+// import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.SetExtractToAction;
+// import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.ShowExtractionResultAction;
+// import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.ValidateArchivesAction;
+// import org.jdownloader.extensions.extraction.gui.bubble.ExtractionBubbleSupport;
+// import org.jdownloader.extensions.extraction.gui.config.ExtractionConfigPanel;
 import org.jdownloader.extensions.extraction.multi.ArchiveException;
 import org.jdownloader.extensions.extraction.multi.CheckException;
 import org.jdownloader.extensions.extraction.multi.Multi;
@@ -87,22 +87,22 @@ import org.jdownloader.extensions.extraction.split.Unix;
 import org.jdownloader.extensions.extraction.split.XtreamSplit;
 import org.jdownloader.extensions.extraction.translate.ExtractionTranslation;
 import org.jdownloader.extensions.extraction.translate.T;
-import org.jdownloader.gui.mainmenu.MenuManagerMainmenu;
-import org.jdownloader.gui.mainmenu.container.ExtensionsMenuContainer;
-import org.jdownloader.gui.mainmenu.container.OptionalContainer;
-import org.jdownloader.gui.notify.BubbleNotify;
-import org.jdownloader.gui.toolbar.MenuManagerMainToolbar;
-import org.jdownloader.gui.views.downloads.context.submenu.MoreMenuContainer;
-import org.jdownloader.gui.views.downloads.contextmenumanager.MenuManagerDownloadTableContext;
-import org.jdownloader.gui.views.linkgrabber.contextmenu.LinkGrabberMoreSubMenu;
-import org.jdownloader.gui.views.linkgrabber.contextmenu.MenuManagerLinkgrabberTableContext;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.gui.mainmenu.MenuManagerMainmenu;
+// import org.jdownloader.gui.mainmenu.container.ExtensionsMenuContainer;
+// import org.jdownloader.gui.mainmenu.container.OptionalContainer;
+// import org.jdownloader.gui.notify.BubbleNotify;
+// import org.jdownloader.gui.toolbar.MenuManagerMainToolbar;
+// import org.jdownloader.gui.views.downloads.context.submenu.MoreMenuContainer;
+// import org.jdownloader.gui.views.downloads.contextmenumanager.MenuManagerDownloadTableContext;
+// import org.jdownloader.gui.views.linkgrabber.contextmenu.LinkGrabberMoreSubMenu;
+// import org.jdownloader.gui.views.linkgrabber.contextmenu.MenuManagerLinkgrabberTableContext;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.settings.IfFileExistsAction;
 import org.jdownloader.settings.staticreferences.CFG_LINKGRABBER;
 import org.jdownloader.translate._JDT;
 
-public class ExtractionExtension extends AbstractExtension<ExtractionConfig, ExtractionTranslation> implements FileCreationListener, MenuExtenderHandler, PackageControllerModifyVetoListener<FilePackage, DownloadLink> {
+public class ExtractionExtension extends AbstractExtension<ExtractionConfig, ExtractionTranslation> implements FileCreationListener, /*MenuExtenderHandler,*/ PackageControllerModifyVetoListener<FilePackage, DownloadLink> {
 
     private ExtractionQueue       extractionQueue = new ExtractionQueue();
 
@@ -116,11 +116,11 @@ public class ExtractionExtension extends AbstractExtension<ExtractionConfig, Ext
 
     private final Set<Archive>         archives          = new CopyOnWriteArraySet<Archive>();
 
-    private ExtractionConfigPanel      configPanel;
+    // private ExtractionConfigPanel      configPanel;
 
     private static ExtractionExtension INSTANCE;
 
-    private ExtractionListenerIcon     statusbarListener = null;
+    // private ExtractionListenerIcon     statusbarListener = null;
     private ShutdownVetoListener       listener          = null;
     private boolean                    lazyInitOnStart   = false;
     private final Object               PWLOCK            = new Object();
@@ -413,30 +413,30 @@ public class ExtractionExtension extends AbstractExtension<ExtractionConfig, Ext
     protected void stop() throws StopException {
         ShutdownController.getInstance().removeShutdownVetoListener(listener);
         LinkCollector.getInstance().setArchiver(null);
-        MenuManagerDownloadTableContext.getInstance().unregisterExtender(this);
-        MenuManagerLinkgrabberTableContext.getInstance().unregisterExtender(this);
+        // MenuManagerDownloadTableContext.getInstance().unregisterExtender(this);
+        // MenuManagerLinkgrabberTableContext.getInstance().unregisterExtender(this);
         DownloadController.getInstance().removeVetoListener(this);
         FileCreationManager.getInstance().getEventSender().removeListener(this);
-        SecondLevelLaunch.GUI_COMPLETE.executeWhenReached(new Runnable() {
+        // SecondLevelLaunch.GUI_COMPLETE.executeWhenReached(new Runnable() {
 
-            public void run() {
-                new EDTRunner() {
+        //     public void run() {
+        //         new EDTRunner() {
 
-                    @Override
-                    protected void runInEDT() {
+        //             @Override
+        //             protected void runInEDT() {
 
-                        if (statusbarListener != null) {
-                            statusbarListener.cleanup();
-                            eventSender.removeListener(statusbarListener);
-                        }
-                        if (bubbleSupport != null) {
-                            eventSender.removeListener(bubbleSupport);
-                            BubbleNotify.getInstance().unregisterTypes(bubbleSupport);
-                        }
-                    }
-                };
-            }
-        });
+        //                 if (statusbarListener != null) {
+        //                     statusbarListener.cleanup();
+        //                     eventSender.removeListener(statusbarListener);
+        //                 }
+        //                 if (bubbleSupport != null) {
+        //                     eventSender.removeListener(bubbleSupport);
+        //                     BubbleNotify.getInstance().unregisterTypes(bubbleSupport);
+        //                 }
+        //             }
+        //         };
+        //     }
+        // });
 
     }
 
@@ -452,34 +452,34 @@ public class ExtractionExtension extends AbstractExtension<ExtractionConfig, Ext
         }
     }
 
-    private ExtractionBubbleSupport bubbleSupport;
+    // private ExtractionBubbleSupport bubbleSupport;
 
     @Override
     protected void start() throws StartException {
         lazyInitOnceOnStart();
-        MenuManagerDownloadTableContext.getInstance().registerExtender(this);
-        MenuManagerLinkgrabberTableContext.getInstance().registerExtender(this);
-        MenuManagerMainmenu.getInstance().registerExtender(this);
-        MenuManagerMainToolbar.getInstance().registerExtender(this);
+        // MenuManagerDownloadTableContext.getInstance().registerExtender(this);
+        // MenuManagerLinkgrabberTableContext.getInstance().registerExtender(this);
+        // MenuManagerMainmenu.getInstance().registerExtender(this);
+        // MenuManagerMainToolbar.getInstance().registerExtender(this);
         LinkCollector.getInstance().setArchiver(this);
         DownloadController.getInstance().addVetoListener(this);
 
         FileCreationManager.getInstance().getEventSender().addListener(this);
-        SecondLevelLaunch.GUI_COMPLETE.executeWhenReached(new Runnable() {
-            public void run() {
-                new EDTRunner() {
+        // SecondLevelLaunch.GUI_COMPLETE.executeWhenReached(new Runnable() {
+        //     public void run() {
+        //         new EDTRunner() {
 
-                    @Override
-                    protected void runInEDT() {
-                        if (statusbarListener != null) statusbarListener.cleanup();
-                        eventSender.addListener(statusbarListener = new ExtractionListenerIcon(ExtractionExtension.this));
-                        bubbleSupport = new ExtractionBubbleSupport(T._.bubbletype(), CFG_EXTRACTION.BUBBLE_ENABLED_IF_ARCHIVE_EXTRACTION_IS_IN_PROGRESS);
-                        eventSender.addListener(bubbleSupport);
-                        BubbleNotify.getInstance().registerType(bubbleSupport);
-                    }
-                };
-            }
-        });
+        //             @Override
+        //             protected void runInEDT() {
+        //                 if (statusbarListener != null) statusbarListener.cleanup();
+        //                 eventSender.addListener(statusbarListener = new ExtractionListenerIcon(ExtractionExtension.this));
+        //                 bubbleSupport = new ExtractionBubbleSupport(T._.bubbletype(), CFG_EXTRACTION.BUBBLE_ENABLED_IF_ARCHIVE_EXTRACTION_IS_IN_PROGRESS);
+        //                 eventSender.addListener(bubbleSupport);
+        //                 BubbleNotify.getInstance().registerType(bubbleSupport);
+        //             }
+        //         };
+        //     }
+        // });
         ShutdownController.getInstance().addShutdownVetoListener(listener = new ShutdownVetoListener() {
 
             @Override
@@ -493,7 +493,7 @@ public class ExtractionExtension extends AbstractExtension<ExtractionConfig, Ext
                 } else {
                     if (!extractionQueue.isEmpty() || extractionQueue.getCurrentQueueEntry() != null) {
 
-                        if (UIOManager.I().showConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL, _JDT._.Extraction_onShutdownRequest_(), _JDT._.Extraction_onShutdownRequest_msg(), NewTheme.I().getIcon(org.jdownloader.gui.IconKey.ICON_COMPRESS, 32), _JDT._.literally_yes(), null)) { return; }
+                        // if (UIOManager.I().showConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL, _JDT._.Extraction_onShutdownRequest_(), _JDT._.Extraction_onShutdownRequest_msg(), NewTheme.I().getIcon(org.jdownloader.gui.IconKey.ICON_COMPRESS, 32), _JDT._.literally_yes(), null)) { return; }
                         throw new ShutdownVetoException("ExtractionExtension is still running", this);
                     }
                 }
@@ -538,11 +538,12 @@ public class ExtractionExtension extends AbstractExtension<ExtractionConfig, Ext
                             }
                         }
                         if (StringUtils.isNotEmpty(latestLog)) {
-                            ExceptionDialog ed = new ExceptionDialog(0, T._.crash_title(), T._.crash_message(), null, null, null);
-                            ed.setMore(latestLog);
-                            Dialog.getInstance().showDialog(ed);
-                            LogAction la = new LogAction();
-                            la.actionPerformed(null);
+                            // ExceptionDialog ed = new ExceptionDialog(0, T._.crash_title(), T._.crash_message(), null, null, null);
+                            // ed.setMore(latestLog);
+                            // Dialog.getInstance().showDialog(ed);
+                            // LogAction la = new LogAction();
+                            // la.actionPerformed(null);
+                            throw new UnsupportedOperationException("jdget TODO");
                         }
                     }
                 } catch (Throwable e) {
@@ -602,7 +603,7 @@ public class ExtractionExtension extends AbstractExtension<ExtractionConfig, Ext
     protected void initExtension() throws StartException {
         /* import old passwordlist */
         boolean oldPWListImported = false;
-        ArchiveValidator.EXTENSION = this;
+        // ArchiveValidator.EXTENSION = this;
 
         try {
             if ((oldPWListImported = getSettings().isOldPWListImported()) == false) {
@@ -641,23 +642,23 @@ public class ExtractionExtension extends AbstractExtension<ExtractionConfig, Ext
         return _.description();
     }
 
-    @Override
-    public AddonPanel<ExtractionExtension> getGUI() {
-        return null;
-    }
+    // @Override
+    // public AddonPanel<ExtractionExtension> getGUI() {
+    //     return null;
+    // }
 
-    @Override
-    public ExtensionConfigPanel<ExtractionExtension> getConfigPanel() {
-        if (configPanel != null) return configPanel;
-        return new EDTHelper<ExtractionConfigPanel>() {
-            @Override
-            public ExtractionConfigPanel edtRun() {
-                if (configPanel != null) return configPanel;
-                configPanel = new ExtractionConfigPanel(ExtractionExtension.this);
-                return configPanel;
-            }
-        }.getReturnValue();
-    }
+    // @Override
+    // public ExtensionConfigPanel<ExtractionExtension> getConfigPanel() {
+    //     if (configPanel != null) return configPanel;
+    //     return new EDTHelper<ExtractionConfigPanel>() {
+    //         @Override
+    //         public ExtractionConfigPanel edtRun() {
+    //             if (configPanel != null) return configPanel;
+    //             configPanel = new ExtractionConfigPanel(ExtractionExtension.this);
+    //             return configPanel;
+    //         }
+    //     }.getReturnValue();
+    // }
 
     public ExtractionQueue getJobQueue() {
         return extractionQueue;
@@ -866,75 +867,75 @@ public class ExtractionExtension extends AbstractExtension<ExtractionConfig, Ext
         return extractors;
     }
 
-    @Override
-    public MenuItemData updateMenuModel(ContextMenuManager manager, MenuContainerRoot mr) {
+    // @Override
+    // public MenuItemData updateMenuModel(ContextMenuManager manager, MenuContainerRoot mr) {
 
-        if (manager instanceof MenuManagerMainToolbar) {
-            return updateMainToolbar(mr);
-        } else if (manager instanceof MenuManagerMainmenu) {
-            return updateMainMenu(mr);
-        } else if (manager instanceof MenuManagerLinkgrabberTableContext) {
-            int addonLinkIndex = 0;
-            for (int i = 0; i < mr.getItems().size(); i++) {
-                if (mr.getItems().get(i) instanceof LinkGrabberMoreSubMenu) {
-                    addonLinkIndex = i;
-                    break;
-                }
-            }
+    //     if (manager instanceof MenuManagerMainToolbar) {
+    //         return updateMainToolbar(mr);
+    //     } else if (manager instanceof MenuManagerMainmenu) {
+    //         return updateMainMenu(mr);
+    //     } else if (manager instanceof MenuManagerLinkgrabberTableContext) {
+    //         int addonLinkIndex = 0;
+    //         for (int i = 0; i < mr.getItems().size(); i++) {
+    //             if (mr.getItems().get(i) instanceof LinkGrabberMoreSubMenu) {
+    //                 addonLinkIndex = i;
+    //                 break;
+    //             }
+    //         }
 
-            ArchivesSubMenu root;
-            mr.getItems().add(addonLinkIndex, root = new ArchivesSubMenu());
-            root.add(new MenuItemData(new ActionData(ValidateArchivesAction.class)));
-            root.add(new SeperatorData());
-            root.add(new MenuItemData(new ActionData(AutoExtractEnabledToggleAction.class)));
-            root.add(new MenuItemData(new ActionData(SetExtractToAction.class)));
-            root.add(new MenuItemData(new ActionData(SetExtractPasswordAction.class)));
-            CleanupSubMenu cleanup = new CleanupSubMenu();
-            root.add(cleanup);
-            cleanup.add(new MenuItemData(new ActionData(CleanupAutoDeleteFilesEnabledToggleAction.class)));
-            cleanup.add(new MenuItemData(new ActionData(CleanupAutoDeleteLinksEnabledToggleAction.class)));
-            return null;
+    //         ArchivesSubMenu root;
+    //         mr.getItems().add(addonLinkIndex, root = new ArchivesSubMenu());
+    //         root.add(new MenuItemData(new ActionData(ValidateArchivesAction.class)));
+    //         root.add(new SeperatorData());
+    //         root.add(new MenuItemData(new ActionData(AutoExtractEnabledToggleAction.class)));
+    //         root.add(new MenuItemData(new ActionData(SetExtractToAction.class)));
+    //         root.add(new MenuItemData(new ActionData(SetExtractPasswordAction.class)));
+    //         CleanupSubMenu cleanup = new CleanupSubMenu();
+    //         root.add(cleanup);
+    //         cleanup.add(new MenuItemData(new ActionData(CleanupAutoDeleteFilesEnabledToggleAction.class)));
+    //         cleanup.add(new MenuItemData(new ActionData(CleanupAutoDeleteLinksEnabledToggleAction.class)));
+    //         return null;
 
-        } else if (manager instanceof MenuManagerDownloadTableContext) {
-            int addonLinkIndex = 0;
-            for (int i = 0; i < mr.getItems().size(); i++) {
-                if (mr.getItems().get(i) instanceof MoreMenuContainer) {
-                    addonLinkIndex = i;
-                    break;
-                }
-            }
+    //     } else if (manager instanceof MenuManagerDownloadTableContext) {
+    //         int addonLinkIndex = 0;
+    //         for (int i = 0; i < mr.getItems().size(); i++) {
+    //             if (mr.getItems().get(i) instanceof MoreMenuContainer) {
+    //                 addonLinkIndex = i;
+    //                 break;
+    //             }
+    //         }
 
-            ArchivesSubMenu root;
-            mr.getItems().add(addonLinkIndex, root = new ArchivesSubMenu());
-            root.add(new MenuItemData(new ActionData(ExtractArchiveNowAction.class)));
-            root.add(new MenuItemData(new ActionData(ShowExtractionResultAction.class)));
-            root.add(new MenuItemData(new ActionData(ValidateArchivesAction.class)));
+    //         ArchivesSubMenu root;
+    //         mr.getItems().add(addonLinkIndex, root = new ArchivesSubMenu());
+    //         root.add(new MenuItemData(new ActionData(ExtractArchiveNowAction.class)));
+    //         root.add(new MenuItemData(new ActionData(ShowExtractionResultAction.class)));
+    //         root.add(new MenuItemData(new ActionData(ValidateArchivesAction.class)));
 
-            root.add(new SeperatorData());
-            root.add(new MenuItemData(new ActionData(AutoExtractEnabledToggleAction.class)));
-            root.add(new MenuItemData(new ActionData(SetExtractToAction.class)));
-            root.add(new MenuItemData(new ActionData(SetExtractPasswordAction.class)));
-            CleanupSubMenu cleanup = new CleanupSubMenu();
-            root.add(cleanup);
-            cleanup.add(new MenuItemData(new ActionData(CleanupAutoDeleteFilesEnabledToggleAction.class)));
-            cleanup.add(new MenuItemData(new ActionData(CleanupAutoDeleteLinksEnabledToggleAction.class)));
-            return null;
-        }
-        return null;
-    }
+    //         root.add(new SeperatorData());
+    //         root.add(new MenuItemData(new ActionData(AutoExtractEnabledToggleAction.class)));
+    //         root.add(new MenuItemData(new ActionData(SetExtractToAction.class)));
+    //         root.add(new MenuItemData(new ActionData(SetExtractPasswordAction.class)));
+    //         CleanupSubMenu cleanup = new CleanupSubMenu();
+    //         root.add(cleanup);
+    //         cleanup.add(new MenuItemData(new ActionData(CleanupAutoDeleteFilesEnabledToggleAction.class)));
+    //         cleanup.add(new MenuItemData(new ActionData(CleanupAutoDeleteLinksEnabledToggleAction.class)));
+    //         return null;
+    //     }
+    //     return null;
+    // }
 
-    private MenuItemData updateMainMenu(MenuContainerRoot mr) {
-        ExtensionsMenuContainer container = new ExtensionsMenuContainer();
-        container.add(ExtractAction.class);
-        return container;
+    // private MenuItemData updateMainMenu(MenuContainerRoot mr) {
+    //     ExtensionsMenuContainer container = new ExtensionsMenuContainer();
+    //     container.add(ExtractAction.class);
+    //     return container;
 
-    }
+    // }
 
-    private MenuItemData updateMainToolbar(MenuContainerRoot mr) {
-        OptionalContainer opt = new OptionalContainer(false);
-        opt.add(ExtractAction.class);
-        return opt;
-    }
+    // private MenuItemData updateMainToolbar(MenuContainerRoot mr) {
+    //     OptionalContainer opt = new OptionalContainer(false);
+    //     opt.add(ExtractAction.class);
+    //     return opt;
+    // }
 
     @Override
     public boolean onAskToRemovePackage(FilePackage pkg) {

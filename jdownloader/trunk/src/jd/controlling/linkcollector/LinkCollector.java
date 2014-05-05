@@ -36,8 +36,8 @@ import jd.controlling.linkcrawler.LinkCrawlerHandler;
 import jd.controlling.linkcrawler.PackageInfo;
 import jd.controlling.packagecontroller.AbstractNode;
 import jd.controlling.packagecontroller.PackageController;
-import jd.gui.swing.jdgui.JDGui;
-import jd.gui.swing.jdgui.WarnLevel;
+// import jd.gui.swing.jdgui.JDGui;
+// import jd.gui.swing.jdgui.WarnLevel;
 import jd.parser.Regex;
 import jd.plugins.DownloadLink;
 import jd.plugins.FilePackage;
@@ -55,7 +55,7 @@ import org.appwork.shutdown.ShutdownVetoListener;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
 import org.appwork.storage.config.JsonConfig;
-import org.appwork.uio.UIOManager;
+// import org.appwork.uio.UIOManager;
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.StringUtils;
@@ -63,10 +63,10 @@ import org.appwork.utils.event.queue.Queue;
 import org.appwork.utils.event.queue.Queue.QueuePriority;
 import org.appwork.utils.event.queue.QueueAction;
 import org.appwork.utils.os.CrossSystem;
-import org.appwork.utils.swing.EDTRunner;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogCanceledException;
-import org.appwork.utils.swing.dialog.DialogClosedException;
+// import org.appwork.utils.swing.EDTRunner;
+// import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.DialogCanceledException;
+// import org.appwork.utils.swing.dialog.DialogClosedException;
 import org.appwork.utils.zip.ZipIOReader;
 import org.appwork.utils.zip.ZipIOWriter;
 import org.jdownloader.controlling.FileCreationManager;
@@ -77,21 +77,21 @@ import org.jdownloader.controlling.packagizer.PackagizerController;
 import org.jdownloader.extensions.extraction.ExtractionExtension;
 import org.jdownloader.extensions.extraction.bindings.crawledlink.CrawledLinkFactory;
 import org.jdownloader.gui.translate._GUI;
-import org.jdownloader.gui.views.SelectionInfo;
-import org.jdownloader.gui.views.SelectionInfo.PackageView;
+// import org.jdownloader.gui.views.SelectionInfo;
+// import org.jdownloader.gui.views.SelectionInfo.PackageView;
 import org.jdownloader.gui.views.components.packagetable.LinkTreeUtils;
-import org.jdownloader.gui.views.linkgrabber.LinkGrabberTable;
-import org.jdownloader.gui.views.linkgrabber.LinkGrabberTableModel;
-import org.jdownloader.gui.views.linkgrabber.LinkgrabberSearchField;
-import org.jdownloader.gui.views.linkgrabber.contextmenu.MenuManagerLinkgrabberTableContext;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.gui.views.linkgrabber.LinkGrabberTable;
+// import org.jdownloader.gui.views.linkgrabber.LinkGrabberTableModel;
+// import org.jdownloader.gui.views.linkgrabber.LinkgrabberSearchField;
+// import org.jdownloader.gui.views.linkgrabber.contextmenu.MenuManagerLinkgrabberTableContext;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.myjdownloader.client.json.AvailableLinkState;
 import org.jdownloader.plugins.controller.UpdateRequiredClassNotFoundException;
 import org.jdownloader.plugins.controller.host.HostPluginController;
 import org.jdownloader.plugins.controller.host.LazyHostPlugin;
 import org.jdownloader.plugins.controller.host.PluginFinder;
 import org.jdownloader.settings.GeneralSettings;
-import org.jdownloader.settings.staticreferences.CFG_GUI;
+// import org.jdownloader.settings.staticreferences.CFG_GUI;
 import org.jdownloader.settings.staticreferences.CFG_LINKGRABBER;
 import org.jdownloader.translate._JDT;
 
@@ -828,7 +828,7 @@ public class LinkCollector extends PackageController<CrawledPackage, CrawledLink
                 return lc;
             }
         } catch (VerifyError e) {
-            Dialog.getInstance().showExceptionDialog("Eclipse Java 1.7 Bug", "This is an eclipse Java 7 bug. See here: http://goo.gl/REs9c\r\nAdd JVM Parameter -XX:-UseSplitVerifier", e);
+            // Dialog.getInstance().showExceptionDialog("Eclipse Java 1.7 Bug", "This is an eclipse Java 7 bug. See here: http://goo.gl/REs9c\r\nAdd JVM Parameter -XX:-UseSplitVerifier", e);
 
             throw e;
         }
@@ -1617,13 +1617,13 @@ public class LinkCollector extends PackageController<CrawledPackage, CrawledLink
             synchronized (shutdownLock) {
 
                 if (LinkChecker.isChecking() || LinkCrawler.isCrawling()) {
-                    if (JDGui.bugme(WarnLevel.NORMAL)) {
-                        if (UIOManager.I().showConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL, _JDT._.LinkCollector_onShutdownRequest_(), _JDT._.LinkCollector_onShutdownRequest_msg(), NewTheme.I().getIcon("linkgrabber", 32), _JDT._.literally_yes(), null)) {
-                        } else {
-                            return;
-                        }
-                        return;
-                    }
+                    // if (JDGui.bugme(WarnLevel.NORMAL)) {
+                    //     if (UIOManager.I().showConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL, _JDT._.LinkCollector_onShutdownRequest_(), _JDT._.LinkCollector_onShutdownRequest_msg(), NewTheme.I().getIcon("linkgrabber", 32), _JDT._.literally_yes(), null)) {
+                    //     } else {
+                    //         return;
+                    //     }
+                    //     return;
+                    // }
                     throw new ShutdownVetoException("LinkCollector is still running", this);
                 }
             }
@@ -1648,49 +1648,49 @@ public class LinkCollector extends PackageController<CrawledPackage, CrawledLink
         return true;
     }
 
-    public void moveLinksToDownloadList(SelectionInfo<CrawledPackage, CrawledLink> selection) {
+    // public void moveLinksToDownloadList(SelectionInfo<CrawledPackage, CrawledLink> selection) {
 
-        java.util.List<FilePackage> filePackagesToAdd = new ArrayList<FilePackage>();
+    //     java.util.List<FilePackage> filePackagesToAdd = new ArrayList<FilePackage>();
 
-        boolean autostart = false;
-        List<DownloadLink> force = new ArrayList<DownloadLink>();
+    //     boolean autostart = false;
+    //     List<DownloadLink> force = new ArrayList<DownloadLink>();
 
-        for (PackageView<CrawledPackage, CrawledLink> cp : selection.getPackageViews()) {
-            List<CrawledLink> links;
+    //     for (PackageView<CrawledPackage, CrawledLink> cp : selection.getPackageViews()) {
+    //         List<CrawledLink> links;
 
-            links = cp.getChildren();
+    //         links = cp.getChildren();
 
-            java.util.List<FilePackage> convertedLinks = LinkCollector.getInstance().convert(links, true);
-            for (CrawledLink cl : links) {
-                autostart |= cl.isAutoStartEnabled();
-                if (cl.isForcedAutoStartEnabled()) {
-                    force.add(cl.getDownloadLink());
-                }
-            }
+    //         java.util.List<FilePackage> convertedLinks = LinkCollector.getInstance().convert(links, true);
+    //         for (CrawledLink cl : links) {
+    //             autostart |= cl.isAutoStartEnabled();
+    //             if (cl.isForcedAutoStartEnabled()) {
+    //                 force.add(cl.getDownloadLink());
+    //             }
+    //         }
 
-            if (convertedLinks != null) {
-                filePackagesToAdd.addAll(convertedLinks);
-            }
+    //         if (convertedLinks != null) {
+    //             filePackagesToAdd.addAll(convertedLinks);
+    //         }
 
-        }
+    //     }
 
-        /* convert all selected CrawledLinks to FilePackages */
-        boolean addTop = org.jdownloader.settings.staticreferences.CFG_LINKGRABBER.LINKGRABBER_ADD_AT_TOP.getValue();
+    //     /* convert all selected CrawledLinks to FilePackages */
+    //     boolean addTop = org.jdownloader.settings.staticreferences.CFG_LINKGRABBER.LINKGRABBER_ADD_AT_TOP.getValue();
 
-        /* add the converted FilePackages to DownloadController */
-        /**
-         * addTop = 0, to insert the packages at the top
-         * 
-         * addBottom = negative number -> add at the end
-         */
-        DownloadController.getInstance().addAllAt(filePackagesToAdd, addTop ? 0 : -(filePackagesToAdd.size() + 10));
-        if (force.size() > 0) {
-            DownloadWatchDog.getInstance().forceDownload(force);
-        } else if (autostart) {
-            DownloadWatchDog.getInstance().startDownloads();
-        }
+    //     /* add the converted FilePackages to DownloadController */
+    //     /**
+    //      * addTop = 0, to insert the packages at the top
+    //      * 
+    //      * addBottom = negative number -> add at the end
+    //      */
+    //     DownloadController.getInstance().addAllAt(filePackagesToAdd, addTop ? 0 : -(filePackagesToAdd.size() + 10));
+    //     if (force.size() > 0) {
+    //         DownloadWatchDog.getInstance().forceDownload(force);
+    //     } else if (autostart) {
+    //         DownloadWatchDog.getInstance().startDownloads();
+    //     }
 
-    }
+    // }
 
     public static void requestDeleteLinks(final List<CrawledLink> nodesToDelete, final boolean containsOnline, final String string, final boolean byPassDialog, final boolean isCancelLinkcrawlerJobs, final boolean isResetTableSorter, final boolean isClearSearchFilter, final boolean isClearFilteredLinks) {
 
@@ -1701,10 +1701,10 @@ public class LinkCollector extends PackageController<CrawledPackage, CrawledLink
 
                 boolean taskToDo = false;
                 taskToDo = taskToDo || (nodesToDelete.size() > 0);
-                taskToDo = taskToDo || ((isClearSearchFilter) && !LinkgrabberSearchField.getInstance().isEmpty());
-                taskToDo = taskToDo || ((isResetTableSorter) && LinkGrabberTableModel.getInstance().getSortColumn() != null);
-                taskToDo = taskToDo || ((isClearFilteredLinks) && LinkCollector.getInstance().isCollecting());
-                taskToDo = taskToDo || ((isCancelLinkcrawlerJobs) && LinkCollector.getInstance().getfilteredStuffSize() > 0);
+                // taskToDo = taskToDo || ((isClearSearchFilter) && !LinkgrabberSearchField.getInstance().isEmpty());
+                // taskToDo = taskToDo || ((isResetTableSorter) && LinkGrabberTableModel.getInstance().getSortColumn() != null);
+                // taskToDo = taskToDo || ((isClearFilteredLinks) && LinkCollector.getInstance().isCollecting());
+                // taskToDo = taskToDo || ((isCancelLinkcrawlerJobs) && LinkCollector.getInstance().getfilteredStuffSize() > 0);
 
                 if (!taskToDo) {
 
@@ -1712,57 +1712,58 @@ public class LinkCollector extends PackageController<CrawledPackage, CrawledLink
                     return null;
 
                 }
-                WarnLevel level = WarnLevel.LOW;
+                // WarnLevel level = WarnLevel.LOW;
 
                 boolean byPassDialog2 = byPassDialog;
                 if (containsOnline) {
-                    level = WarnLevel.NORMAL;
+                    // level = WarnLevel.NORMAL;
                 }
-                if (!JDGui.bugme(level)) {
+                if (false) {
+                // if (!JDGui.bugme(level)) {
 
-                    byPassDialog2 = true;
-                }
-                if (!byPassDialog2 && !CFG_GUI.CFG.isBypassAllRlyDeleteDialogsEnabled()) {
-                    GenericResetLinkgrabberRlyDialog dialog = new GenericResetLinkgrabberRlyDialog(nodesToDelete, containsOnline, string, isCancelLinkcrawlerJobs, isClearFilteredLinks, isClearSearchFilter, isResetTableSorter);
-                    try {
-                        Dialog.getInstance().showDialog(dialog);
+                //     byPassDialog2 = true;
+                // }
+                // if (!byPassDialog2 && !CFG_GUI.CFG.isBypassAllRlyDeleteDialogsEnabled()) {
+                //     GenericResetLinkgrabberRlyDialog dialog = new GenericResetLinkgrabberRlyDialog(nodesToDelete, containsOnline, string, isCancelLinkcrawlerJobs, isClearFilteredLinks, isClearSearchFilter, isResetTableSorter);
+                //     try {
+                //         Dialog.getInstance().showDialog(dialog);
 
-                        if (dialog.isCancelCrawler()) {
-                            LinkCollector.getInstance().abort();
-                        }
+                //         if (dialog.isCancelCrawler()) {
+                //             LinkCollector.getInstance().abort();
+                //         }
 
-                        if (dialog.isResetSort()) {
-                            new EDTRunner() {
+                //         if (dialog.isResetSort()) {
+                //             new EDTRunner() {
 
-                                @Override
-                                protected void runInEDT() {
-                                    final LinkGrabberTable table = MenuManagerLinkgrabberTableContext.getInstance().getTable();
-                                    table.getModel().setSortColumn(null);
-                                    table.getModel().refreshSort();
-                                    table.getTableHeader().repaint();
-                                }
-                            };
-                        }
-                        if (dialog.isResetSearch()) {
+                //                 @Override
+                //                 protected void runInEDT() {
+                //                     final LinkGrabberTable table = MenuManagerLinkgrabberTableContext.getInstance().getTable();
+                //                     table.getModel().setSortColumn(null);
+                //                     table.getModel().refreshSort();
+                //                     table.getTableHeader().repaint();
+                //                 }
+                //             };
+                //         }
+                //         if (dialog.isResetSearch()) {
 
-                            LinkgrabberSearchField.getInstance().setText("");
-                            LinkgrabberSearchField.getInstance().onChanged();
+                //             LinkgrabberSearchField.getInstance().setText("");
+                //             LinkgrabberSearchField.getInstance().onChanged();
 
-                        }
+                //         }
 
-                        if (dialog.isDeleteLinks()) {
-                            LinkCollector.getInstance().removeChildren(nodesToDelete);
+                //         if (dialog.isDeleteLinks()) {
+                //             LinkCollector.getInstance().removeChildren(nodesToDelete);
 
-                        }
-                        if (dialog.isClearFiltered()) {
-                            LinkCollector.getInstance().clearFilteredLinks();
-                        }
+                //         }
+                //         if (dialog.isClearFiltered()) {
+                //             LinkCollector.getInstance().clearFilteredLinks();
+                //         }
 
-                    } catch (DialogClosedException e) {
-                        e.printStackTrace();
-                    } catch (DialogCanceledException e) {
-                        e.printStackTrace();
-                    }
+                //     } catch (DialogClosedException e) {
+                //         e.printStackTrace();
+                //     } catch (DialogCanceledException e) {
+                //         e.printStackTrace();
+                //     }
 
                 } else {
 
@@ -1771,21 +1772,21 @@ public class LinkCollector extends PackageController<CrawledPackage, CrawledLink
                     }
 
                     if (isResetTableSorter) {
-                        new EDTRunner() {
+                        // new EDTRunner() {
 
-                            @Override
-                            protected void runInEDT() {
-                                final LinkGrabberTable table = MenuManagerLinkgrabberTableContext.getInstance().getTable();
-                                table.getModel().setSortColumn(null);
-                                table.getModel().refreshSort();
-                                table.getTableHeader().repaint();
-                            }
-                        };
+                        //     @Override
+                        //     protected void runInEDT() {
+                        //         final LinkGrabberTable table = MenuManagerLinkgrabberTableContext.getInstance().getTable();
+                        //         table.getModel().setSortColumn(null);
+                        //         table.getModel().refreshSort();
+                        //         table.getTableHeader().repaint();
+                        //     }
+                        // };
                     }
                     if (isClearSearchFilter) {
 
-                        LinkgrabberSearchField.getInstance().setText("");
-                        LinkgrabberSearchField.getInstance().onChanged();
+                        // LinkgrabberSearchField.getInstance().setText("");
+                        // LinkgrabberSearchField.getInstance().onChanged();
 
                     }
 

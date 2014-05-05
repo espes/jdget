@@ -1,7 +1,7 @@
 package jd.controlling.reconnect;
 
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
+// import javax.swing.ImageIcon;
+// import javax.swing.JComponent;
 
 import jd.controlling.reconnect.ipcheck.IPCheckProvider;
 
@@ -32,9 +32,9 @@ public abstract class RouterPlugin {
      * 
      * @return Config GUI for this plugin
      */
-    public abstract JComponent getGUI();
+    // public abstract JComponent getGUI();
 
-    public abstract ImageIcon getIcon16();
+    // public abstract ImageIcon getIcon16();
 
     /**
      * Returns a UNIQUE ID for this plugin.This ID should NEVER change

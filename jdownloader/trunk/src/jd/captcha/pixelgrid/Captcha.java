@@ -30,11 +30,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Vector;
 
-import javax.imageio.ImageIO;
+// import javax.imageio.ImageIO;
 
 import jd.captcha.JAntiCaptcha;
 import jd.captcha.LetterComperator;
-import jd.captcha.gui.BasicWindow;
+// import jd.captcha.gui.BasicWindow;
 import jd.captcha.pixelobject.PixelObject;
 import jd.nutils.Colors;
 
@@ -529,32 +529,32 @@ public class Captcha extends PixelGrid {
                         PixelObject pre = spobjects[0];
                         PixelObject post = spobjects[2];
 
-                        if (owner.isShowDebugGui()) {
-                            BasicWindow.showImage(cutter.toLetter().getImage(), "cutter " + resletter.getDecodedValue());
-                        }
+                        // if (owner.isShowDebugGui()) {
+                        //     BasicWindow.showImage(cutter.toLetter().getImage(), "cutter " + resletter.getDecodedValue());
+                        // }
 
                         objectsret.add(cutter);
                         cutter.detected = resletter;
 
                         if (pre != null && pre.getArea() > minArea && pre.getSize() > owner.getJas().getInteger("minObjectSize")) {
                             objects.add(pre);
-                            if (owner.isShowDebugGui()) {
-                                BasicWindow.showImage(pre.toLetter().getImage(), "pre cut " + resletter.getDecodedValue());
-                            }
+                            // if (owner.isShowDebugGui()) {
+                            //     BasicWindow.showImage(pre.toLetter().getImage(), "pre cut " + resletter.getDecodedValue());
+                            // }
 
                         }
                         if (post != null && post.getArea() > minArea && post.getSize() > owner.getJas().getInteger("minObjectSize")) {
                             objects.add(post);
-                            if (owner.isShowDebugGui()) {
-                                BasicWindow.showImage(post.toLetter().getImage(), "post cut " + resletter.getDecodedValue());
-                            }
+                            // if (owner.isShowDebugGui()) {
+                            //     BasicWindow.showImage(post.toLetter().getImage(), "post cut " + resletter.getDecodedValue());
+                            // }
 
                         }
                     } else {
                         objectsret.add(current);
-                        if (owner.isShowDebugGui()) {
-                            BasicWindow.showImage(current.toLetter().getImage(), "normal ext " + resletter.getDecodedValue());
-                        }
+                        // if (owner.isShowDebugGui()) {
+                        //     BasicWindow.showImage(current.toLetter().getImage(), "normal ext " + resletter.getDecodedValue());
+                        // }
 
                     }
 
@@ -567,9 +567,9 @@ public class Captcha extends PixelGrid {
                     LetterComperator resletter = owner.getLetter(letter);
                     current.detected = resletter;
 
-                    if (owner.isShowDebugGui()) {
-                        BasicWindow.showImage(current.toLetter().getImage(), "normal " + resletter.getDecodedValue());
-                    }
+                    // if (owner.isShowDebugGui()) {
+                    //     BasicWindow.showImage(current.toLetter().getImage(), "normal " + resletter.getDecodedValue());
+                    // }
 
                     objectsret.add(current);
 
@@ -1581,20 +1581,21 @@ public class Captcha extends PixelGrid {
      *            . ZielPfad
      */
     public void saveImageasJpgWithGaps(File file) {
-        BufferedImage bimg = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-        bimg.setRGB(0, 0, getWidth(), getHeight(), getPixelWithGaps(), 0, getWidth());
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(file);
-            ImageIO.write(bimg, "jpg", fos);
-        } catch (Exception e) {
-            logger.log(e);
-        } finally {
-            try {
-                fos.close();
-            } catch (final Throwable e) {
-            }
-        }
+        // BufferedImage bimg = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+        // bimg.setRGB(0, 0, getWidth(), getHeight(), getPixelWithGaps(), 0, getWidth());
+        // FileOutputStream fos = null;
+        // try {
+        //     fos = new FileOutputStream(file);
+        //     ImageIO.write(bimg, "jpg", fos);
+        // } catch (Exception e) {
+        //     logger.log(e);
+        // } finally {
+        //     try {
+        //         fos.close();
+        //     } catch (final Throwable e) {
+        //     }
+        // }
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     public void setCaptchaFile(File captchafile) {

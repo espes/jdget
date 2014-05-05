@@ -6,33 +6,33 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.event.DocumentEvent;
+// import javax.swing.ImageIcon;
+// import javax.swing.JCheckBox;
+// import javax.swing.JComponent;
+// import javax.swing.JFileChooser;
+// import javax.swing.JLabel;
+// import javax.swing.JPanel;
+// import javax.swing.JScrollPane;
+// import javax.swing.JTextPane;
+// import javax.swing.event.DocumentEvent;
 
 import jd.controlling.reconnect.ReconnectException;
 import jd.controlling.reconnect.ReconnectInvoker;
 import jd.controlling.reconnect.RouterPlugin;
 import jd.controlling.reconnect.pluginsinc.extern.translate.T;
-import jd.gui.UserIO;
-import jd.gui.swing.components.ComboBrowseFile;
+// import jd.gui.UserIO;
+// import jd.gui.swing.components.ComboBrowseFile;
 import jd.utils.JDUtilities;
-import net.miginfocom.swing.MigLayout;
+// import net.miginfocom.swing.MigLayout;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.Storage;
 import org.appwork.utils.Application;
 import org.appwork.utils.os.CrossSystem;
-import org.appwork.utils.swing.EDTRunner;
-import org.appwork.utils.swing.TextComponentChangeListener;
+// import org.appwork.utils.swing.EDTRunner;
+// import org.appwork.utils.swing.TextComponentChangeListener;
 import org.jdownloader.controlling.FileCreationManager;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.NewTheme;
 
 /**
  * Plugin to use an extern tool for reconnection
@@ -49,19 +49,19 @@ public class ExternReconnectPlugin extends RouterPlugin implements ActionListene
 
     public static final String  ID                      = "ExternReconnect";
 
-    private JTextPane           txtParameter;
+    // private JTextPane           txtParameter;
 
-    private JCheckBox           chbDummyBatch;
+    // private JCheckBox           chbDummyBatch;
 
-    private ComboBrowseFile     browse;
+    // private ComboBrowseFile     browse;
 
-    private ImageIcon           icon;
+    // private ImageIcon           icon;
 
     private ReconnectInvoker    invoker;
 
     public ExternReconnectPlugin() {
         super();
-        icon = NewTheme.I().getIcon("console", 16);
+        // icon = NewTheme.I().getIcon("console", 16);
         invoker = new ReconnectInvoker(this) {
             @Override
             protected void testRun() throws ReconnectException, InterruptedException {
@@ -152,21 +152,22 @@ public class ExternReconnectPlugin extends RouterPlugin implements ActionListene
         };
     }
 
-    @Override
-    public ImageIcon getIcon16() {
-        return icon;
-    }
+    // @Override
+    // public ImageIcon getIcon16() {
+    //     return icon;
+    // }
 
     private Storage getStorage() {
         return JSonStorage.getPlainStorage(this.getID());
     }
 
     public void actionPerformed(final ActionEvent e) {
-        if (e.getSource() == this.browse) {
-            this.setCommand(this.browse.getText());
-        } else {
-            this.setDummyBatchEnabled(this.chbDummyBatch.isSelected());
-        }
+        // if (e.getSource() == this.browse) {
+        //     this.setCommand(this.browse.getText());
+        // } else {
+        //     this.setDummyBatchEnabled(this.chbDummyBatch.isSelected());
+        // }
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     /**
@@ -179,40 +180,40 @@ public class ExternReconnectPlugin extends RouterPlugin implements ActionListene
         return this.getStorage().get(ExternReconnectPlugin.COMMAND, JDUtilities.getConfiguration().getStringProperty("InteractionExternReconnect_Command", ""));
     }
 
-    @Override
-    public JComponent getGUI() {
+    // @Override
+    // public JComponent getGUI() {
 
-        final JPanel p = new JPanel(new MigLayout("ins 0,wrap 2", "[][grow,fill]", "[][][grow,fill][]"));
-        p.setOpaque(false);
-        this.browse = new ComboBrowseFile(this.getID());
-        this.browse.setEditable(true);
-        this.browse.setFileSelectionMode(UserIO.FILES_ONLY);
-        this.browse.setDialogType(JFileChooser.OPEN_DIALOG);
-        this.txtParameter = new JTextPane();
-        this.chbDummyBatch = new JCheckBox();
+    //     final JPanel p = new JPanel(new MigLayout("ins 0,wrap 2", "[][grow,fill]", "[][][grow,fill][]"));
+    //     p.setOpaque(false);
+    //     this.browse = new ComboBrowseFile(this.getID());
+    //     this.browse.setEditable(true);
+    //     this.browse.setFileSelectionMode(UserIO.FILES_ONLY);
+    //     this.browse.setDialogType(JFileChooser.OPEN_DIALOG);
+    //     this.txtParameter = new JTextPane();
+    //     this.chbDummyBatch = new JCheckBox();
 
-        p.add(new JLabel(T._.interaction_externreconnect_command()), "sg left");
-        p.add(this.browse);
-        this.browse.addActionListener(this);
-        p.add(new JLabel(T._.interaction_externreconnect_parameter()), "newline,spanx,sg left");
-        p.add(new JScrollPane(this.txtParameter), "spanx,newline,pushx,growx");
-        if (CrossSystem.isWindows()) {
-            p.add(new JLabel(T._.interaction_externreconnect_dummybat()), "newline,sg left");
-            p.add(this.chbDummyBatch);
-        }
-        this.chbDummyBatch.addActionListener(this);
+    //     p.add(new JLabel(T._.interaction_externreconnect_command()), "sg left");
+    //     p.add(this.browse);
+    //     this.browse.addActionListener(this);
+    //     p.add(new JLabel(T._.interaction_externreconnect_parameter()), "newline,spanx,sg left");
+    //     p.add(new JScrollPane(this.txtParameter), "spanx,newline,pushx,growx");
+    //     if (CrossSystem.isWindows()) {
+    //         p.add(new JLabel(T._.interaction_externreconnect_dummybat()), "newline,sg left");
+    //         p.add(this.chbDummyBatch);
+    //     }
+    //     this.chbDummyBatch.addActionListener(this);
 
-        new TextComponentChangeListener(this.txtParameter) {
-            @Override
-            protected void onChanged(final DocumentEvent e) {
+    //     new TextComponentChangeListener(this.txtParameter) {
+    //         @Override
+    //         protected void onChanged(final DocumentEvent e) {
 
-                ExternReconnectPlugin.this.setParameter(ExternReconnectPlugin.this.txtParameter.getText());
+    //             ExternReconnectPlugin.this.setParameter(ExternReconnectPlugin.this.txtParameter.getText());
 
-            }
-        };
-        this.updateGUI();
-        return p;
-    }
+    //         }
+    //     };
+    //     this.updateGUI();
+    //     return p;
+    // }
 
     @Override
     public String getID() {
@@ -259,45 +260,45 @@ public class ExternReconnectPlugin extends RouterPlugin implements ActionListene
 
     private void setCommand(final String text) {
         this.getStorage().put(ExternReconnectPlugin.COMMAND, text);
-        this.updateGUI();
+        // this.updateGUI();
     }
 
     private void setDummyBatchEnabled(final boolean selected) {
         this.getStorage().put(ExternReconnectPlugin.DUMMY_BATCH_ENABLED, selected);
-        this.updateGUI();
+        // this.updateGUI();
     }
 
     private void setParameter(final String text) {
         this.getStorage().put(ExternReconnectPlugin.PARAMETER, text);
-        this.updateGUI();
+        // this.updateGUI();
     }
 
-    private void updateGUI() {
-        new EDTRunner() {
-            protected void runInEDT() {
-                try {
-                    ExternReconnectPlugin.this.browse.setText(ExternReconnectPlugin.this.getCommand());
-                } catch (final IllegalStateException e) {
-                    // throws an java.lang.IllegalStateException if the caller
-                    // is a changelistener of this field's document
-                }
-                try {
-                    ExternReconnectPlugin.this.txtParameter.setText(ExternReconnectPlugin.this.getParameterString());
-                } catch (final IllegalStateException e) {
-                    // throws an java.lang.IllegalStateException if the caller
-                    // is a changelistener of this field's document
-                }
-                try {
-                    ExternReconnectPlugin.this.chbDummyBatch.setSelected(ExternReconnectPlugin.this.isDummyBatchEnabled());
-                } catch (final IllegalStateException e) {
-                    // throws an java.lang.IllegalStateException if the caller
-                    // is a changelistener of this field's document
-                }
-            }
+    // private void updateGUI() {
+    //     new EDTRunner() {
+    //         protected void runInEDT() {
+    //             try {
+    //                 ExternReconnectPlugin.this.browse.setText(ExternReconnectPlugin.this.getCommand());
+    //             } catch (final IllegalStateException e) {
+    //                 // throws an java.lang.IllegalStateException if the caller
+    //                 // is a changelistener of this field's document
+    //             }
+    //             try {
+    //                 ExternReconnectPlugin.this.txtParameter.setText(ExternReconnectPlugin.this.getParameterString());
+    //             } catch (final IllegalStateException e) {
+    //                 // throws an java.lang.IllegalStateException if the caller
+    //                 // is a changelistener of this field's document
+    //             }
+    //             try {
+    //                 ExternReconnectPlugin.this.chbDummyBatch.setSelected(ExternReconnectPlugin.this.isDummyBatchEnabled());
+    //             } catch (final IllegalStateException e) {
+    //                 // throws an java.lang.IllegalStateException if the caller
+    //                 // is a changelistener of this field's document
+    //             }
+    //         }
 
-        };
+    //     };
 
-    }
+    // }
 
     @Override
     public ReconnectInvoker getReconnectInvoker() {

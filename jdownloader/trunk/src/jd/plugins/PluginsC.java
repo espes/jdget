@@ -32,11 +32,11 @@ import org.appwork.utils.Application;
 import org.appwork.utils.Files;
 import org.appwork.utils.Regex;
 import org.appwork.utils.logging2.LogSource;
-import org.appwork.utils.swing.dialog.ConfirmDialog;
-import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.ConfirmDialog;
+// import org.appwork.utils.swing.dialog.Dialog;
 import org.jdownloader.controlling.FileCreationManager;
 import org.jdownloader.gui.translate._GUI;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.settings.GeneralSettings;
 import org.jdownloader.settings.GeneralSettings.DeleteContainerAction;
@@ -162,25 +162,25 @@ public abstract class PluginsC {
                 } else if (cls.size() > 0 && askFileDeletion()) {
                     switch (JsonConfig.create(GeneralSettings.class).getDeleteContainerFilesAfterAddingThemAction()) {
                         case ASK_FOR_DELETE:
+                            throw new UnsupportedOperationException("jdget TODO");
+                            // ConfirmDialog d = new ConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _JDT._.AddContainerAction_delete_container_title(), _JDT._.AddContainerAction_delete_container_msg(file.toString()), NewTheme.I().getIcon("help", 32), _GUI._.lit_yes(), _GUI._.lit_no()) {
+                            //     public String getDontShowAgainKey() {
+                            //         return null;
+                            //     }
+                            // };
                             
-                            ConfirmDialog d = new ConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _JDT._.AddContainerAction_delete_container_title(), _JDT._.AddContainerAction_delete_container_msg(file.toString()), NewTheme.I().getIcon("help", 32), _GUI._.lit_yes(), _GUI._.lit_no()) {
-                                public String getDontShowAgainKey() {
-                                    return null;
-                                }
-                            };
-                            
-                            org.appwork.uio.ConfirmDialogInterface io = d.show();
-                            if (io.getCloseReason() == CloseReason.OK) {
-                                FileCreationManager.getInstance().delete(file, null);
-                                if (io.isDontShowAgainSelected()) {
-                                    JsonConfig.create(GeneralSettings.class).setDeleteContainerFilesAfterAddingThemAction(DeleteContainerAction.DELETE);
-                                }
-                            } else {
-                                if (io.isDontShowAgainSelected()) {
-                                    JsonConfig.create(GeneralSettings.class).setDeleteContainerFilesAfterAddingThemAction(DeleteContainerAction.DONT_DELETE);
-                                }
-                            }
-                            break;
+                            // org.appwork.uio.ConfirmDialogInterface io = d.show();
+                            // if (io.getCloseReason() == CloseReason.OK) {
+                            //     FileCreationManager.getInstance().delete(file, null);
+                            //     if (io.isDontShowAgainSelected()) {
+                            //         JsonConfig.create(GeneralSettings.class).setDeleteContainerFilesAfterAddingThemAction(DeleteContainerAction.DELETE);
+                            //     }
+                            // } else {
+                            //     if (io.isDontShowAgainSelected()) {
+                            //         JsonConfig.create(GeneralSettings.class).setDeleteContainerFilesAfterAddingThemAction(DeleteContainerAction.DONT_DELETE);
+                            //     }
+                            // }
+                            // break;
                         case DELETE:
                             FileCreationManager.getInstance().delete(file, null);
                             break;

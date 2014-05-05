@@ -9,7 +9,7 @@ import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import jd.SecondLevelLaunch;
+// import jd.SecondLevelLaunch;
 import jd.controlling.AccountController;
 import jd.controlling.AccountControllerEvent;
 import jd.controlling.AccountControllerListener;
@@ -17,7 +17,7 @@ import jd.controlling.downloadcontroller.AccountCache;
 import jd.controlling.downloadcontroller.AccountCache.ACCOUNTTYPE;
 import jd.controlling.downloadcontroller.AccountCache.CachedAccount;
 import jd.controlling.downloadcontroller.DownloadSession;
-import jd.gui.swing.jdgui.views.settings.panels.accountmanager.orderpanel.dialog.EditHosterRuleDialog;
+// import jd.gui.swing.jdgui.views.settings.panels.accountmanager.orderpanel.dialog.EditHosterRuleDialog;
 import jd.plugins.Account;
 
 import org.appwork.scheduler.DelayedRunnable;
@@ -32,9 +32,9 @@ import org.appwork.utils.StringUtils;
 import org.appwork.utils.event.queue.Queue;
 import org.appwork.utils.event.queue.QueueAction;
 import org.appwork.utils.logging2.LogSource;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogCanceledException;
-import org.appwork.utils.swing.dialog.DialogClosedException;
+// import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.DialogCanceledException;
+// import org.appwork.utils.swing.dialog.DialogClosedException;
 import org.jdownloader.gui.translate._GUI;
 import org.jdownloader.logging.LogController;
 
@@ -92,18 +92,18 @@ public class HosterRuleController implements AccountControllerListener {
                 save();
             }
         });
-        SecondLevelLaunch.ACCOUNTLIST_LOADED.executeWhenReached(new Runnable() {
+        // SecondLevelLaunch.ACCOUNTLIST_LOADED.executeWhenReached(new Runnable() {
 
-            @Override
-            public void run() {
-                try {
-                    load();
-                    AccountController.getInstance().getBroadcaster().addListener(HosterRuleController.this);
-                } finally {
-                    initDone.set(true);
-                }
-            }
-        });
+        //     @Override
+        //     public void run() {
+        //         try {
+        //             load();
+        //             AccountController.getInstance().getBroadcaster().addListener(HosterRuleController.this);
+        //         } finally {
+        //             initDone.set(true);
+        //         }
+        //     }
+        // });
 
     }
 
@@ -288,17 +288,17 @@ public class HosterRuleController implements AccountControllerListener {
     }
 
     protected void save() {
-        if (SecondLevelLaunch.ACCOUNTLIST_LOADED.isReached() && initDone.get()) {
-            try {
-                ArrayList<AccountRuleStorable> saveList = new ArrayList<AccountRuleStorable>();
-                for (AccountUsageRule hr : loadedRules) {
-                    saveList.add(new AccountRuleStorable(hr));
-                }
-                IO.secureWrite(configFile, JSonStorage.serializeToJson(saveList).getBytes("UTF-8"));
-            } catch (Exception e) {
-                logger.log(e);
-            }
-        }
+        // if (SecondLevelLaunch.ACCOUNTLIST_LOADED.isReached() && initDone.get()) {
+        //     try {
+        //         ArrayList<AccountRuleStorable> saveList = new ArrayList<AccountRuleStorable>();
+        //         for (AccountUsageRule hr : loadedRules) {
+        //             saveList.add(new AccountRuleStorable(hr));
+        //         }
+        //         IO.secureWrite(configFile, JSonStorage.serializeToJson(saveList).getBytes("UTF-8"));
+        //     } catch (Exception e) {
+        //         logger.log(e);
+        //     }
+        // }
     }
 
     public HosterRuleControllerEventSender getEventSender() {
@@ -349,26 +349,27 @@ public class HosterRuleController implements AccountControllerListener {
     }
 
     public void showEditPanel(final AccountUsageRule editing) {
-        if (editing == null) return;
-        EditHosterRuleDialog d = new EditHosterRuleDialog(editing);
-        try {
-            Dialog.getInstance().showDialog(d);
-            final AccountUsageRule newRule = d.getRule();
-            queue.add(new QueueAction<Void, RuntimeException>() {
+        // if (editing == null) return;
+        // EditHosterRuleDialog d = new EditHosterRuleDialog(editing);
+        // try {
+        //     Dialog.getInstance().showDialog(d);
+        //     final AccountUsageRule newRule = d.getRule();
+        //     queue.add(new QueueAction<Void, RuntimeException>() {
 
-                @Override
-                protected Void run() throws RuntimeException {
-                    validateRule(newRule);
-                    editing.set(newRule.isEnabled(), newRule.getAccounts());
-                    return null;
-                }
-            });
+        //         @Override
+        //         protected Void run() throws RuntimeException {
+        //             validateRule(newRule);
+        //             editing.set(newRule.isEnabled(), newRule.getAccounts());
+        //             return null;
+        //         }
+        //     });
 
-        } catch (DialogClosedException e) {
-            e.printStackTrace();
-        } catch (DialogCanceledException e) {
-            e.printStackTrace();
-        }
+        // } catch (DialogClosedException e) {
+        //     e.printStackTrace();
+        // } catch (DialogCanceledException e) {
+        //     e.printStackTrace();
+        // }
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     public void remove(final AccountUsageRule rule) {

@@ -1,16 +1,16 @@
 package org.jdownloader.plugins;
 
-import javax.swing.ImageIcon;
+// import javax.swing.ImageIcon;
 
 import jd.controlling.packagecontroller.AbstractNode;
 import jd.nutils.Formatter;
 import jd.plugins.DownloadLink;
 import jd.plugins.FilePackageView;
 
-import org.jdownloader.gui.IconKey;
-import org.jdownloader.gui.views.downloads.columns.ETAColumn;
-import org.jdownloader.gui.views.downloads.columns.TaskColumn;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.gui.IconKey;
+// import org.jdownloader.gui.views.downloads.columns.ETAColumn;
+// import org.jdownloader.gui.views.downloads.columns.TaskColumn;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.translate._JDT;
 
 public class WaitingSkipReason implements ConditionalSkipReason, TimeOutCondition, ValidatableConditionalSkipReason {
@@ -41,7 +41,7 @@ public class WaitingSkipReason implements ConditionalSkipReason, TimeOutConditio
 
     private final long      timeOutTimeStamp;
     private final String    message;
-    private final ImageIcon icon;
+    // private final ImageIcon icon;
     private boolean         valid = true;
 
     public long getTimeOutTimeStamp() {
@@ -52,20 +52,20 @@ public class WaitingSkipReason implements ConditionalSkipReason, TimeOutConditio
         this.cause = cause;
         this.timeOutTimeStamp = System.currentTimeMillis() + timeOut;
         this.message = message;
-        switch (cause) {
-        case FILE_TEMP_UNAVAILABLE:
-            icon = NewTheme.I().getIcon("warning_green", 16);
-            break;
-        case HOST_TEMP_UNAVAILABLE:
-            icon = NewTheme.I().getIcon("warning_red", 16);
-            break;
-        case IP_BLOCKED:
-            icon = NewTheme.I().getIcon(IconKey.ICON_AUTO_RECONNECT, 16);
-            break;
-        default:
-            icon = NewTheme.I().getIcon("wait", 16);
-            break;
-        }
+        // switch (cause) {
+        // case FILE_TEMP_UNAVAILABLE:
+        //     icon = NewTheme.I().getIcon("warning_green", 16);
+        //     break;
+        // case HOST_TEMP_UNAVAILABLE:
+        //     icon = NewTheme.I().getIcon("warning_red", 16);
+        //     break;
+        // case IP_BLOCKED:
+        //     icon = NewTheme.I().getIcon(IconKey.ICON_AUTO_RECONNECT, 16);
+        //     break;
+        // default:
+        //     icon = NewTheme.I().getIcon("wait", 16);
+        //     break;
+        // }
     }
 
     public WaitingSkipReason(CAUSE cause, long timeOut) {
@@ -104,17 +104,17 @@ public class WaitingSkipReason implements ConditionalSkipReason, TimeOutConditio
     public String getMessage(Object requestor, AbstractNode node) {
         long left = getTimeOutLeft();
         if (left > 0) {
-            if (requestor instanceof TaskColumn) { return getMessage(); }
-            if (requestor instanceof FilePackageView) { return getMessage(); }
-            if (requestor instanceof ETAColumn) { return Formatter.formatSeconds(left / 1000); }
+            // if (requestor instanceof TaskColumn) { return getMessage(); }
+            // if (requestor instanceof FilePackageView) { return getMessage(); }
+            // if (requestor instanceof ETAColumn) { return Formatter.formatSeconds(left / 1000); }
         }
         return null;
     }
 
-    @Override
-    public ImageIcon getIcon(Object requestor, AbstractNode node) {
-        return icon;
-    }
+    // @Override
+    // public ImageIcon getIcon(Object requestor, AbstractNode node) {
+    //     return icon;
+    // }
 
     @Override
     public boolean isValid() {

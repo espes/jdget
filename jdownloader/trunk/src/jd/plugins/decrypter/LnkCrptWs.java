@@ -41,30 +41,30 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.imageio.ImageIO;
+// import javax.imageio.ImageIO;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JSlider;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.MouseInputAdapter;
+// import javax.swing.BorderFactory;
+// import javax.swing.Box;
+// import javax.swing.BoxLayout;
+// import javax.swing.JButton;
+// import javax.swing.JComponent;
+// import javax.swing.JFrame;
+// import javax.swing.JLabel;
+// import javax.swing.JLayeredPane;
+// import javax.swing.JPanel;
+// import javax.swing.JProgressBar;
+// import javax.swing.JSlider;
+// import javax.swing.SwingUtilities;
+// import javax.swing.Timer;
+// import javax.swing.event.ChangeEvent;
+// import javax.swing.event.ChangeListener;
+// import javax.swing.event.MouseInputAdapter;
 
 import jd.PluginWrapper;
 import jd.controlling.ProgressController;
 import jd.gui.UserIO;
-import jd.gui.swing.jdgui.JDGui;
+// import jd.gui.swing.jdgui.JDGui;
 import jd.http.Browser;
 import jd.http.URLConnectionAdapter;
 import jd.nutils.JDHash;
@@ -84,14 +84,14 @@ import jd.plugins.PluginForDecrypt;
 import jd.utils.JDHexUtils;
 import jd.utils.JDUtilities;
 import jd.utils.locale.JDL;
-import net.miginfocom.swing.MigLayout;
+// import net.miginfocom.swing.MigLayout;
 
-import org.appwork.uio.UIOManager;
+// import org.appwork.uio.UIOManager;
 import org.appwork.utils.Application;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
-import org.appwork.utils.swing.dialog.AbstractDialog;
-import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.AbstractDialog;
+// import org.appwork.utils.swing.dialog.Dialog;
 
 @DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "linkcrypt.ws" }, urls = { "http://[\\w\\.]*?linkcrypt\\.ws/dir/[\\w]+" }, flags = { 0 })
 public class LnkCrptWs extends PluginForDecrypt {
@@ -156,15 +156,16 @@ public class LnkCrptWs extends PluginForDecrypt {
             if (!isStableEnviroment()) {
                 final URL[] images = imageUrls();
                 if (count <= 0 && images.length == 1) throw new Exception("AdsCaptcha modul broken!");
-                SwingUtilities.invokeAndWait(new Runnable() {
+                // SwingUtilities.invokeAndWait(new Runnable() {
 
-                    @Override
-                    public void run() {
-                        SliderCaptchaDialog sc = new SliderCaptchaDialog(0, "AdsCaptcha - " + br.getHost(), images, count);
-                        sc.displayDialog();
-                        result = sc.getReturnValue();
-                    }
-                });
+                //     @Override
+                //     public void run() {
+                //         SliderCaptchaDialog sc = new SliderCaptchaDialog(0, "AdsCaptcha - " + br.getHost(), images, count);
+                //         sc.displayDialog();
+                //         result = sc.getReturnValue();
+                //     }
+                // });
+                throw new UnsupportedOperationException("jdget TODO");
 
             } else {
                 throw new Exception("AdsCaptcha: currently not available in JD1!");
@@ -222,202 +223,202 @@ public class LnkCrptWs extends PluginForDecrypt {
 
     }
 
-    private static class SliderCaptchaDialog extends AbstractDialog<String> {
-        private JSlider       slider;
-        private JPanel        p;
-        private int           images          = -1;
-        private URL           imageUrls[];
-        private int           pos             = 0;
-        private JPanel        picture;
-        private BufferedImage image[];
-        private Image         finalImage;
-        private Thread        download;
-        private JLabel        dLabel;
-        private JLabel        cLabel;
-        private JProgressBar  bar;
-        private final JButton dynamicOkButton = new JButton(_AWU.T.ABSTRACTDIALOG_BUTTON_OK());
+    // private static class SliderCaptchaDialog extends AbstractDialog<String> {
+    //     private JSlider       slider;
+    //     private JPanel        p;
+    //     private int           images          = -1;
+    //     private URL           imageUrls[];
+    //     private int           pos             = 0;
+    //     private JPanel        picture;
+    //     private BufferedImage image[];
+    //     private Image         finalImage;
+    //     private Thread        download;
+    //     private JLabel        dLabel;
+    //     private JLabel        cLabel;
+    //     private JProgressBar  bar;
+    //     private final JButton dynamicOkButton = new JButton(_AWU.T.ABSTRACTDIALOG_BUTTON_OK());
 
-        public SliderCaptchaDialog(int flag, String title, URL[] imageUrls, int count) {
-            super(flag | Dialog.STYLE_HIDE_ICON | UIOManager.LOGIC_COUNTDOWN | UIOManager.BUTTONS_HIDE_OK, title, null, null, null);
-            setCountdownTime(120);
-            this.images = imageUrls.length - 1;
-            this.imageUrls = imageUrls;
-            if (images == 0) images = count--;
-        }
+    //     public SliderCaptchaDialog(int flag, String title, URL[] imageUrls, int count) {
+    //         super(flag | Dialog.STYLE_HIDE_ICON | UIOManager.LOGIC_COUNTDOWN | UIOManager.BUTTONS_HIDE_OK, title, null, null, null);
+    //         setCountdownTime(120);
+    //         this.images = imageUrls.length - 1;
+    //         this.imageUrls = imageUrls;
+    //         if (images == 0) images = count--;
+    //     }
 
-        @Override
-        public JComponent layoutDialogContent() {
-            bar = new JProgressBar(0, images);
-            dLabel = new JLabel("Please wait while downloading captchas: " + bar.getValue() + "/" + images);
-            cLabel = new JLabel("Slide to fit");
+    //     @Override
+    //     public JComponent layoutDialogContent() {
+    //         bar = new JProgressBar(0, images);
+    //         dLabel = new JLabel("Please wait while downloading captchas: " + bar.getValue() + "/" + images);
+    //         cLabel = new JLabel("Slide to fit");
 
-            download = new Thread("Captcha download") {
-                public void run() {
-                    InputStream stream = null;
-                    try {
-                        if (images < 0) {
-                            image = new BufferedImage[imageUrls.length];
-                            for (int i = 0; i < image.length; i++) {
-                                sleep(50);
-                                try {
-                                    image[i] = ImageIO.read(stream = imageUrls[i].openStream());
-                                    bar.setValue(i + 1);
-                                } finally {
-                                    try {
-                                        stream.close();
-                                    } catch (final Throwable e) {
-                                    }
-                                }
-                            }
-                        } else {
-                            image = new BufferedImage[images];
-                            try {
-                                BufferedImage tmpImage = ImageIO.read(stream = imageUrls[0].openStream());
-                                int w = tmpImage.getWidth();
-                                int h = tmpImage.getHeight() / images;
-                                for (int i = 0; i < image.length; i++) {
-                                    image[i] = tmpImage.getSubimage(0, i * h, w, h);
-                                    bar.setValue(i + 1);
-                                }
-                            } finally {
-                                try {
-                                    stream.close();
-                                } catch (final Throwable e) {
-                                }
-                            }
-                        }
-                    } catch (IOException e) {
-                        Log.exception(e);
-                    } catch (InterruptedException e) {
-                        Log.exception(e);
-                    }
-                }
-            };
-            download.start();
+    //         download = new Thread("Captcha download") {
+    //             public void run() {
+    //                 InputStream stream = null;
+    //                 try {
+    //                     if (images < 0) {
+    //                         image = new BufferedImage[imageUrls.length];
+    //                         for (int i = 0; i < image.length; i++) {
+    //                             sleep(50);
+    //                             try {
+    //                                 image[i] = ImageIO.read(stream = imageUrls[i].openStream());
+    //                                 bar.setValue(i + 1);
+    //                             } finally {
+    //                                 try {
+    //                                     stream.close();
+    //                                 } catch (final Throwable e) {
+    //                                 }
+    //                             }
+    //                         }
+    //                     } else {
+    //                         image = new BufferedImage[images];
+    //                         try {
+    //                             BufferedImage tmpImage = ImageIO.read(stream = imageUrls[0].openStream());
+    //                             int w = tmpImage.getWidth();
+    //                             int h = tmpImage.getHeight() / images;
+    //                             for (int i = 0; i < image.length; i++) {
+    //                                 image[i] = tmpImage.getSubimage(0, i * h, w, h);
+    //                                 bar.setValue(i + 1);
+    //                             }
+    //                         } finally {
+    //                             try {
+    //                                 stream.close();
+    //                             } catch (final Throwable e) {
+    //                             }
+    //                         }
+    //                     }
+    //                 } catch (IOException e) {
+    //                     Log.exception(e);
+    //                 } catch (InterruptedException e) {
+    //                     Log.exception(e);
+    //                 }
+    //             }
+    //         };
+    //         download.start();
 
-            slider = new JSlider(0, images, 0);
-            slider.addChangeListener(new ChangeListener() {
+    //         slider = new JSlider(0, images, 0);
+    //         slider.addChangeListener(new ChangeListener() {
 
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    pos = ((JSlider) e.getSource()).getValue();
-                    resizeImage();
-                    p.repaint();
-                }
-            });
+    //             @Override
+    //             public void stateChanged(ChangeEvent e) {
+    //                 pos = ((JSlider) e.getSource()).getValue();
+    //                 resizeImage();
+    //                 p.repaint();
+    //             }
+    //         });
 
-            /* setup panels */
-            p = new JPanel(new MigLayout("ins 0,wrap 1", "[grow,fill]", "[][grow,fill]"));
-            picture = new JPanel() {
-                /**
-                 * 
-                 */
-                private static final long serialVersionUID = 1L;
+    //         /* setup panels */
+    //         p = new JPanel(new MigLayout("ins 0,wrap 1", "[grow,fill]", "[][grow,fill]"));
+    //         picture = new JPanel() {
+    //             *
+    //              * 
+                 
+    //             private static final long serialVersionUID = 1L;
 
-                @Override
-                public Dimension getPreferredSize() {
-                    if (finalImage != null) {
-                        return new Dimension(finalImage.getWidth(dialog), finalImage.getHeight(dialog));
-                    } else {
-                        return super.getPreferredSize();
-                    }
-                }
+    //             @Override
+    //             public Dimension getPreferredSize() {
+    //                 if (finalImage != null) {
+    //                     return new Dimension(finalImage.getWidth(dialog), finalImage.getHeight(dialog));
+    //                 } else {
+    //                     return super.getPreferredSize();
+    //                 }
+    //             }
 
-                @Override
-                protected void paintComponent(final Graphics g) {
-                    super.paintComponent(g);
-                    if (finalImage != null) {
-                        g.setColor(Color.WHITE);
-                        g.drawImage(finalImage, 0, 0, this);
-                    }
-                }
-            };
+    //             @Override
+    //             protected void paintComponent(final Graphics g) {
+    //                 super.paintComponent(g);
+    //                 if (finalImage != null) {
+    //                     g.setColor(Color.WHITE);
+    //                     g.drawImage(finalImage, 0, 0, this);
+    //                 }
+    //             }
+    //         };
 
-            bar.setStringPainted(true);
-            bar.addChangeListener(new ChangeListener() {
-                private int pos = 0;
+    //         bar.setStringPainted(true);
+    //         bar.addChangeListener(new ChangeListener() {
+    //             private int pos = 0;
 
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    pos = ((JProgressBar) e.getSource()).getValue();
-                    if (pos < images) {
-                        dLabel.setText("Please wait while downloading captchas: " + bar.getValue() + "/" + images);
-                        dLabel.paintImmediately(dLabel.getVisibleRect());
-                    } else {
-                        resizeImage();
-                        dialog.setSize(315, 350);
-                        if (JDGui.getInstance() == null) {
-                            dialog.setLocation(Screen.getCenterOfComponent(null, dialog));
-                        } else if (JDGui.getInstance().getMainFrame().getExtendedState() == 1 || !JDGui.getInstance().getMainFrame().isVisible()) {
-                            dialog.setLocation(Screen.getDockBottomRight(dialog));
-                        } else {
-                            dialog.setLocation(Screen.getCenterOfComponent(JDGui.getInstance().getMainFrame(), dialog));
-                        }
-                        setupCaptchaDialog();
-                    }
-                }
+    //             @Override
+    //             public void stateChanged(ChangeEvent e) {
+    //                 pos = ((JProgressBar) e.getSource()).getValue();
+    //                 if (pos < images) {
+    //                     dLabel.setText("Please wait while downloading captchas: " + bar.getValue() + "/" + images);
+    //                     dLabel.paintImmediately(dLabel.getVisibleRect());
+    //                 } else {
+    //                     resizeImage();
+    //                     dialog.setSize(315, 350);
+    //                     if (JDGui.getInstance() == null) {
+    //                         dialog.setLocation(Screen.getCenterOfComponent(null, dialog));
+    //                     } else if (JDGui.getInstance().getMainFrame().getExtendedState() == 1 || !JDGui.getInstance().getMainFrame().isVisible()) {
+    //                         dialog.setLocation(Screen.getDockBottomRight(dialog));
+    //                     } else {
+    //                         dialog.setLocation(Screen.getCenterOfComponent(JDGui.getInstance().getMainFrame(), dialog));
+    //                     }
+    //                     setupCaptchaDialog();
+    //                 }
+    //             }
 
-            });
+    //         });
 
-            p.add(dLabel);
-            p.add(bar);
+    //         p.add(dLabel);
+    //         p.add(bar);
 
-            return p;
-        }
+    //         return p;
+    //     }
 
-        private void setupCaptchaDialog() {
-            p.remove(dLabel);
-            p.remove(bar);
-            p.add(cLabel);
-            p.add(picture);
-            p.add(slider);
-            p.repaint();
-        }
+    //     private void setupCaptchaDialog() {
+    //         p.remove(dLabel);
+    //         p.remove(bar);
+    //         p.add(cLabel);
+    //         p.add(picture);
+    //         p.add(slider);
+    //         p.repaint();
+    //     }
 
-        private void resizeImage() {
-            if (image == null || image.length == 0) {
-                finalImage = null;
-            } else {
-                finalImage = image[pos].getScaledInstance(300, 250, Image.SCALE_SMOOTH);
-            }
-        }
+    //     private void resizeImage() {
+    //         if (image == null || image.length == 0) {
+    //             finalImage = null;
+    //         } else {
+    //             finalImage = image[pos].getScaledInstance(300, 250, Image.SCALE_SMOOTH);
+    //         }
+    //     }
 
-        @Override
-        protected void addButtons(final JPanel buttonBar) {
-            dynamicOkButton.addActionListener(this);
-            p.addContainerListener(new ContainerListener() {
+    //     @Override
+    //     protected void addButtons(final JPanel buttonBar) {
+    //         dynamicOkButton.addActionListener(this);
+    //         p.addContainerListener(new ContainerListener() {
 
-                @Override
-                public void componentAdded(ContainerEvent e) {
-                }
+    //             @Override
+    //             public void componentAdded(ContainerEvent e) {
+    //             }
 
-                @Override
-                public void componentRemoved(ContainerEvent e) {
-                    if (e.getChild().getClass().getName().endsWith("JProgressBar")) {
-                        buttonBar.add(dynamicOkButton, "cell 0 0,tag ok,sizegroup confirms");
-                    }
-                }
-            });
+    //             @Override
+    //             public void componentRemoved(ContainerEvent e) {
+    //                 if (e.getChild().getClass().getName().endsWith("JProgressBar")) {
+    //                     buttonBar.add(dynamicOkButton, "cell 0 0,tag ok,sizegroup confirms");
+    //                 }
+    //             }
+    //         });
 
-        }
+    //     }
 
-        @Override
-        public void actionPerformed(final ActionEvent e) {
-            if (e.getSource() == dynamicOkButton) {
-                Log.L.fine("Answer: Button<OK:" + dynamicOkButton.getText() + ">");
-                setReturnmask(true);
-            } else if (e.getActionCommand().equals("enterPushed")) return;
-            super.actionPerformed(e);
-        }
+    //     @Override
+    //     public void actionPerformed(final ActionEvent e) {
+    //         if (e.getSource() == dynamicOkButton) {
+    //             Log.L.fine("Answer: Button<OK:" + dynamicOkButton.getText() + ">");
+    //             setReturnmask(true);
+    //         } else if (e.getActionCommand().equals("enterPushed")) return;
+    //         super.actionPerformed(e);
+    //     }
 
-        @Override
-        protected String createReturnValue() {
-            if (!download.isInterrupted()) download.interrupt();
-            if (Dialog.isOK(getReturnmask())) return String.valueOf(pos);
-            return null;
-        }
+    //     @Override
+    //     protected String createReturnValue() {
+    //         if (!download.isInterrupted()) download.interrupt();
+    //         if (Dialog.isOK(getReturnmask())) return String.valueOf(pos);
+    //         return null;
+    //     }
 
-    }
+    // }
 
     public static class SolveMedia {
         private final Browser      br;
@@ -800,33 +801,35 @@ public class LnkCrptWs extends PluginForDecrypt {
                 mmUrlReq = mmUrlReq + "&mms=" + Math.random() + "&r=" + Math.random();
 
                 if (!isStableEnviroment()) {
-                    final KeyCaptchaDialog vC = new KeyCaptchaDialog(0, "KeyCaptcha - " + br.getHost(), new String[] { stImgs[1], sscStc[1] }, fmsImg, null, rcBr, mmUrlReq);
+                    // final KeyCaptchaDialog vC = new KeyCaptchaDialog(0, "KeyCaptcha - " + br.getHost(), new String[] { stImgs[1], sscStc[1] }, fmsImg, null, rcBr, mmUrlReq);
 
-                    // avoid imports here
-                    jd.gui.swing.dialog.AbstractCaptchaDialog.playCaptchaSound();
-                    try {
-                        out = org.appwork.utils.swing.dialog.Dialog.getInstance().showDialog(vC);
-                    } catch (final Throwable e) {
-                        out = null;
-                    }
-                    if (out == null) throw new DecrypterException(DecrypterException.CAPTCHA);
-                    if (vC.getReturnmask() == 4) {
-                        out = "CANCEL";
-                    }
-                    marray.addAll(vC.mouseArray);
+                    // // avoid imports here
+                    // jd.gui.swing.dialog.AbstractCaptchaDialog.playCaptchaSound();
+                    // try {
+                    //     out = org.appwork.utils.swing.dialog.Dialog.getInstance().showDialog(vC);
+                    // } catch (final Throwable e) {
+                    //     out = null;
+                    // }
+                    // if (out == null) throw new DecrypterException(DecrypterException.CAPTCHA);
+                    // if (vC.getReturnmask() == 4) {
+                    //     out = "CANCEL";
+                    // }
+                    // marray.addAll(vC.mouseArray);
+                    if (1 == 1) throw new UnsupportedOperationException("jdget TODO");
 
                 } else {
-                    final KeyCaptchaDialogForStable vC = new KeyCaptchaDialogForStable("KeyCaptcha - " + br.getHost(), new String[] { stImgs[1], sscStc[1] }, fmsImg, rcBr, mmUrlReq);
-                    // Warten bis der KeyCaptcha-Dialog geschlossen ist
-                    synchronized (LOCK) {
-                        try {
-                            LOCK.wait();
-                        } catch (final InterruptedException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-                    }
-                    out = vC.POSITION;
+                    // final KeyCaptchaDialogForStable vC = new KeyCaptchaDialogForStable("KeyCaptcha - " + br.getHost(), new String[] { stImgs[1], sscStc[1] }, fmsImg, rcBr, mmUrlReq);
+                    // // Warten bis der KeyCaptcha-Dialog geschlossen ist
+                    // synchronized (LOCK) {
+                    //     try {
+                    //         LOCK.wait();
+                    //     } catch (final InterruptedException e) {
+                    //         // TODO Auto-generated catch block
+                    //         e.printStackTrace();
+                    //     }
+                    // }
+                    // out = vC.POSITION;
+                    if (1 == 1) throw new UnsupportedOperationException("jdget TODO");
                 }
                 if (out == null) return null;
                 if ("CANCEL".equals(out)) {
@@ -973,546 +976,546 @@ public class LnkCrptWs extends PluginForDecrypt {
 
     }
 
-    private static class KeyCaptchaDialog extends AbstractDialog<String> implements ActionListener {
-        private JLayeredPane                       drawPanel;
-        private final LinkedHashMap<String, int[]> coordinates;
-        private final String[]                     imageUrl;
-        private BufferedImage[]                    kcImages;
-        private int                                kcSampleImg;
-        private Image[]                            IMAGE;
-        private Graphics                           go;
-        private JPanel                             p;
-        private final Dimension                    dimensions;
-        private ArrayList<Integer>                 mouseArray;
-        private Browser                            kc;
-        private String                             url;
+    // private static class KeyCaptchaDialog extends AbstractDialog<String> implements ActionListener {
+    //     private JLayeredPane                       drawPanel;
+    //     private final LinkedHashMap<String, int[]> coordinates;
+    //     private final String[]                     imageUrl;
+    //     private BufferedImage[]                    kcImages;
+    //     private int                                kcSampleImg;
+    //     private Image[]                            IMAGE;
+    //     private Graphics                           go;
+    //     private JPanel                             p;
+    //     private final Dimension                    dimensions;
+    //     private ArrayList<Integer>                 mouseArray;
+    //     private Browser                            kc;
+    //     private String                             url;
 
-        public KeyCaptchaDialog(final int flag, final String title, final String[] imageUrl, final LinkedHashMap<String, int[]> coordinates, final String cancelOption, Browser br, String url) {
-            super(flag | Dialog.STYLE_HIDE_ICON | UIOManager.LOGIC_COUNTDOWN, title, null, null, null);
-            setCountdownTime(120);
-            this.imageUrl = imageUrl;
-            this.coordinates = coordinates;
-            dimensions = new Dimension(465, 250);
-            this.kc = br.cloneBrowser();
-            this.url = url;
-        }
+    //     public KeyCaptchaDialog(final int flag, final String title, final String[] imageUrl, final LinkedHashMap<String, int[]> coordinates, final String cancelOption, Browser br, String url) {
+    //         super(flag | Dialog.STYLE_HIDE_ICON | UIOManager.LOGIC_COUNTDOWN, title, null, null, null);
+    //         setCountdownTime(120);
+    //         this.imageUrl = imageUrl;
+    //         this.coordinates = coordinates;
+    //         dimensions = new Dimension(465, 250);
+    //         this.kc = br.cloneBrowser();
+    //         this.url = url;
+    //     }
 
-        @Override
-        protected String createReturnValue() {
-            if (Dialog.isOK(getReturnmask())) { return getPosition(drawPanel); }
-            return null;
-        }
+    //     @Override
+    //     protected String createReturnValue() {
+    //         if (Dialog.isOK(getReturnmask())) { return getPosition(drawPanel); }
+    //         return null;
+    //     }
 
-        private String getPosition(final JLayeredPane drawPanel) {
-            int i = 0;
-            String positions = "";
-            final Component[] comp = drawPanel.getComponents();
-            for (int c = comp.length - 1; c >= 0; c--) {
-                if (comp[c].getMouseListeners().length == 0) {
-                    continue;
-                }
-                final Point p = comp[c].getLocation();
-                positions += (i != 0 ? "." : "") + String.valueOf(p.x) + "." + String.valueOf(p.y);
-                i++;
-            }
-            return positions;
-        }
+    //     private String getPosition(final JLayeredPane drawPanel) {
+    //         int i = 0;
+    //         String positions = "";
+    //         final Component[] comp = drawPanel.getComponents();
+    //         for (int c = comp.length - 1; c >= 0; c--) {
+    //             if (comp[c].getMouseListeners().length == 0) {
+    //                 continue;
+    //             }
+    //             final Point p = comp[c].getLocation();
+    //             positions += (i != 0 ? "." : "") + String.valueOf(p.x) + "." + String.valueOf(p.y);
+    //             i++;
+    //         }
+    //         return positions;
+    //     }
 
-        @Override
-        public Dimension getPreferredSize() {
-            return dimensions;
-        }
+    //     @Override
+    //     public Dimension getPreferredSize() {
+    //         return dimensions;
+    //     }
 
-        public void handleCoordinates(final LinkedHashMap<String, int[]> arg0) {
-            kcImages = new BufferedImage[coordinates.size()];
-        }
+    //     public void handleCoordinates(final LinkedHashMap<String, int[]> arg0) {
+    //         kcImages = new BufferedImage[coordinates.size()];
+    //     }
 
-        @Override
-        public JComponent layoutDialogContent() {
-            loadImage(imageUrl);
-            // use a container
-            p = new JPanel(new MigLayout("ins 0,wrap 1", "[grow,fill]", "[][grow,fill]"));
+    //     @Override
+    //     public JComponent layoutDialogContent() {
+    //         loadImage(imageUrl);
+    //         // use a container
+    //         p = new JPanel(new MigLayout("ins 0,wrap 1", "[grow,fill]", "[][grow,fill]"));
 
-            handleCoordinates(coordinates);
-            drawPanel = new JLayeredPane();
+    //         handleCoordinates(coordinates);
+    //         drawPanel = new JLayeredPane();
 
-            makePieces();
-            makeBackground();
-            int offset = 4;
-            boolean sampleImg = false;
-            drawPanel.add(new KeyCaptchaDrawBackgroundPanel(kcImages[0]), new Integer(JLayeredPane.DEFAULT_LAYER), new Integer(JLayeredPane.DEFAULT_LAYER));
+    //         makePieces();
+    //         makeBackground();
+    //         int offset = 4;
+    //         boolean sampleImg = false;
+    //         drawPanel.add(new KeyCaptchaDrawBackgroundPanel(kcImages[0]), new Integer(JLayeredPane.DEFAULT_LAYER), new Integer(JLayeredPane.DEFAULT_LAYER));
 
-            mouseArray = new ArrayList<Integer>();
+    //         mouseArray = new ArrayList<Integer>();
 
-            for (int i = 1; i < kcImages.length; i++) {
-                if (kcImages[i] == null) {
-                    continue;
-                } else if (i == kcSampleImg) {
-                    sampleImg = true;
-                } else {
-                    sampleImg = false;
-                }
-                drawPanel.add(new KeyCaptchaDragPieces(kcImages[i], offset, sampleImg, mouseArray, kc, url), new Integer(JLayeredPane.DEFAULT_LAYER) + i, new Integer(JLayeredPane.DEFAULT_LAYER) + i);
+    //         for (int i = 1; i < kcImages.length; i++) {
+    //             if (kcImages[i] == null) {
+    //                 continue;
+    //             } else if (i == kcSampleImg) {
+    //                 sampleImg = true;
+    //             } else {
+    //                 sampleImg = false;
+    //             }
+    //             drawPanel.add(new KeyCaptchaDragPieces(kcImages[i], offset, sampleImg, mouseArray, kc, url), new Integer(JLayeredPane.DEFAULT_LAYER) + i, new Integer(JLayeredPane.DEFAULT_LAYER) + i);
 
-                offset += 4;
-            }
+    //             offset += 4;
+    //         }
 
-            p.add(new JLabel("Assemble the image as you see at the upper right corner"));
+    //         p.add(new JLabel("Assemble the image as you see at the upper right corner"));
 
-            p.add(drawPanel);
-            return p;
-        }
+    //         p.add(drawPanel);
+    //         return p;
+    //     }
 
-        public void loadImage(final String[] imagesUrl) {
-            int i = 0;
-            IMAGE = new Image[imagesUrl.length];
-            File fragmentedPic;
-            final Browser dlpic = new Browser();
-            KeyCaptcha.prepareBrowser(dlpic, "image/png,image/*;q=0.8,*/*;q=0.5");
-            final MediaTracker mt = new MediaTracker(dialog);
-            for (final String imgUrl : imagesUrl) {
-                try {
-                    fragmentedPic = Application.getResource("captchas/" + imgUrl.substring(imgUrl.lastIndexOf("/") + 1));
-                    fragmentedPic.deleteOnExit();
-                    Browser.download(fragmentedPic, dlpic.openGetConnection(imgUrl));
-                    /* TODO: replace with ImageProvider.read in future */
-                    IMAGE[i] = ImageIO.read(fragmentedPic);
-                    // IMAGE[i] = Toolkit.getDefaultToolkit().getImage(new URL(imgUrl));
-                } catch (final IOException e) {
-                    e.printStackTrace();
-                }
-                mt.addImage(IMAGE[i], i);
-                i++;
-            }
-            try {
-                mt.waitForAll();
-            } catch (final InterruptedException ex) {
-            }
-        }
+    //     public void loadImage(final String[] imagesUrl) {
+    //         int i = 0;
+    //         IMAGE = new Image[imagesUrl.length];
+    //         File fragmentedPic;
+    //         final Browser dlpic = new Browser();
+    //         KeyCaptcha.prepareBrowser(dlpic, "image/png,image/*;q=0.8,*/*;q=0.5");
+    //         final MediaTracker mt = new MediaTracker(dialog);
+    //         for (final String imgUrl : imagesUrl) {
+    //             try {
+    //                 fragmentedPic = Application.getResource("captchas/" + imgUrl.substring(imgUrl.lastIndexOf("/") + 1));
+    //                 fragmentedPic.deleteOnExit();
+    //                 Browser.download(fragmentedPic, dlpic.openGetConnection(imgUrl));
+    //                 /* TODO: replace with ImageProvider.read in future */
+    //                 IMAGE[i] = ImageIO.read(fragmentedPic);
+    //                 // IMAGE[i] = Toolkit.getDefaultToolkit().getImage(new URL(imgUrl));
+    //             } catch (final IOException e) {
+    //                 e.printStackTrace();
+    //             }
+    //             mt.addImage(IMAGE[i], i);
+    //             i++;
+    //         }
+    //         try {
+    //             mt.waitForAll();
+    //         } catch (final InterruptedException ex) {
+    //         }
+    //     }
 
-        private void makeBackground() {
-            int curx = 0;
-            int cik = 0;
-            kcImages[0] = new BufferedImage(450, 160, BufferedImage.TYPE_INT_RGB);
-            go = kcImages[0].getGraphics();
-            go.setColor(Color.WHITE);
-            go.fillRect(0, 0, 450, 160);
-            final int[] bgCoord = coordinates.get("backGroundImage");
-            while (cik < bgCoord.length) {
-                go.drawImage(IMAGE[1], bgCoord[cik], bgCoord[cik + 1], bgCoord[cik] + bgCoord[cik + 2], bgCoord[cik + 1] + bgCoord[cik + 3], curx, 0, curx + bgCoord[cik + 2], bgCoord[cik + 3], dialog);
-                curx = curx + bgCoord[cik + 2];
-                cik = cik + 4;
-            }
-        }
+    //     private void makeBackground() {
+    //         int curx = 0;
+    //         int cik = 0;
+    //         kcImages[0] = new BufferedImage(450, 160, BufferedImage.TYPE_INT_RGB);
+    //         go = kcImages[0].getGraphics();
+    //         go.setColor(Color.WHITE);
+    //         go.fillRect(0, 0, 450, 160);
+    //         final int[] bgCoord = coordinates.get("backGroundImage");
+    //         while (cik < bgCoord.length) {
+    //             go.drawImage(IMAGE[1], bgCoord[cik], bgCoord[cik + 1], bgCoord[cik] + bgCoord[cik + 2], bgCoord[cik + 1] + bgCoord[cik + 3], curx, 0, curx + bgCoord[cik + 2], bgCoord[cik + 3], dialog);
+    //             curx = curx + bgCoord[cik + 2];
+    //             cik = cik + 4;
+    //         }
+    //     }
 
-        private void makePieces() {
-            final Object[] key = coordinates.keySet().toArray();
-            int pieces = 1;
-            for (final Object element : key) {
-                if (element.equals("backGroundImage")) {
-                    continue;
-                }
-                final int[] imgcs = coordinates.get(element);
-                if (imgcs == null | imgcs.length == 0) {
-                    break;
-                }
-                final int w = imgcs[1] + imgcs[5] + imgcs[9];
-                final int h = imgcs[3] + imgcs[15] + imgcs[27];
-                int dX = 0;
-                int dY = 0;
-                kcImages[pieces] = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-                go = kcImages[pieces].getGraphics();
-                if (element.equals("kc_sample_image")) {
-                    kcSampleImg = pieces;
-                }
-                int sX = 0, sY = 0, sW = 0, sH = 0;
-                dX = 0;
-                dY = 0;
-                for (int cik2 = 0; cik2 < 36; cik2 += 4) {
-                    sX = imgcs[cik2];
-                    sY = imgcs[cik2 + 2];
-                    sW = imgcs[cik2 + 1];
-                    sH = imgcs[cik2 + 3];
-                    if (sX + sW > IMAGE[0].getWidth(dialog) || sY + sH > IMAGE[0].getHeight(dialog)) {
-                        continue;
-                    }
-                    if (dX + sW > w || dY + sH > h) {
-                        continue;
-                    }
-                    if (sW == 0 || sH == 0) {
-                        continue;
-                    }
-                    // Puzzlebild erstellen
-                    go.drawImage(IMAGE[0], dX, dY, dX + sW, dY + sH, sX, sY, sX + sW, sY + sH, dialog);
-                    dX = dX + sW;
-                    if (dX >= w) {
-                        dY = dY + sH;
-                        dX = 0;
-                    }
-                }
-                pieces += 1;
-            }
-        }
+    //     private void makePieces() {
+    //         final Object[] key = coordinates.keySet().toArray();
+    //         int pieces = 1;
+    //         for (final Object element : key) {
+    //             if (element.equals("backGroundImage")) {
+    //                 continue;
+    //             }
+    //             final int[] imgcs = coordinates.get(element);
+    //             if (imgcs == null | imgcs.length == 0) {
+    //                 break;
+    //             }
+    //             final int w = imgcs[1] + imgcs[5] + imgcs[9];
+    //             final int h = imgcs[3] + imgcs[15] + imgcs[27];
+    //             int dX = 0;
+    //             int dY = 0;
+    //             kcImages[pieces] = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+    //             go = kcImages[pieces].getGraphics();
+    //             if (element.equals("kc_sample_image")) {
+    //                 kcSampleImg = pieces;
+    //             }
+    //             int sX = 0, sY = 0, sW = 0, sH = 0;
+    //             dX = 0;
+    //             dY = 0;
+    //             for (int cik2 = 0; cik2 < 36; cik2 += 4) {
+    //                 sX = imgcs[cik2];
+    //                 sY = imgcs[cik2 + 2];
+    //                 sW = imgcs[cik2 + 1];
+    //                 sH = imgcs[cik2 + 3];
+    //                 if (sX + sW > IMAGE[0].getWidth(dialog) || sY + sH > IMAGE[0].getHeight(dialog)) {
+    //                     continue;
+    //                 }
+    //                 if (dX + sW > w || dY + sH > h) {
+    //                     continue;
+    //                 }
+    //                 if (sW == 0 || sH == 0) {
+    //                     continue;
+    //                 }
+    //                 // Puzzlebild erstellen
+    //                 go.drawImage(IMAGE[0], dX, dY, dX + sW, dY + sH, sX, sY, sX + sW, sY + sH, dialog);
+    //                 dX = dX + sW;
+    //                 if (dX >= w) {
+    //                     dY = dY + sH;
+    //                     dX = 0;
+    //                 }
+    //             }
+    //             pieces += 1;
+    //         }
+    //     }
 
-    }
+    // }
 
-    private static class KeyCaptchaDragPieces extends JPanel {
-        private static final long   serialVersionUID = 1L;
-        private final BufferedImage IMAGE;
-        private final MouseAdapter  MOUSEADAPTER;
-        private int                 k;
+    // private static class KeyCaptchaDragPieces extends JPanel {
+    //     private static final long   serialVersionUID = 1L;
+    //     private final BufferedImage IMAGE;
+    //     private final MouseAdapter  MOUSEADAPTER;
+    //     private int                 k;
 
-        public KeyCaptchaDragPieces(final BufferedImage image, final int offset, final boolean sampleImg, final ArrayList<Integer> mouseArray, final Browser br, final String url) {
-            IMAGE = image;
+    //     public KeyCaptchaDragPieces(final BufferedImage image, final int offset, final boolean sampleImg, final ArrayList<Integer> mouseArray, final Browser br, final String url) {
+    //         IMAGE = image;
 
-            MOUSEADAPTER = new MouseInputAdapter() {
-                private Point p1;
-                private Point loc;
+    //         MOUSEADAPTER = new MouseInputAdapter() {
+    //             private Point p1;
+    //             private Point loc;
 
-                private Timer mArrayTimer = new Timer(1000, new ActionListener() {
-                                              public void actionPerformed(ActionEvent e) {
-                                                  marray(loc);
-                                              }
-                                          });
+    //             private Timer mArrayTimer = new Timer(1000, new ActionListener() {
+    //                                           public void actionPerformed(ActionEvent e) {
+    //                                               marray(loc);
+    //                                           }
+    //                                       });
 
-                @Override
-                public void mouseDragged(final MouseEvent e) {
-                    Point p2 = e.getPoint();
-                    loc = getLocation();
-                    loc.translate(p2.x - p1.x, p2.y - p1.y);
-                    mArrayTimer.setRepeats(false);
-                    mArrayTimer.start();
-                    setLocation(loc);
-                }
+    //             @Override
+    //             public void mouseDragged(final MouseEvent e) {
+    //                 Point p2 = e.getPoint();
+    //                 loc = getLocation();
+    //                 loc.translate(p2.x - p1.x, p2.y - p1.y);
+    //                 mArrayTimer.setRepeats(false);
+    //                 mArrayTimer.start();
+    //                 setLocation(loc);
+    //             }
 
-                @Override
-                public void mousePressed(final MouseEvent e) {
-                    p1 = e.getPoint();
-                    setBorder(BorderFactory.createLineBorder(Color.black));
-                    if (!br.getURL().equals(url)) {
-                        new Thread() {
-                            public void run() {
-                                try {
-                                    br.getPage(url);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }.start();
-                    }
-                }
+    //             @Override
+    //             public void mousePressed(final MouseEvent e) {
+    //                 p1 = e.getPoint();
+    //                 setBorder(BorderFactory.createLineBorder(Color.black));
+    //                 if (!br.getURL().equals(url)) {
+    //                     new Thread() {
+    //                         public void run() {
+    //                             try {
+    //                                 br.getPage(url);
+    //                             } catch (IOException e) {
+    //                                 e.printStackTrace();
+    //                             }
+    //                         }
+    //                     }.start();
+    //                 }
+    //             }
 
-                @Override
-                public void mouseReleased(final MouseEvent e) {
-                    p1 = e.getPoint();
-                    setBorder(BorderFactory.createEmptyBorder());
-                }
+    //             @Override
+    //             public void mouseReleased(final MouseEvent e) {
+    //                 p1 = e.getPoint();
+    //                 setBorder(BorderFactory.createEmptyBorder());
+    //             }
 
-                @Override
-                public void mouseEntered(final MouseEvent e) {
-                    mArrayTimer.start();
-                }
+    //             @Override
+    //             public void mouseEntered(final MouseEvent e) {
+    //                 mArrayTimer.start();
+    //             }
 
-                @Override
-                public void mouseMoved(final MouseEvent e) {
-                    p1 = e.getPoint();
-                    loc = getLocation();
-                    loc.translate(p1.x, p1.y);
-                    mArrayTimer.setRepeats(false);
-                    mArrayTimer.start();
-                }
+    //             @Override
+    //             public void mouseMoved(final MouseEvent e) {
+    //                 p1 = e.getPoint();
+    //                 loc = getLocation();
+    //                 loc.translate(p1.x, p1.y);
+    //                 mArrayTimer.setRepeats(false);
+    //                 mArrayTimer.start();
+    //             }
 
-                @Override
-                public void mouseExited(final MouseEvent e) {
-                    mArrayTimer.stop();
-                }
+    //             @Override
+    //             public void mouseExited(final MouseEvent e) {
+    //                 mArrayTimer.stop();
+    //             }
 
-                private void marray(Point loc) {
-                    if (loc != null) {
-                        if (mouseArray.size() == 0) {
-                            mouseArray.add(loc.x + 465);
-                            mouseArray.add(loc.y + 264);
-                        }
-                        if (mouseArray.get(mouseArray.size() - 2) != loc.x + 465 || mouseArray.get(mouseArray.size() - 1) != loc.y + 264) {
-                            mouseArray.add(loc.x + 465);
-                            mouseArray.add(loc.y + 264);
-                        }
-                        if (mouseArray.size() > 40) {
-                            ArrayList<Integer> tmpMouseArray = new ArrayList<Integer>();
-                            tmpMouseArray.addAll(mouseArray.subList(2, 40));
-                            mouseArray.clear();
-                            mouseArray.addAll(tmpMouseArray);
-                        }
-                    }
-                }
-            };
+    //             private void marray(Point loc) {
+    //                 if (loc != null) {
+    //                     if (mouseArray.size() == 0) {
+    //                         mouseArray.add(loc.x + 465);
+    //                         mouseArray.add(loc.y + 264);
+    //                     }
+    //                     if (mouseArray.get(mouseArray.size() - 2) != loc.x + 465 || mouseArray.get(mouseArray.size() - 1) != loc.y + 264) {
+    //                         mouseArray.add(loc.x + 465);
+    //                         mouseArray.add(loc.y + 264);
+    //                     }
+    //                     if (mouseArray.size() > 40) {
+    //                         ArrayList<Integer> tmpMouseArray = new ArrayList<Integer>();
+    //                         tmpMouseArray.addAll(mouseArray.subList(2, 40));
+    //                         mouseArray.clear();
+    //                         mouseArray.addAll(tmpMouseArray);
+    //                     }
+    //                 }
+    //             }
+    //         };
 
-            k = 0;
-            setOpaque(false);
-            setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
-            if (!sampleImg) {
-                setBounds(offset, offset, image.getWidth(), image.getHeight());
-                setLocation(offset, offset);
-                setBorder(BorderFactory.createLineBorder(Color.black));
-                addMouseListener(MOUSEADAPTER);
-                addMouseMotionListener(MOUSEADAPTER);
-                enableEvents(MouseEvent.MOUSE_EVENT_MASK | MouseEvent.MOUSE_MOTION_EVENT_MASK);
-            } else {
-                setLayout(null);
-                setBounds(449 - image.getWidth() - 10, 0, image.getWidth() + 10, image.getHeight() + 10);
-                setBorder(BorderFactory.createLineBorder(Color.GREEN, 2));
-                setBackground(Color.white);
-                k = 5;
-            }
-        }
+    //         k = 0;
+    //         setOpaque(false);
+    //         setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+    //         if (!sampleImg) {
+    //             setBounds(offset, offset, image.getWidth(), image.getHeight());
+    //             setLocation(offset, offset);
+    //             setBorder(BorderFactory.createLineBorder(Color.black));
+    //             addMouseListener(MOUSEADAPTER);
+    //             addMouseMotionListener(MOUSEADAPTER);
+    //             enableEvents(MouseEvent.MOUSE_EVENT_MASK | MouseEvent.MOUSE_MOTION_EVENT_MASK);
+    //         } else {
+    //             setLayout(null);
+    //             setBounds(449 - image.getWidth() - 10, 0, image.getWidth() + 10, image.getHeight() + 10);
+    //             setBorder(BorderFactory.createLineBorder(Color.GREEN, 2));
+    //             setBackground(Color.white);
+    //             k = 5;
+    //         }
+    //     }
 
-        @Override
-        public void paintComponent(final Graphics g) {
-            super.paintComponent(g);
-            if (IMAGE != null) {
-                g.drawImage(IMAGE, k, k, this);
-            }
-        }
-    }
+    //     @Override
+    //     public void paintComponent(final Graphics g) {
+    //         super.paintComponent(g);
+    //         if (IMAGE != null) {
+    //             g.drawImage(IMAGE, k, k, this);
+    //         }
+    //     }
+    // }
 
-    private static class KeyCaptchaDrawBackgroundPanel extends JPanel {
-        private static final long   serialVersionUID = 1L;
-        private final BufferedImage image;
+    // private static class KeyCaptchaDrawBackgroundPanel extends JPanel {
+    //     private static final long   serialVersionUID = 1L;
+    //     private final BufferedImage image;
 
-        public KeyCaptchaDrawBackgroundPanel(final BufferedImage image) {
-            this.image = image;
-            setOpaque(true);
-            setBounds(0, 0, image.getWidth(), image.getHeight());
-            setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
-        }
+    //     public KeyCaptchaDrawBackgroundPanel(final BufferedImage image) {
+    //         this.image = image;
+    //         setOpaque(true);
+    //         setBounds(0, 0, image.getWidth(), image.getHeight());
+    //         setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+    //     }
 
-        @Override
-        public Dimension getPreferredSize() {
-            if (image != null) {
-                return new Dimension(image.getWidth(), image.getHeight());
-            } else {
-                return super.getPreferredSize();
-            }
-        }
+    //     @Override
+    //     public Dimension getPreferredSize() {
+    //         if (image != null) {
+    //             return new Dimension(image.getWidth(), image.getHeight());
+    //         } else {
+    //             return super.getPreferredSize();
+    //         }
+    //     }
 
-        @Override
-        protected void paintComponent(final Graphics g) {
-            super.paintComponent(g);
-            if (image != null) {
-                g.drawImage(image, 0, 0, this);
-            }
-        }
-    }
+    //     @Override
+    //     protected void paintComponent(final Graphics g) {
+    //         super.paintComponent(g);
+    //         if (image != null) {
+    //             g.drawImage(image, 0, 0, this);
+    //         }
+    //     }
+    // }
 
-    private static class KeyCaptchaDialogForStable extends JFrame {
-        private static final long                  serialVersionUID = 1L;
-        private Image[]                            IMAGE;
-        private BufferedImage[]                    kcImages;
-        private final LinkedHashMap<String, int[]> coordinates;
-        private Graphics                           go;
-        private int                                kcSampleImg;
-        private final ActionListener               AL;
-        public String                              POSITION;
-        private final JFrame                       FRAME            = this;
-        private final JPanel                       p;
-        private ArrayList<Integer>                 mouseArray;
+    // private static class KeyCaptchaDialogForStable extends JFrame {
+    //     private static final long                  serialVersionUID = 1L;
+    //     private Image[]                            IMAGE;
+    //     private BufferedImage[]                    kcImages;
+    //     private final LinkedHashMap<String, int[]> coordinates;
+    //     private Graphics                           go;
+    //     private int                                kcSampleImg;
+    //     private final ActionListener               AL;
+    //     public String                              POSITION;
+    //     private final JFrame                       FRAME            = this;
+    //     private final JPanel                       p;
+    //     private ArrayList<Integer>                 mouseArray;
 
-        public KeyCaptchaDialogForStable(final String title, final String[] arg0, final LinkedHashMap<String, int[]> arg1, Browser br, String url) throws Exception {
-            super(title);
-            coordinates = arg1;
-            loadImage(arg0);
-            handleCoordinates();
-            p = new JPanel(new MigLayout("ins 0,wrap 1", "[grow,fill]", "[][grow,fill]"));
-            final JLayeredPane drawPanel = new JLayeredPane();
-            setSize(new Dimension(455, 235));
-            makePieces();
-            makeBackground();
-            int offset = 4;
-            boolean sampleImg = false;
+    //     public KeyCaptchaDialogForStable(final String title, final String[] arg0, final LinkedHashMap<String, int[]> arg1, Browser br, String url) throws Exception {
+    //         super(title);
+    //         coordinates = arg1;
+    //         loadImage(arg0);
+    //         handleCoordinates();
+    //         p = new JPanel(new MigLayout("ins 0,wrap 1", "[grow,fill]", "[][grow,fill]"));
+    //         final JLayeredPane drawPanel = new JLayeredPane();
+    //         setSize(new Dimension(455, 235));
+    //         makePieces();
+    //         makeBackground();
+    //         int offset = 4;
+    //         boolean sampleImg = false;
 
-            mouseArray = new ArrayList<Integer>();
+    //         mouseArray = new ArrayList<Integer>();
 
-            for (int i = 1; i < kcImages.length; i++) {
-                if (kcImages[i] == null) {
-                    continue;
-                } else if (i == kcSampleImg) {
-                    sampleImg = true;
-                } else {
-                    sampleImg = false;
-                }
-                drawPanel.add(new KeyCaptchaDragPieces(kcImages[i], offset, sampleImg, mouseArray, br, url), new Integer(JLayeredPane.DEFAULT_LAYER + i), new Integer(JLayeredPane.DEFAULT_LAYER + i));
-                offset += 4;
-            }
-            drawPanel.add(new KeyCaptchaDrawBackgroundPanel(kcImages[0]), new Integer(JLayeredPane.DEFAULT_LAYER), new Integer(JLayeredPane.DEFAULT_LAYER));
+    //         for (int i = 1; i < kcImages.length; i++) {
+    //             if (kcImages[i] == null) {
+    //                 continue;
+    //             } else if (i == kcSampleImg) {
+    //                 sampleImg = true;
+    //             } else {
+    //                 sampleImg = false;
+    //             }
+    //             drawPanel.add(new KeyCaptchaDragPieces(kcImages[i], offset, sampleImg, mouseArray, br, url), new Integer(JLayeredPane.DEFAULT_LAYER + i), new Integer(JLayeredPane.DEFAULT_LAYER + i));
+    //             offset += 4;
+    //         }
+    //         drawPanel.add(new KeyCaptchaDrawBackgroundPanel(kcImages[0]), new Integer(JLayeredPane.DEFAULT_LAYER), new Integer(JLayeredPane.DEFAULT_LAYER));
 
-            final JButton btnOk = new JButton("OK");
-            final JButton btnCancel = new JButton("CANCEL");
+    //         final JButton btnOk = new JButton("OK");
+    //         final JButton btnCancel = new JButton("CANCEL");
 
-            AL = new ActionListener() {
+    //         AL = new ActionListener() {
 
-                public void actionPerformed(final ActionEvent e) {
-                    if (e.getActionCommand().equals("OK")) {
-                        POSITION = getPosition(drawPanel);
-                    } else {
-                        POSITION = "CANCEL";
-                    }
-                    try {
-                        FRAME.dispose();
-                    } finally {
-                        synchronized (KeyCaptcha.LOCK) {
-                            KeyCaptcha.LOCK.notify();
-                        }
-                    }
-                }
-            };
-            btnOk.addActionListener(AL);
-            btnCancel.addActionListener(AL);
+    //             public void actionPerformed(final ActionEvent e) {
+    //                 if (e.getActionCommand().equals("OK")) {
+    //                     POSITION = getPosition(drawPanel);
+    //                 } else {
+    //                     POSITION = "CANCEL";
+    //                 }
+    //                 try {
+    //                     FRAME.dispose();
+    //                 } finally {
+    //                     synchronized (KeyCaptcha.LOCK) {
+    //                         KeyCaptcha.LOCK.notify();
+    //                     }
+    //                 }
+    //             }
+    //         };
+    //         btnOk.addActionListener(AL);
+    //         btnCancel.addActionListener(AL);
 
-            final JPanel buttons = new JPanel();
-            buttons.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 5));
-            buttons.add(Box.createHorizontalGlue());
+    //         final JPanel buttons = new JPanel();
+    //         buttons.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 5));
+    //         buttons.add(Box.createHorizontalGlue());
 
-            btnOk.addActionListener(AL);
-            btnCancel.addActionListener(AL);
+    //         btnOk.addActionListener(AL);
+    //         btnCancel.addActionListener(AL);
 
-            buttons.setLayout(new BoxLayout(buttons, BoxLayout.LINE_AXIS));
-            buttons.add(btnOk);
-            buttons.add(Box.createRigidArea(new Dimension(5, 0)));
-            buttons.add(btnCancel);
+    //         buttons.setLayout(new BoxLayout(buttons, BoxLayout.LINE_AXIS));
+    //         buttons.add(btnOk);
+    //         buttons.add(Box.createRigidArea(new Dimension(5, 0)));
+    //         buttons.add(btnCancel);
 
-            p.setLayout(new BorderLayout());
-            p.add(new JLabel("Assemble the image as you see at the upper right corner"), BorderLayout.NORTH);
-            p.add(drawPanel, BorderLayout.CENTER);
-            p.add(buttons, BorderLayout.SOUTH);
+    //         p.setLayout(new BorderLayout());
+    //         p.add(new JLabel("Assemble the image as you see at the upper right corner"), BorderLayout.NORTH);
+    //         p.add(drawPanel, BorderLayout.CENTER);
+    //         p.add(buttons, BorderLayout.SOUTH);
 
-            getContentPane().add(p);
+    //         getContentPane().add(p);
 
-            toFront();
+    //         toFront();
 
-            if (JDGui.getInstance() == null) {
-                setLocation(Screen.getCenterOfComponent(null, this));
-            } else if (JDGui.getInstance().getMainFrame().getExtendedState() == 1 || !JDGui.getInstance().getMainFrame().isVisible()) {
-                setLocation(Screen.getDockBottomRight(this));
-            } else {
-                setLocation(Screen.getCenterOfComponent(JDGui.getInstance().getMainFrame(), this));
-            }
+    //         if (JDGui.getInstance() == null) {
+    //             setLocation(Screen.getCenterOfComponent(null, this));
+    //         } else if (JDGui.getInstance().getMainFrame().getExtendedState() == 1 || !JDGui.getInstance().getMainFrame().isVisible()) {
+    //             setLocation(Screen.getDockBottomRight(this));
+    //         } else {
+    //             setLocation(Screen.getCenterOfComponent(JDGui.getInstance().getMainFrame(), this));
+    //         }
 
-            setResizable(false);
-            setVisible(true);
-        }
+    //         setResizable(false);
+    //         setVisible(true);
+    //     }
 
-        private String getPosition(final JLayeredPane drawPanel) {
-            int i = 0;
-            String positions = "";
-            final Component[] comp = drawPanel.getComponents();
-            for (int c = comp.length - 1; c >= 0; c--) {
-                if (comp[c].getMouseListeners().length == 0) {
-                    continue;
-                }
-                final Point p = comp[c].getLocation();
-                positions += (i != 0 ? "." : "") + String.valueOf(p.x) + "." + String.valueOf(p.y);
-                i++;
-            }
-            return positions;
-        }
+    //     private String getPosition(final JLayeredPane drawPanel) {
+    //         int i = 0;
+    //         String positions = "";
+    //         final Component[] comp = drawPanel.getComponents();
+    //         for (int c = comp.length - 1; c >= 0; c--) {
+    //             if (comp[c].getMouseListeners().length == 0) {
+    //                 continue;
+    //             }
+    //             final Point p = comp[c].getLocation();
+    //             positions += (i != 0 ? "." : "") + String.valueOf(p.x) + "." + String.valueOf(p.y);
+    //             i++;
+    //         }
+    //         return positions;
+    //     }
 
-        public void handleCoordinates() {
-            kcImages = new BufferedImage[coordinates.size()];
-        }
+    //     public void handleCoordinates() {
+    //         kcImages = new BufferedImage[coordinates.size()];
+    //     }
 
-        public void loadImage(final String[] imagesUrl) {
-            int i = 0;
-            IMAGE = new Image[imagesUrl.length];
-            File fragmentedPic;
-            final Browser dlpic = new Browser();
-            KeyCaptcha.prepareBrowser(dlpic, "image/png,image/*;q=0.8,*/*;q=0.5");
-            final MediaTracker mt = new MediaTracker(this);
-            for (final String imgUrl : imagesUrl) {
-                try {
-                    // fragmentedPic = Application.getRessource("captchas/" + imgUrl.substring(imgUrl.lastIndexOf("/") + 1));
-                    fragmentedPic = JDUtilities.getResourceFile("captchas/" + imgUrl.substring(imgUrl.lastIndexOf("/") + 1));
-                    fragmentedPic.deleteOnExit();
-                    Browser.download(fragmentedPic, dlpic.openGetConnection(imgUrl));
-                    /* TODO: replace with ImageProvider.read in future */
-                    IMAGE[i] = ImageIO.read(fragmentedPic);
-                    // IMAGE[i] = Toolkit.getDefaultToolkit().getImage(new URL(imgUrl));
-                } catch (final IOException e) {
-                    e.printStackTrace();
-                }
-                mt.addImage(IMAGE[i], i);
-                i++;
-            }
-            try {
-                mt.waitForAll();
-            } catch (final InterruptedException ex) {
-            }
-        }
+    //     public void loadImage(final String[] imagesUrl) {
+    //         int i = 0;
+    //         IMAGE = new Image[imagesUrl.length];
+    //         File fragmentedPic;
+    //         final Browser dlpic = new Browser();
+    //         KeyCaptcha.prepareBrowser(dlpic, "image/png,image/*;q=0.8,*/*;q=0.5");
+    //         final MediaTracker mt = new MediaTracker(this);
+    //         for (final String imgUrl : imagesUrl) {
+    //             try {
+    //                 // fragmentedPic = Application.getRessource("captchas/" + imgUrl.substring(imgUrl.lastIndexOf("/") + 1));
+    //                 fragmentedPic = JDUtilities.getResourceFile("captchas/" + imgUrl.substring(imgUrl.lastIndexOf("/") + 1));
+    //                 fragmentedPic.deleteOnExit();
+    //                 Browser.download(fragmentedPic, dlpic.openGetConnection(imgUrl));
+    //                 /* TODO: replace with ImageProvider.read in future */
+    //                 IMAGE[i] = ImageIO.read(fragmentedPic);
+    //                 // IMAGE[i] = Toolkit.getDefaultToolkit().getImage(new URL(imgUrl));
+    //             } catch (final IOException e) {
+    //                 e.printStackTrace();
+    //             }
+    //             mt.addImage(IMAGE[i], i);
+    //             i++;
+    //         }
+    //         try {
+    //             mt.waitForAll();
+    //         } catch (final InterruptedException ex) {
+    //         }
+    //     }
 
-        private void makeBackground() {
-            int curx = 0;
-            int cik = 0;
-            kcImages[0] = new BufferedImage(450, 160, BufferedImage.TYPE_INT_RGB);
-            go = kcImages[0].getGraphics();
-            go.setColor(Color.WHITE);
-            go.fillRect(0, 0, 450, 160);
-            final int[] bgCoord = coordinates.get("backGroundImage");
-            while (cik < bgCoord.length) {
-                go.drawImage(IMAGE[1], bgCoord[cik], bgCoord[cik + 1], bgCoord[cik] + bgCoord[cik + 2], bgCoord[cik + 1] + bgCoord[cik + 3], curx, 0, curx + bgCoord[cik + 2], bgCoord[cik + 3], this);
-                curx = curx + bgCoord[cik + 2];
-                cik = cik + 4;
-            }
-        }
+    //     private void makeBackground() {
+    //         int curx = 0;
+    //         int cik = 0;
+    //         kcImages[0] = new BufferedImage(450, 160, BufferedImage.TYPE_INT_RGB);
+    //         go = kcImages[0].getGraphics();
+    //         go.setColor(Color.WHITE);
+    //         go.fillRect(0, 0, 450, 160);
+    //         final int[] bgCoord = coordinates.get("backGroundImage");
+    //         while (cik < bgCoord.length) {
+    //             go.drawImage(IMAGE[1], bgCoord[cik], bgCoord[cik + 1], bgCoord[cik] + bgCoord[cik + 2], bgCoord[cik + 1] + bgCoord[cik + 3], curx, 0, curx + bgCoord[cik + 2], bgCoord[cik + 3], this);
+    //             curx = curx + bgCoord[cik + 2];
+    //             cik = cik + 4;
+    //         }
+    //     }
 
-        private void makePieces() {
-            final Object[] key = coordinates.keySet().toArray();
-            int pieces = 1;
-            for (final Object element : key) {
-                if (element.equals("backGroundImage")) {
-                    continue;
-                }
-                final int[] imgcs = coordinates.get(element);
-                if (imgcs == null | imgcs.length == 0) {
-                    break;
-                }
-                final int w = imgcs[1] + imgcs[5] + imgcs[9];
-                final int h = imgcs[3] + imgcs[15] + imgcs[27];
-                int dX = 0;
-                int dY = 0;
-                kcImages[pieces] = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-                go = kcImages[pieces].getGraphics();
-                if (element.equals("kc_sample_image")) {
-                    kcSampleImg = pieces;
-                }
-                int sX = 0, sY = 0, sW = 0, sH = 0;
-                dX = 0;
-                dY = 0;
-                for (int cik2 = 0; cik2 < 36; cik2 += 4) {
-                    sX = imgcs[cik2];
-                    sY = imgcs[cik2 + 2];
-                    sW = imgcs[cik2 + 1];
-                    sH = imgcs[cik2 + 3];
-                    if (sX + sW > IMAGE[0].getWidth(this) || sY + sH > IMAGE[0].getHeight(this)) {
-                        continue;
-                    }
-                    if (dX + sW > w || dY + sH > h) {
-                        continue;
-                    }
-                    if (sW == 0 || sH == 0) {
-                        continue;
-                    }
-                    // Puzzlebild erstellen
-                    go.drawImage(IMAGE[0], dX, dY, dX + sW, dY + sH, sX, sY, sX + sW, sY + sH, this);
-                    dX = dX + sW;
-                    if (dX >= w) {
-                        dY = dY + sH;
-                        dX = 0;
-                    }
-                }
-                pieces += 1;
-            }
-        }
+    //     private void makePieces() {
+    //         final Object[] key = coordinates.keySet().toArray();
+    //         int pieces = 1;
+    //         for (final Object element : key) {
+    //             if (element.equals("backGroundImage")) {
+    //                 continue;
+    //             }
+    //             final int[] imgcs = coordinates.get(element);
+    //             if (imgcs == null | imgcs.length == 0) {
+    //                 break;
+    //             }
+    //             final int w = imgcs[1] + imgcs[5] + imgcs[9];
+    //             final int h = imgcs[3] + imgcs[15] + imgcs[27];
+    //             int dX = 0;
+    //             int dY = 0;
+    //             kcImages[pieces] = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+    //             go = kcImages[pieces].getGraphics();
+    //             if (element.equals("kc_sample_image")) {
+    //                 kcSampleImg = pieces;
+    //             }
+    //             int sX = 0, sY = 0, sW = 0, sH = 0;
+    //             dX = 0;
+    //             dY = 0;
+    //             for (int cik2 = 0; cik2 < 36; cik2 += 4) {
+    //                 sX = imgcs[cik2];
+    //                 sY = imgcs[cik2 + 2];
+    //                 sW = imgcs[cik2 + 1];
+    //                 sH = imgcs[cik2 + 3];
+    //                 if (sX + sW > IMAGE[0].getWidth(this) || sY + sH > IMAGE[0].getHeight(this)) {
+    //                     continue;
+    //                 }
+    //                 if (dX + sW > w || dY + sH > h) {
+    //                     continue;
+    //                 }
+    //                 if (sW == 0 || sH == 0) {
+    //                     continue;
+    //                 }
+    //                 // Puzzlebild erstellen
+    //                 go.drawImage(IMAGE[0], dX, dY, dX + sW, dY + sH, sX, sY, sX + sW, sY + sH, this);
+    //                 dX = dX + sW;
+    //                 if (dX >= w) {
+    //                     dY = dY + sH;
+    //                     dX = 0;
+    //                 }
+    //             }
+    //             pieces += 1;
+    //         }
+    //     }
 
-    }
+    // }
 
     public static class KeyCaptchaShowDialogTwo {
         int    x;

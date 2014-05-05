@@ -45,7 +45,7 @@ import org.jdownloader.extensions.extraction.ExtractionControllerConstants;
 import org.jdownloader.extensions.extraction.FileSignatures;
 import org.jdownloader.extensions.extraction.Item;
 import org.jdownloader.extensions.extraction.content.PackedFile;
-import org.jdownloader.extensions.extraction.gui.iffileexistsdialog.IfFileExistsDialog;
+// import org.jdownloader.extensions.extraction.gui.iffileexistsdialog.IfFileExistsDialog;
 import org.jdownloader.settings.IfFileExistsAction;
 
 /**
@@ -194,21 +194,22 @@ class SplitUtil {
                 /* file already exists */
                 IfFileExistsAction action = controller.getIfFileExistsAction();
                 while (action == null || action == IfFileExistsAction.ASK_FOR_EACH_FILE) {
-                    IfFileExistsDialog d = new IfFileExistsDialog(file, controller.getCurrentActiveItem(), archive);
-                    d.show();
-                    try {
-                        d.throwCloseExceptions();
-                    } catch (Exception e) {
-                        throw new SevenZipException(e);
-                    }
-                    action = d.getAction();
-                    if (action == null) throw new SevenZipException("Cannot handle if file exists");
-                    if (action == IfFileExistsAction.AUTO_RENAME) {
-                        file = new File(file.getParentFile(), d.getNewName());
-                        if (file.exists()) {
-                            action = IfFileExistsAction.ASK_FOR_EACH_FILE;
-                        }
-                    }
+                    // IfFileExistsDialog d = new IfFileExistsDialog(file, controller.getCurrentActiveItem(), archive);
+                    // d.show();
+                    // try {
+                    //     d.throwCloseExceptions();
+                    // } catch (Exception e) {
+                    //     throw new SevenZipException(e);
+                    // }
+                    // action = d.getAction();
+                    // if (action == null) throw new SevenZipException("Cannot handle if file exists");
+                    // if (action == IfFileExistsAction.AUTO_RENAME) {
+                    //     file = new File(file.getParentFile(), d.getNewName());
+                    //     if (file.exists()) {
+                    //         action = IfFileExistsAction.ASK_FOR_EACH_FILE;
+                    //     }
+                    // }
+                    throw new UnsupportedOperationException("jdget TODO");
                 }
                 switch (action) {
                 case OVERWRITE_FILE:

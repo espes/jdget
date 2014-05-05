@@ -1,7 +1,7 @@
 package org.appwork.uio;
 
-import org.appwork.utils.swing.dialog.DialogCanceledException;
-import org.appwork.utils.swing.dialog.DialogClosedException;
+// import org.appwork.utils.swing.dialog.DialogCanceledException;
+// import org.appwork.utils.swing.dialog.DialogClosedException;
 
 public interface UserIODefinition {
 
@@ -18,7 +18,7 @@ public interface UserIODefinition {
      * @throws DialogClosedException
      * 
      */
-    public void throwCloseExceptions() throws DialogClosedException, DialogCanceledException;
+    // public void throwCloseExceptions() throws DialogClosedException, DialogCanceledException;
 
     @In
     public boolean isDontShowAgainSelected();

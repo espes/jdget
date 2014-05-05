@@ -15,7 +15,7 @@ import org.appwork.utils.StringUtils;
 import org.jdownloader.DomainInfo;
 import org.jdownloader.controlling.Priority;
 import org.jdownloader.gui.translate._GUI;
-import org.jdownloader.gui.views.downloads.columns.AvailabilityColumn;
+// import org.jdownloader.gui.views.downloads.columns.AvailabilityColumn;
 import org.jdownloader.myjdownloader.client.json.AvailableLinkState;
 
 public class CrawledPackageView extends ChildrenView<CrawledLink> {
@@ -241,7 +241,7 @@ public class CrawledPackageView extends ChildrenView<CrawledLink> {
 
     @Override
     public String getMessage(Object requestor) {
-        if (requestor instanceof AvailabilityColumn) return availabilityColumnString;
+        // if (requestor instanceof AvailabilityColumn) return availabilityColumnString;
         return null;
     }
 

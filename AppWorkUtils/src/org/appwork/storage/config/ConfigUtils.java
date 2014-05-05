@@ -8,9 +8,9 @@ import org.appwork.exceptions.WTFException;
 import org.appwork.storage.config.annotations.DescriptionForConfigEntry;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.storage.config.handler.ListHandler;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogCanceledException;
-import org.appwork.utils.swing.dialog.DialogClosedException;
+// import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.DialogCanceledException;
+// import org.appwork.utils.swing.dialog.DialogClosedException;
 
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
@@ -106,15 +106,15 @@ continue;
 
         System.err.println("=======================");
         System.err.flush();
-        try {
-            Dialog.getInstance().showInputDialog(Dialog.STYLE_LARGE, configInterface.toString(), strBuild.toString());
-        } catch (final DialogClosedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (final DialogCanceledException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        // try {
+        //     Dialog.getInstance().showInputDialog(Dialog.STYLE_LARGE, configInterface.toString(), strBuild.toString());
+        // } catch (final DialogClosedException e) {
+        //     // TODO Auto-generated catch block
+        //     e.printStackTrace();
+        // } catch (final DialogCanceledException e) {
+        //     // TODO Auto-generated catch block
+        //     e.printStackTrace();
+        // }
 
     }
 }

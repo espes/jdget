@@ -11,10 +11,12 @@ package org.appwork.utils.os.mime;
 
 import java.io.IOException;
 
-import javax.swing.Icon;
+// import javax.swing.Icon;
 
-public interface Mime {
-    public Icon getFileIcon(String extension, int width, int height) throws IOException;
+public class Mime {
+    // public Icon getFileIcon(String extension, int width, int height) throws IOException;
 
-    public String getMimeDescription(String mimetype);
+    public String getMimeDescription(final String mimetype) {
+        return mimetype;
+    }
 }

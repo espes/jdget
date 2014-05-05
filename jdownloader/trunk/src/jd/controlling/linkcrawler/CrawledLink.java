@@ -277,12 +277,12 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
         return null;
     }
 
-    public ImageIcon getIcon() {
-        if (icon == null) {
-            icon = DownloadLink.getIcon(getName());
-        }
-        return icon;
-    }
+    // public ImageIcon getIcon() {
+    //     if (icon == null) {
+    //         icon = DownloadLink.getIcon(getName());
+    //     }
+    //     return icon;
+    // }
 
     public String getURL() {
         if (dlLink != null) return dlLink.getDownloadURL();

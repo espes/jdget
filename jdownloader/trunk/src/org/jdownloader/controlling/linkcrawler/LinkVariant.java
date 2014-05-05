@@ -1,6 +1,6 @@
 package org.jdownloader.controlling.linkcrawler;
 
-import javax.swing.Icon;
+// import javax.swing.Icon;
 
 public interface LinkVariant {
     //
@@ -8,7 +8,7 @@ public interface LinkVariant {
 
     String getName();
 
-    Icon getIcon();
+    // Icon getIcon();
 
     String getExtendedName();
 

@@ -20,7 +20,7 @@ import java.awt.event.ActionListener;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import javax.swing.ImageIcon;
+// import javax.swing.ImageIcon;
 
 /**
  * Diese Klasse speichert die GUI-Dialog Informationen. Jede GUI kann diese Infos Abfragen und Entsprechend verarbeiten
@@ -119,7 +119,7 @@ public class ConfigContainer implements Serializable {
     private final java.util.List<ConfigEntry> content;
     private String                            title;
     private ConfigGroup                       group;
-    private ImageIcon                         icon;
+    // private ImageIcon                         icon;
 
     public ConfigContainer() {
         this.content = new ArrayList<ConfigEntry>();
@@ -189,12 +189,12 @@ public class ConfigContainer implements Serializable {
      * 
      * @param icon
      */
-    public void setIcon(final ImageIcon icon) {
-        this.icon = icon;
-    }
+    // public void setIcon(final ImageIcon icon) {
+    //     this.icon = icon;
+    // }
 
-    public ImageIcon getIcon() {
-        return icon;
-    }
+    // public ImageIcon getIcon() {
+    //     return icon;
+    // }
 
 }

@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.ImageIcon;
+// import javax.swing.ImageIcon;
 
 import jd.PluginWrapper;
 import jd.config.ConfigContainer;
@@ -43,15 +43,15 @@ import jd.nutils.encoding.Encoding;
 import jd.utils.JDUtilities;
 
 import org.appwork.storage.config.ConfigInterface;
-import org.appwork.uio.CloseReason;
-import org.appwork.uio.UIOManager;
+// import org.appwork.uio.CloseReason;
+// import org.appwork.uio.UIOManager;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.net.httpconnection.HTTPConnectionUtils;
-import org.jdownloader.gui.dialog.AskCrawlerPasswordDialogInterface;
-import org.jdownloader.gui.dialog.AskDownloadPasswordDialogInterface;
-import org.jdownloader.gui.dialog.AskForCryptedLinkPasswordDialog;
-import org.jdownloader.gui.dialog.AskForPasswordDialog;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.gui.dialog.AskCrawlerPasswordDialogInterface;
+// import org.jdownloader.gui.dialog.AskDownloadPasswordDialogInterface;
+// import org.jdownloader.gui.dialog.AskForCryptedLinkPasswordDialog;
+// import org.jdownloader.gui.dialog.AskForPasswordDialog;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.plugins.UserIOProgress;
 import org.jdownloader.settings.staticreferences.CFG_CAPTCHA;
@@ -220,20 +220,21 @@ public abstract class Plugin implements ActionListener {
 
         // UserIOProgress prg = new UserIOProgress(message);
         // PluginProgress old = null;
-        try {
-            // old = link.setPluginProgress(prg);
-            AskCrawlerPasswordDialogInterface handle = UIOManager.I().show(AskCrawlerPasswordDialogInterface.class, new AskForCryptedLinkPasswordDialog(message, link, getCurrentActivePlugin()));
-            if (handle.getCloseReason() == CloseReason.OK) {
-                String password = handle.getText();
+        // try {
+        //     // old = link.setPluginProgress(prg);
+        //     AskCrawlerPasswordDialogInterface handle = UIOManager.I().show(AskCrawlerPasswordDialogInterface.class, new AskForCryptedLinkPasswordDialog(message, link, getCurrentActivePlugin()));
+        //     if (handle.getCloseReason() == CloseReason.OK) {
+        //         String password = handle.getText();
 
-                if (StringUtils.isEmpty(password)) { throw new DecrypterException(DecrypterException.PASSWORD); }
-                return password;
-            } else {
-                throw new DecrypterException(DecrypterException.PASSWORD);
-            }
-        } finally {
-            // link.compareAndSetPluginProgress(prg, old);
-        }
+        //         if (StringUtils.isEmpty(password)) { throw new DecrypterException(DecrypterException.PASSWORD); }
+        //         return password;
+        //     } else {
+        //         throw new DecrypterException(DecrypterException.PASSWORD);
+        //     }
+        // } finally {
+        //     // link.compareAndSetPluginProgress(prg, old);
+        // }
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     public static Plugin getCurrentActivePlugin() {
@@ -259,24 +260,25 @@ public abstract class Plugin implements ActionListener {
      *             if the user aborts the input
      */
     public static String getUserInput(final String message, final DownloadLink link) throws PluginException {
-        UserIOProgress prg = new UserIOProgress(message);
-        prg.setProgressSource(getCurrentActivePlugin());
-        PluginProgress old = null;
-        try {
-            old = link.setPluginProgress(prg);
-            AskDownloadPasswordDialogInterface handle = UIOManager.I().show(AskDownloadPasswordDialogInterface.class, new AskForPasswordDialog(message, link));
-            if (handle.getCloseReason() == CloseReason.OK) {
-                String password = handle.getText();
+        // UserIOProgress prg = new UserIOProgress(message);
+        // prg.setProgressSource(getCurrentActivePlugin());
+        // PluginProgress old = null;
+        // try {
+        //     old = link.setPluginProgress(prg);
+        //     AskDownloadPasswordDialogInterface handle = UIOManager.I().show(AskDownloadPasswordDialogInterface.class, new AskForPasswordDialog(message, link));
+        //     if (handle.getCloseReason() == CloseReason.OK) {
+        //         String password = handle.getText();
 
-                if (StringUtils.isEmpty(password)) { throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword()); }
-                return password;
-            } else {
-                throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword());
-            }
+        //         if (StringUtils.isEmpty(password)) { throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword()); }
+        //         return password;
+        //     } else {
+        //         throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword());
+        //     }
 
-        } finally {
-            link.compareAndSetPluginProgress(prg, old);
-        }
+        // } finally {
+        //     link.compareAndSetPluginProgress(prg, old);
+        // }
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     private volatile ConfigContainer config;
@@ -333,15 +335,15 @@ public abstract class Plugin implements ActionListener {
                 /**
                  * we dont have to catch icon until it is really needed
                  */
-                @Override
-                public ImageIcon getIcon() {
-                    return NewTheme.I().getIcon("warning", 16);
-                }
+                // @Override
+                // public ImageIcon getIcon() {
+                //     return NewTheme.I().getIcon("warning", 16);
+                // }
 
-                @Override
-                public String getTitle() {
-                    return getHost();
-                }
+                // @Override
+                // public String getTitle() {
+                //     return getHost();
+                // }
             };
         }
         return config;
@@ -431,9 +433,9 @@ public abstract class Plugin implements ActionListener {
         return false;
     }
 
-    public PluginConfigPanelNG createConfigPanel() {
-        return null;
-    }
+    // public PluginConfigPanelNG createConfigPanel() {
+    //     return null;
+    // }
 
     public Class<? extends ConfigInterface> getConfigInterface() {
         return null;

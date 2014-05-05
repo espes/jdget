@@ -19,11 +19,11 @@ package org.jdownloader.extensions;
 import java.lang.reflect.Type;
 import java.net.URL;
 
-import javax.swing.Icon;
+// import javax.swing.Icon;
 
 import jd.config.ConfigContainer;
-import jd.gui.swing.jdgui.views.settings.sidebar.AddonConfig;
-import jd.plugins.AddonPanel;
+// import jd.gui.swing.jdgui.views.settings.sidebar.AddonConfig;
+// import jd.plugins.AddonPanel;
 import jd.plugins.ExtensionConfigInterface;
 
 import org.appwork.storage.config.JsonConfig;
@@ -32,7 +32,7 @@ import org.appwork.txtresource.TranslationFactory;
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.logging2.LogSource;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.settings.advanced.AdvancedConfigManager;
 
@@ -59,9 +59,9 @@ public abstract class AbstractExtension<ConfigType extends ExtensionConfigInterf
         return enabled;
     }
 
-    public Icon getIcon(int i) {
-        return NewTheme.I().getIcon(getIconKey(), i);
-    }
+    // public Icon getIcon(int i) {
+    //     return NewTheme.I().getIcon(getIconKey(), i);
+    // }
 
     /**
      * start/stops the extension.
@@ -79,9 +79,9 @@ public abstract class AbstractExtension<ConfigType extends ExtensionConfigInterf
         } else {
             store.setEnabled(false);
             stop();
-            if (getGUI() != null) {
-                getGUI().setActive(false);
-            }
+            // if (getGUI() != null) {
+            //     getGUI().setActive(false);
+            // }
         }
 
     }
@@ -92,9 +92,9 @@ public abstract class AbstractExtension<ConfigType extends ExtensionConfigInterf
         } catch (StopException e) {
             e.printStackTrace();
         }
-        if (getGUI() != null) {
-            getGUI().setActive(false);
-        }
+        // if (getGUI() != null) {
+        //     getGUI().setActive(false);
+        // }
     }
 
     /**
@@ -103,36 +103,36 @@ public abstract class AbstractExtension<ConfigType extends ExtensionConfigInterf
      * @param initSettings
      * @return
      */
-    @Deprecated
-    protected ExtensionConfigPanel createPanelFromContainer(ConfigContainer initSettings) {
+    // @Deprecated
+    // protected ExtensionConfigPanel createPanelFromContainer(ConfigContainer initSettings) {
 
-        final AddonConfig cp = AddonConfig.getInstance(initSettings, "", false);
-        ExtensionConfigPanel<AbstractExtension<ConfigType, TranslationType>> ret = new ExtensionConfigPanel<AbstractExtension<ConfigType, TranslationType>>(this, false) {
+    //     final AddonConfig cp = AddonConfig.getInstance(initSettings, "", false);
+    //     ExtensionConfigPanel<AbstractExtension<ConfigType, TranslationType>> ret = new ExtensionConfigPanel<AbstractExtension<ConfigType, TranslationType>>(this, false) {
 
-            private static final long serialVersionUID = 1L;
+    //         private static final long serialVersionUID = 1L;
 
-            @Override
-            protected void onShow() {
-            }
+    //         @Override
+    //         protected void onShow() {
+    //         }
 
-            @Override
-            protected void onHide() {
-            }
+    //         @Override
+    //         protected void onHide() {
+    //         }
 
-            @Override
-            public void save() {
-                cp.setHidden();
-            }
+    //         @Override
+    //         public void save() {
+    //             cp.setHidden();
+    //         }
 
-            @Override
-            public void updateContents() {
-                cp.setShown();
-            }
-        };
+    //         @Override
+    //         public void updateContents() {
+    //             cp.setShown();
+    //         }
+    //     };
 
-        ret.add(cp, "gapleft 25,spanx,growx,pushx,growy,pushy");
-        return ret;
-    }
+    //     ret.add(cp, "gapleft 25,spanx,growx,pushx,growy,pushy");
+    //     return ret;
+    // }
 
     /**
      * Returns the internal storage. Most of the configvalues are for internal use only. This config only contains values which are valid for all extensions
@@ -267,7 +267,7 @@ public abstract class AbstractExtension<ConfigType extends ExtensionConfigInterf
 
     }
 
-    public abstract ExtensionConfigPanel<?> getConfigPanel();
+    // public abstract ExtensionConfigPanel<?> getConfigPanel();
 
     public abstract boolean hasConfigPanel();
 
@@ -287,7 +287,7 @@ public abstract class AbstractExtension<ConfigType extends ExtensionConfigInterf
         return true;
     }
 
-    public abstract AddonPanel<? extends AbstractExtension<ConfigType, TranslationType>> getGUI();
+    // public abstract AddonPanel<? extends AbstractExtension<ConfigType, TranslationType>> getGUI();
 
     public boolean isDefaultEnabled() {
         return false;

@@ -1,9 +1,9 @@
 package org.jdownloader.controlling;
 
-import javax.swing.ImageIcon;
+// import javax.swing.ImageIcon;
 
 import org.jdownloader.gui.translate._GUI;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.NewTheme;
 
 public enum Priority {
     HIGHEST(3, _GUI._.gui_treetable_tooltip_priority3()),
@@ -29,9 +29,9 @@ public enum Priority {
         return translation;
     }
 
-    public ImageIcon loadIcon(int size) {
-        return NewTheme.I().getIcon("prio_" + id, size);
-    }
+    // public ImageIcon loadIcon(int size) {
+    //     return NewTheme.I().getIcon("prio_" + id, size);
+    // }
 
     public static Priority getPriority(int p) {
         if (p > 3) p = 3;

@@ -1,6 +1,6 @@
 package org.appwork.uio;
 
-import javax.swing.ImageIcon;
+// import javax.swing.ImageIcon;
 
 public interface UserIOHandlerInterface {
 
@@ -8,7 +8,7 @@ public interface UserIOHandlerInterface {
 
     boolean showConfirmDialog(int flag, String title, String message);
 
-    boolean showConfirmDialog(int flags, String title, String message, ImageIcon icon, String ok, String cancel);
+    // boolean showConfirmDialog(int flags, String title, String message, ImageIcon icon, String ok, String cancel);
 
     void showErrorMessage(String message);
 

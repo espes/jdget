@@ -13,8 +13,8 @@ import org.appwork.storage.config.events.GenericConfigEventListener;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.utils.event.queue.QueueAction;
 import org.jdownloader.extensions.extraction.BooleanStatus;
-import org.jdownloader.gui.views.SelectionInfo;
-import org.jdownloader.gui.views.linkgrabber.contextmenu.ConfirmLinksContextAction;
+// import org.jdownloader.gui.views.SelectionInfo;
+// import org.jdownloader.gui.views.linkgrabber.contextmenu.ConfirmLinksContextAction;
 import org.jdownloader.myjdownloader.client.json.AvailableLinkState;
 import org.jdownloader.settings.staticreferences.CFG_LINKGRABBER;
 
@@ -59,19 +59,19 @@ public class AutoStartManager implements GenericConfigEventListener<Boolean> {
                         boolean autoStart = globalAutoStart;
                         java.util.List<AbstractNode> list = new ArrayList<AbstractNode>();
 
-                        SelectionInfo<CrawledPackage, CrawledLink> sel = new SelectionInfo<CrawledPackage, CrawledLink>(null, LinkCollector.getInstance().getPackages(), CFG_LINKGRABBER.CFG.isAutoStartConfirmSidebarFilterEnabled());
+                        // SelectionInfo<CrawledPackage, CrawledLink> sel = new SelectionInfo<CrawledPackage, CrawledLink>(null, LinkCollector.getInstance().getPackages(), CFG_LINKGRABBER.CFG.isAutoStartConfirmSidebarFilterEnabled());
 
-                        for (CrawledLink l : sel.getChildren()) {
-                            if (l.getLinkState() == AvailableLinkState.OFFLINE) continue;
+                        // for (CrawledLink l : sel.getChildren()) {
+                        //     if (l.getLinkState() == AvailableLinkState.OFFLINE) continue;
 
-                            if (l.isAutoConfirmEnabled() || autoConfirm) {
-                                list.add(l);
-                                if (l.isAutoStartEnabled()) autoStart = true;
-                            }
-                        }
-                        if (list.size() > 0) {
-                            ConfirmLinksContextAction.confirmSelection(new SelectionInfo<CrawledPackage, CrawledLink>(null, list, false), autoStart, false, false, null, BooleanStatus.UNSET);
-                        }
+                        //     if (l.isAutoConfirmEnabled() || autoConfirm) {
+                        //         list.add(l);
+                        //         if (l.isAutoStartEnabled()) autoStart = true;
+                        //     }
+                        // }
+                        // if (list.size() > 0) {
+                        //     ConfirmLinksContextAction.confirmSelection(new SelectionInfo<CrawledPackage, CrawledLink>(null, list, false), autoStart, false, false, null, BooleanStatus.UNSET);
+                        // }
                         // lastReset = -1;
 
                         eventSender.fireEvent(new AutoStartManagerEvent(this, AutoStartManagerEvent.Type.DONE));

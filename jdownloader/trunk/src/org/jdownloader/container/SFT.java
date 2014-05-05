@@ -8,9 +8,9 @@ import jd.gui.UserIO;
 import jd.plugins.ContainerStatus;
 import jd.plugins.PluginsC;
 
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogNoAnswerException;
-import org.jdownloader.container.sft.FileInfoDialog;
+// import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.DialogNoAnswerException;
+// import org.jdownloader.container.sft.FileInfoDialog;
 import org.jdownloader.container.sft.sftBinary;
 import org.jdownloader.container.sft.sftContainer;
 
@@ -27,8 +27,8 @@ public class SFT extends PluginsC {
         try {
             sftContainer container = sftBinary.load(file);
 
-            FileInfoDialog dialog = new FileInfoDialog(container);
-            Dialog.getInstance().showDialog(dialog);
+            // FileInfoDialog dialog = new FileInfoDialog(container);
+            // Dialog.getInstance().showDialog(dialog);
 
             if (container.isDecrypted()) {
                 ArrayList<String> linkList = container.getFormatedLinks();
@@ -44,8 +44,8 @@ public class SFT extends PluginsC {
             } else {
                 cs.setStatus(ContainerStatus.STATUS_FAILED);
             }
-        } catch (DialogNoAnswerException e) {
-            cs.setStatus(ContainerStatus.STATUS_FAILED);
+        // } catch (DialogNoAnswerException e) {
+        //     cs.setStatus(ContainerStatus.STATUS_FAILED);
         } catch (Exception e) {
             cs.setStatus(ContainerStatus.STATUS_FAILED);
             if ((e.getMessage() != null) | (e.getMessage().length() > 0))

@@ -11,7 +11,7 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import jd.config.DatabaseConnector;
+// import jd.config.DatabaseConnector;
 import jd.controlling.linkcrawler.CrawledLink;
 import jd.controlling.linkcrawler.PackageInfo;
 import jd.gui.UserIO;
@@ -61,7 +61,7 @@ public class JD1Import extends PluginsC {
                 }
                 packages = (ArrayList<FilePackage>) in.readObject();
             } else {
-                packages = (List<FilePackage>) new DatabaseConnector(jdcFile.getAbsolutePath()).getLinks();
+                // packages = (List<FilePackage>) new DatabaseConnector(jdcFile.getAbsolutePath()).getLinks();
             }
             if (packages != null && packages.size() > 0) {
                 for (FilePackage p : packages) {

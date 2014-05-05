@@ -5,11 +5,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import javax.swing.ImageIcon;
+// import javax.swing.ImageIcon;
 
 public interface UpdateCallbackInterface {
 
-    void updateGuiIcon(ImageIcon icon);
+    // void updateGuiIcon(ImageIcon icon);
 
     void updateGuiText(String icon);
 
@@ -26,9 +26,9 @@ public interface UpdateCallbackInterface {
 
     boolean handleException(Exception e);
 
-    void onGuiVisibilityChanged(Window window, boolean oldValue, boolean newValue);
+    // void onGuiVisibilityChanged(Window window, boolean oldValue, boolean newValue);
 
-    org.appwork.utils.swing.locator.Locator getGuiLocator();
+    // org.appwork.utils.swing.locator.Locator getGuiLocator();
 
     boolean doContinueLoopStarted();
 

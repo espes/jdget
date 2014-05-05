@@ -3,25 +3,25 @@ package jd.plugins;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.swing.Icon;
+// import javax.swing.Icon;
 
 import jd.plugins.FilePackageView.PluginState;
 
 import org.appwork.utils.StringUtils;
-import org.jdownloader.gui.views.components.MergedIcon;
+// import org.jdownloader.gui.views.components.MergedIcon;
 
 public class PluginStateCollection extends ArrayList<PluginState> {
 
     private boolean    multiline;
-    private MergedIcon mergedIcon;
+    // private MergedIcon mergedIcon;
 
     public boolean isMultiline() {
         return multiline;
     }
 
-    public MergedIcon getMergedIcon() {
-        return mergedIcon;
-    }
+    // public MergedIcon getMergedIcon() {
+    //     return mergedIcon;
+    // }
 
     public String getText() {
         return text;
@@ -32,13 +32,13 @@ public class PluginStateCollection extends ArrayList<PluginState> {
     public PluginStateCollection(Collection<PluginState> values) {
         super(values);
 
-        ArrayList<Icon> icons = new ArrayList<Icon>();
+        // ArrayList<Icon> icons = new ArrayList<Icon>();
         StringBuilder tt = new StringBuilder();
         multiline = false;
         for (PluginState state : this) {
-            if (state.getIcon() != null) {
-                icons.add(state.getIcon());
-            }
+            // if (state.getIcon() != null) {
+            //     icons.add(state.getIcon());
+            // }
             if (StringUtils.isNotEmpty(state.getDescription())) {
                 if (tt.length() > 0) {
                     tt.append("\r\n");
@@ -49,9 +49,9 @@ public class PluginStateCollection extends ArrayList<PluginState> {
 
         }
         text = tt.toString();
-        if (icons.size() > 0) {
-            mergedIcon = new MergedIcon(icons.toArray(new Icon[] {}));
-        }
+        // if (icons.size() > 0) {
+        //     mergedIcon = new MergedIcon(icons.toArray(new Icon[] {}));
+        // }
 
     }
 

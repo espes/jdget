@@ -8,9 +8,9 @@ import jd.controlling.packagecontroller.AbstractNode;
 import jd.controlling.packagecontroller.PackageControllerComparator;
 
 import org.appwork.storage.Storable;
-import org.appwork.swing.exttable.ExtColumn;
+// import org.appwork.swing.exttable.ExtColumn;
 import org.appwork.utils.logging.Log;
-import org.jdownloader.gui.views.linkgrabber.LinkGrabberTableModel;
+// import org.jdownloader.gui.views.linkgrabber.LinkGrabberTableModel;
 
 public class CrawledPackageStorable implements Storable {
 
@@ -86,50 +86,50 @@ public class CrawledPackageStorable implements Storable {
 
             // Column Sorter
             String colID = id.substring(index + 7);
-            for (final ExtColumn<AbstractNode> c : LinkGrabberTableModel.getInstance().getColumns()) {
-                if (colID.equals(c.getID())) {
-                    if (asc) {
-                        pkg.setCurrentSorter(new PackageControllerComparator<CrawledLink>() {
+            // for (final ExtColumn<AbstractNode> c : LinkGrabberTableModel.getInstance().getColumns()) {
+            //     if (colID.equals(c.getID())) {
+            //         if (asc) {
+            //             pkg.setCurrentSorter(new PackageControllerComparator<CrawledLink>() {
 
-                            public int compare(CrawledLink o1, CrawledLink o2) {
+            //                 public int compare(CrawledLink o1, CrawledLink o2) {
 
-                                return c.getRowSorter().compare(o1, o2);
+            //                     return c.getRowSorter().compare(o1, o2);
 
-                            }
+            //                 }
 
-                            @Override
-                            public String getID() {
-                                return c.getModel().getModelID() + ".Column." + c.getID();
-                            }
+            //                 @Override
+            //                 public String getID() {
+            //                     return c.getModel().getModelID() + ".Column." + c.getID();
+            //                 }
 
-                            @Override
-                            public boolean isAsc() {
-                                return true;
-                            }
-                        });
-                    } else {
-                        pkg.setCurrentSorter(new PackageControllerComparator<CrawledLink>() {
+            //                 @Override
+            //                 public boolean isAsc() {
+            //                     return true;
+            //                 }
+            //             });
+            //         } else {
+            //             pkg.setCurrentSorter(new PackageControllerComparator<CrawledLink>() {
 
-                            public int compare(CrawledLink o1, CrawledLink o2) {
+            //                 public int compare(CrawledLink o1, CrawledLink o2) {
 
-                                return c.getRowSorter().compare(o2, o1);
+            //                     return c.getRowSorter().compare(o2, o1);
 
-                            }
+            //                 }
 
-                            @Override
-                            public String getID() {
-                                return c.getModel().getModelID() + ".Column." + c.getID();
-                            }
+            //                 @Override
+            //                 public String getID() {
+            //                     return c.getModel().getModelID() + ".Column." + c.getID();
+            //                 }
 
-                            @Override
-                            public boolean isAsc() {
-                                return false;
-                            }
-                        });
-                    }
-                    break;
-                }
-            }
+            //                 @Override
+            //                 public boolean isAsc() {
+            //                     return false;
+            //                 }
+            //             });
+            //         }
+            //         break;
+            //     }
+            // }
         } catch (Throwable t) {
             Log.exception(t);
         }

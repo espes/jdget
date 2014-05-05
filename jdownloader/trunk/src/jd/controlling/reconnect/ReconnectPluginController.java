@@ -17,9 +17,9 @@ import jd.config.Configuration;
 import jd.controlling.reconnect.ipcheck.IPController;
 import jd.controlling.reconnect.pluginsinc.batch.ExternBatchReconnectPlugin;
 import jd.controlling.reconnect.pluginsinc.extern.ExternReconnectPlugin;
-import jd.controlling.reconnect.pluginsinc.liveheader.CLRConverter;
-import jd.controlling.reconnect.pluginsinc.liveheader.LiveHeaderReconnect;
-import jd.controlling.reconnect.pluginsinc.upnp.UPNPRouterPlugin;
+// import jd.controlling.reconnect.pluginsinc.liveheader.CLRConverter;
+// import jd.controlling.reconnect.pluginsinc.liveheader.LiveHeaderReconnect;
+// import jd.controlling.reconnect.pluginsinc.upnp.UPNPRouterPlugin;
 import jd.nutils.io.JDFileFilter;
 import jd.utils.JDUtilities;
 
@@ -32,12 +32,12 @@ import org.appwork.utils.event.ProcessCallBack;
 import org.appwork.utils.event.ProcessCallBackAdapter;
 import org.appwork.utils.formatter.TimeFormatter;
 import org.appwork.utils.logging2.LogSource;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogCanceledException;
-import org.appwork.utils.swing.dialog.DialogClosedException;
-import org.appwork.utils.swing.dialog.DialogNoAnswerException;
+// import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.DialogCanceledException;
+// import org.appwork.utils.swing.dialog.DialogClosedException;
+// import org.appwork.utils.swing.dialog.DialogNoAnswerException;
 import org.jdownloader.gui.translate._GUI;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.logging.LogController;
 
 public class ReconnectPluginController {
@@ -58,16 +58,16 @@ public class ReconnectPluginController {
         this.scan();
     }
 
-    public static void main(String[] args) {
-        try {
-            Dialog.getInstance().showConfirmDialog(0, _GUI._.AutoDetectAction_actionPerformed_dooptimization_title(), _GUI._.AutoDetectAction_actionPerformed_dooptimization_msg(1, "ff", "ggf"), NewTheme.I().getIcon("ok", 32), _GUI._.AutoDetectAction_run_optimization(), _GUI._.AutoDetectAction_skip_optimization());
-        } catch (DialogClosedException e) {
-            e.printStackTrace();
-        } catch (DialogCanceledException e) {
-            e.printStackTrace();
-        }
+    // public static void main(String[] args) {
+    //     try {
+    //         Dialog.getInstance().showConfirmDialog(0, _GUI._.AutoDetectAction_actionPerformed_dooptimization_title(), _GUI._.AutoDetectAction_actionPerformed_dooptimization_msg(1, "ff", "ggf"), NewTheme.I().getIcon("ok", 32), _GUI._.AutoDetectAction_run_optimization(), _GUI._.AutoDetectAction_skip_optimization());
+    //     } catch (DialogClosedException e) {
+    //         e.printStackTrace();
+    //     } catch (DialogCanceledException e) {
+    //         e.printStackTrace();
+    //     }
 
-    }
+    // }
 
     public java.util.List<ReconnectResult> autoFind(final ProcessCallBack feedback) throws InterruptedException {
 
@@ -98,30 +98,31 @@ public class ReconnectPluginController {
                 bestTime = Math.min(bestTime, found.getSuccessDuration());
                 optiduration += found.getSuccessDuration() * (JsonConfig.create(ReconnectConfig.class).getOptimizationRounds() - 1) * 1.5;
             }
-            try {
+            // try {
 
-                Dialog.getInstance().showConfirmDialog(0, _GUI._.AutoDetectAction_actionPerformed_dooptimization_title(), _GUI._.AutoDetectAction_actionPerformed_dooptimization_msg(scripts.size(), TimeFormatter.formatMilliSeconds(optiduration, 0), TimeFormatter.formatMilliSeconds(bestTime, 0)), NewTheme.I().getIcon("ok", 32), _GUI._.AutoDetectAction_run_optimization(), _GUI._.AutoDetectAction_skip_optimization());
-                feedback.setProgress(this, 0);
-                for (int ii = 0; ii < scripts.size(); ii++) {
-                    ReconnectResult found = scripts.get(ii);
-                    feedback.setStatusString(this, _GUI._.AutoDetectAction_run_optimize(found.getInvoker().getName()));
-                    final int step = ii;
-                    found.optimize(new ProcessCallBackAdapter() {
+            //     Dialog.getInstance().showConfirmDialog(0, _GUI._.AutoDetectAction_actionPerformed_dooptimization_title(), _GUI._.AutoDetectAction_actionPerformed_dooptimization_msg(scripts.size(), TimeFormatter.formatMilliSeconds(optiduration, 0), TimeFormatter.formatMilliSeconds(bestTime, 0)), NewTheme.I().getIcon("ok", 32), _GUI._.AutoDetectAction_run_optimization(), _GUI._.AutoDetectAction_skip_optimization());
+            //     feedback.setProgress(this, 0);
+            //     for (int ii = 0; ii < scripts.size(); ii++) {
+            //         ReconnectResult found = scripts.get(ii);
+            //         feedback.setStatusString(this, _GUI._.AutoDetectAction_run_optimize(found.getInvoker().getName()));
+            //         final int step = ii;
+            //         found.optimize(new ProcessCallBackAdapter() {
 
-                        public void setProgress(Object caller, int percent) {
-                            feedback.setProgress(caller, (step) * (100 / scripts.size()) + percent / scripts.size());
-                        }
+            //             public void setProgress(Object caller, int percent) {
+            //                 feedback.setProgress(caller, (step) * (100 / scripts.size()) + percent / scripts.size());
+            //             }
 
-                        public void setStatusString(Object caller, String string) {
-                            feedback.setStatusString(caller, _GUI._.AutoDetectAction_run_optimize(string));
-                        }
+            //             public void setStatusString(Object caller, String string) {
+            //                 feedback.setStatusString(caller, _GUI._.AutoDetectAction_run_optimize(string));
+            //             }
 
-                    });
+            //         });
 
-                }
-            } catch (DialogNoAnswerException e) {
+            //     }
+            // } catch (DialogNoAnswerException e) {
 
-            }
+            // }
+            throw new UnsupportedOperationException("jdget TODO");
         }
 
         Collections.sort(scripts, new Comparator<ReconnectResult>() {
@@ -143,23 +144,23 @@ public class ReconnectPluginController {
         final int id = JDUtilities.getConfiguration().getIntegerProperty("RECONNECT_TYPE", 0);
         String[] ret;
         switch (id) {
-        case 0:
-            return LiveHeaderReconnect.ID;
+        // case 0:
+        //     return LiveHeaderReconnect.ID;
         case 1:
             return ExternReconnectPlugin.ID;
         case 2:
             return ExternBatchReconnectPlugin.ID;
-        case 3:
-            // we need to convert clr script
+        // case 3:
+        //     // we need to convert clr script
 
-            final String clr = JDUtilities.getConfiguration().getStringProperty(Configuration.PARAM_HTTPSEND_REQUESTS_CLR);
-            ret = CLRConverter.createLiveHeader(clr);
+        //     final String clr = JDUtilities.getConfiguration().getStringProperty(Configuration.PARAM_HTTPSEND_REQUESTS_CLR);
+        //     ret = CLRConverter.createLiveHeader(clr);
 
-            if (ret != null) {
-                JDUtilities.getConfiguration().setProperty(Configuration.PARAM_HTTPSEND_REQUESTS, ret[1]);
+        //     if (ret != null) {
+        //         JDUtilities.getConfiguration().setProperty(Configuration.PARAM_HTTPSEND_REQUESTS, ret[1]);
 
-            }
-            return LiveHeaderReconnect.ID;
+        //     }
+        //     return LiveHeaderReconnect.ID;
 
         }
         return DummyRouterPlugin.getInstance().getID();
@@ -282,8 +283,8 @@ public class ReconnectPluginController {
             this.plugins.add(DummyRouterPlugin.getInstance());
             plugins.add(new ExternBatchReconnectPlugin());
             plugins.add(new ExternReconnectPlugin());
-            plugins.add(new UPNPRouterPlugin());
-            plugins.add(new LiveHeaderReconnect());
+            // plugins.add(new UPNPRouterPlugin());
+            // plugins.add(new LiveHeaderReconnect());
 
             final java.util.List<URL> urls = new ArrayList<URL>();
             if (files != null) {

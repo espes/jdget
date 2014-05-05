@@ -9,8 +9,8 @@ import jd.plugins.download.DownloadInterface;
 
 import org.jdownloader.api.jdanywhere.api.Helper;
 import org.jdownloader.downloadcore.v15.Downloadable;
-import org.jdownloader.gui.views.downloads.columns.TaskColumn;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.gui.views.downloads.columns.TaskColumn;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.plugins.tasks.PluginProgressTask;
 import org.jdownloader.translate._JDT;
 
@@ -29,7 +29,7 @@ public class DownloadPluginProgress extends PluginProgress {
         setProgressSource(downloadInterface);
         this.downloadable = downloadable;
         this.downloadInterface = downloadInterface;
-        setIcon(NewTheme.I().getIcon("download", 16));
+        // setIcon(NewTheme.I().getIcon("download", 16));
         startTimeStamp = downloadInterface.getStartTimeStamp();
         normal = _JDT._.download_connection_normal();
     }
@@ -59,7 +59,7 @@ public class DownloadPluginProgress extends PluginProgress {
 
     @Override
     public String getMessage(Object requestor) {
-        if (requestor instanceof TaskColumn || requestor == Helper.REQUESTOR || requestor instanceof FilePackageView || requestor instanceof PluginProgressTask) { return normal; }
+        // if (requestor instanceof TaskColumn || requestor == Helper.REQUESTOR || requestor instanceof FilePackageView || requestor instanceof PluginProgressTask) { return normal; }
         long total = getTotal();
 
         if (total < 0) { return unknownFileSize; }

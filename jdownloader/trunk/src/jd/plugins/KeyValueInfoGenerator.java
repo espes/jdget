@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import jd.plugins.infogenerator.PluginInfoGenerator;
 
 import org.appwork.storage.JSonStorage;
-import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.Dialog;
 
 public class KeyValueInfoGenerator extends PluginInfoGenerator {
     private ArrayList<String[]> pairs;
@@ -22,8 +22,8 @@ public class KeyValueInfoGenerator extends PluginInfoGenerator {
 
     @Override
     public void show() {
-
-        Dialog.getInstance().showMessageDialog(name, JSonStorage.toString(pairs));
+        throw new UnsupportedOperationException("jdget TODO");
+        // Dialog.getInstance().showMessageDialog(name, JSonStorage.toString(pairs));
     }
 
 }

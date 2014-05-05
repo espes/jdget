@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import jd.controlling.downloadcontroller.DownloadWatchDog;
+// import jd.controlling.downloadcontroller.DownloadWatchDog;
 
 import org.appwork.storage.config.annotations.LabelInterface;
 import org.appwork.utils.Application;
@@ -96,7 +96,7 @@ public class FileCreationManager {
     }
 
     private boolean mkdirInternal(File file) {
-        if (DownloadWatchDog.getInstance().validateDestination(file) != null) return false;
+        // if (DownloadWatchDog.getInstance().validateDestination(file) != null) return false;
         return file.mkdir();
     }
 

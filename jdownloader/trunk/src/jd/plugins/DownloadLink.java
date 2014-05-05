@@ -32,8 +32,8 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
+// import javax.swing.Icon;
+// import javax.swing.ImageIcon;
 
 import jd.config.Property;
 import jd.controlling.downloadcontroller.SingleDownloadController;
@@ -59,7 +59,7 @@ import org.jdownloader.controlling.Priority;
 import org.jdownloader.controlling.UniqueAlltimeID;
 import org.jdownloader.extensions.extraction.ExtractionStatus;
 import org.jdownloader.gui.translate._GUI;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.plugins.ConditionalSkipReason;
 import org.jdownloader.plugins.FinalLinkState;
@@ -173,7 +173,7 @@ public class DownloadLink extends Property implements Serializable, AbstractPack
 
     private transient NullsafeAtomicReference<PluginProgress>           pluginProgress                      = new NullsafeAtomicReference<PluginProgress>(null);
 
-    private transient ImageIcon                                         icon                                = null;
+    // private transient ImageIcon                                         icon                                = null;
 
     private long                                                        created                             = -1l;
 
@@ -1007,7 +1007,7 @@ public class DownloadLink extends Property implements Serializable, AbstractPack
         if (StringUtils.isEmpty(name)) name = UNKNOWN_FILE_NAME;
         this.name = name;
         setPartInfo(null);
-        this.setIcon(null);
+        // this.setIcon(null);
         if (hasNotificationListener()) {
             String newName = getName();
             if (!StringUtils.equals(oldName, newName)) notifyChanges(AbstractNodeNotifier.NOTIFY.PROPERTY_CHANCE, new DownloadLinkProperty(this, DownloadLinkProperty.Property.NAME, newName));
@@ -1027,16 +1027,16 @@ public class DownloadLink extends Property implements Serializable, AbstractPack
             this.setProperty(PROPERTY_FORCEDFILENAME, name);
         }
         setPartInfo(null);
-        setIcon(null);
+        // setIcon(null);
         if (hasNotificationListener()) {
             String newName = getName();
             if (!StringUtils.equals(oldName, newName)) notifyChanges(AbstractNodeNotifier.NOTIFY.PROPERTY_CHANCE, new DownloadLinkProperty(this, DownloadLinkProperty.Property.NAME, newName));
         }
     }
 
-    private void setIcon(ImageIcon icon) {
-        this.icon = icon;
-    }
+    // private void setIcon(ImageIcon icon) {
+    //     this.icon = icon;
+    // }
 
     /**
      * WARNING: DO NOT use in 09581 stable!
@@ -1075,7 +1075,7 @@ public class DownloadLink extends Property implements Serializable, AbstractPack
         return; }
 
         customFinalName = CrossSystem.alleviatePathParts(name);
-        setIcon(null);
+        // setIcon(null);
         setPartInfo(null);
         if (hasNotificationListener()) {
             notifyChanges(AbstractNodeNotifier.NOTIFY.PROPERTY_CHANCE, new DownloadLinkProperty(this, DownloadLinkProperty.Property.NAME, name));
@@ -1106,7 +1106,7 @@ public class DownloadLink extends Property implements Serializable, AbstractPack
         } else {
             this.setProperty(PROPERTY_FINALFILENAME, Property.NULL);
         }
-        setIcon(null);
+        // setIcon(null);
         setPartInfo(null);
         if (hasNotificationListener()) {
             String newName = getName();
@@ -1286,27 +1286,27 @@ public class DownloadLink extends Property implements Serializable, AbstractPack
      * 
      * @return
      */
-    public ImageIcon getIcon() {
-        if (icon == null) {
-            icon = getIcon(name);
-        }
-        return icon;
-    }
+    // public ImageIcon getIcon() {
+    //     if (icon == null) {
+    //         icon = getIcon(name);
+    //     }
+    //     return icon;
+    // }
 
-    public static ImageIcon getIcon(String name) {
-        ImageIcon newIcon = null;
-        String ext = Files.getExtension(name);
-        if (ext != null) {
-            try {
-                Icon ico = CrossSystem.getMime().getFileIcon(ext, 16, 16);
-                newIcon = IconIO.toImageIcon(ico);
-            } catch (Throwable e) {
-                LogController.CL().log(e);
-            }
-        }
-        if (newIcon == null) newIcon = NewTheme.I().getIcon("url", 16);
-        return newIcon;
-    }
+    // public static ImageIcon getIcon(String name) {
+    //     ImageIcon newIcon = null;
+    //     String ext = Files.getExtension(name);
+    //     if (ext != null) {
+    //         try {
+    //             Icon ico = CrossSystem.getMime().getFileIcon(ext, 16, 16);
+    //             newIcon = IconIO.toImageIcon(ico);
+    //         } catch (Throwable e) {
+    //             LogController.CL().log(e);
+    //         }
+    //     }
+    //     if (newIcon == null) newIcon = NewTheme.I().getIcon("url", 16);
+    //     return newIcon;
+    // }
 
     public DomainInfo getDomainInfo() {
         if (domainInfo == null) {

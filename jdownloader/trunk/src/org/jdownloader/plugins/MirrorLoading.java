@@ -1,23 +1,23 @@
 package org.jdownloader.plugins;
 
-import javax.swing.ImageIcon;
+// import javax.swing.ImageIcon;
 
 import jd.controlling.packagecontroller.AbstractNode;
 import jd.plugins.DownloadLink;
 
-import org.jdownloader.gui.views.downloads.columns.ETAColumn;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.gui.views.downloads.columns.ETAColumn;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.translate._JDT;
 
 public class MirrorLoading implements ConditionalSkipReason, DownloadLinkCondition {
 
     private final DownloadLink dependency;
-    private final ImageIcon    icon;
+    // private final ImageIcon    icon;
     private final String       mirror;
 
     public MirrorLoading(DownloadLink dependency) {
         this.dependency = dependency;
-        icon = NewTheme.I().getIcon("download", 16);
+        // icon = NewTheme.I().getIcon("download", 16);
         mirror = _JDT._.system_download_errors_linkisBlocked(dependency.getHost());
     }
 
@@ -46,14 +46,14 @@ public class MirrorLoading implements ConditionalSkipReason, DownloadLinkConditi
 
     @Override
     public String getMessage(Object requestor, AbstractNode node) {
-        if (requestor instanceof ETAColumn) return null;
+        // if (requestor instanceof ETAColumn) return null;
         return mirror;
     }
 
-    @Override
-    public ImageIcon getIcon(Object requestor, AbstractNode node) {
-        if (requestor instanceof ETAColumn) return null;
-        return icon;
-    }
+    // @Override
+    // public ImageIcon getIcon(Object requestor, AbstractNode node) {
+    //     if (requestor instanceof ETAColumn) return null;
+    //     return icon;
+    // }
 
 }

@@ -7,8 +7,8 @@ import jd.nutils.Formatter;
 import jd.plugins.PluginProgress;
 import jd.plugins.download.raf.HashResult;
 
-import org.jdownloader.gui.views.downloads.columns.ETAColumn;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.gui.views.downloads.columns.ETAColumn;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.translate._JDT;
 
 public class HashCheckPluginProgress extends PluginProgress {
@@ -19,7 +19,7 @@ public class HashCheckPluginProgress extends PluginProgress {
 
     public HashCheckPluginProgress(File file, Color color, HashResult.TYPE type) {
         super(0, file.length(), color);
-        setIcon(NewTheme.I().getIcon("hashsum", 16));
+        // setIcon(NewTheme.I().getIcon("hashsum", 16));
         message = _JDT._.system_download_doCRC2(type.name());
     }
 
@@ -30,7 +30,7 @@ public class HashCheckPluginProgress extends PluginProgress {
 
     @Override
     public String getMessage(Object requestor) {
-        if (requestor instanceof ETAColumn) { return Formatter.formatSeconds(getETA()); }
+        // if (requestor instanceof ETAColumn) { return Formatter.formatSeconds(getETA()); }
         return message;
     }
 

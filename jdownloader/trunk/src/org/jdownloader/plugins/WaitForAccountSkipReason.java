@@ -1,23 +1,23 @@
 package org.jdownloader.plugins;
 
-import javax.swing.ImageIcon;
+// import javax.swing.ImageIcon;
 
 import jd.controlling.packagecontroller.AbstractNode;
 import jd.nutils.Formatter;
 import jd.plugins.Account;
 import jd.plugins.DownloadLink;
 
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.translate._JDT;
 
 public class WaitForAccountSkipReason implements ConditionalSkipReason, IgnorableConditionalSkipReason, TimeOutCondition {
 
     private final Account   account;
-    private final ImageIcon icon;
+    // private final ImageIcon icon;
 
     public WaitForAccountSkipReason(Account account) {
         this.account = account;
-        icon = NewTheme.I().getIcon("wait", 16);
+        // icon = NewTheme.I().getIcon("wait", 16);
     }
 
     public Account getAccount() {
@@ -54,10 +54,10 @@ public class WaitForAccountSkipReason implements ConditionalSkipReason, Ignorabl
         }
     }
 
-    @Override
-    public ImageIcon getIcon(Object requestor, AbstractNode node) {
-        return icon;
-    }
+    // @Override
+    // public ImageIcon getIcon(Object requestor, AbstractNode node) {
+    //     return icon;
+    // }
 
     @Override
     public void finalize(DownloadLink link) {

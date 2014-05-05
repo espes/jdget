@@ -18,31 +18,32 @@ package jd.config;
 
 import java.io.Serializable;
 
-import javax.swing.ImageIcon;
+// import javax.swing.ImageIcon;
 
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.NewTheme;
 
 public class ConfigGroup implements Serializable {
     private static final long serialVersionUID = 1075652697591884926L;
 
     private final String      name;
-    private final ImageIcon   icon;
+    // private final ImageIcon   icon;
 
     public ConfigGroup(final String name, final String iconKey) {
-        this(name, NewTheme.I().getIcon(iconKey, 32));
+        // this(name, NewTheme.I().getIcon(iconKey, 32));
+        this.name = name;
     }
 
-    public ConfigGroup(final String name, final ImageIcon icon) {
-        this.name = name;
-        this.icon = icon;
-    }
+    // public ConfigGroup(final String name, final ImageIcon icon) {
+    //     this.name = name;
+    //     this.icon = icon;
+    // }
 
     public String getName() {
         return name;
     }
 
-    public ImageIcon getIcon() {
-        return icon;
-    }
+    // public ImageIcon getIcon() {
+    //     return icon;
+    // }
 
 }

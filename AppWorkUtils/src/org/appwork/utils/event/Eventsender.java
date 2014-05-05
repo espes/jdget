@@ -21,12 +21,12 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.appwork.utils.IO;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogCanceledException;
-import org.appwork.utils.swing.dialog.DialogClosedException;
-import org.appwork.utils.swing.dialog.ExtFileChooserDialog;
-import org.appwork.utils.swing.dialog.FileChooserSelectionMode;
-import org.appwork.utils.swing.dialog.FileChooserType;
+// import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.DialogCanceledException;
+// import org.appwork.utils.swing.dialog.DialogClosedException;
+// import org.appwork.utils.swing.dialog.ExtFileChooserDialog;
+// import org.appwork.utils.swing.dialog.FileChooserSelectionMode;
+// import org.appwork.utils.swing.dialog.FileChooserType;
 
 /**
  * The Eventsenderclass is the core of the Eventsystem. it can be used to design
@@ -98,31 +98,31 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
 
     }
 
-    public static void main(final String[] args) throws DialogClosedException, DialogCanceledException, IOException, URISyntaxException {
-        final URL root = Thread.currentThread().getClass().getResource("/");
-        final File rootFile = new File(root.toURI());
-        final String name = Dialog.getInstance().showInputDialog("Enter Name");
+    // public static void main(final String[] args) throws DialogClosedException, DialogCanceledException, IOException, URISyntaxException {
+    //     final URL root = Thread.currentThread().getClass().getResource("/");
+    //     final File rootFile = new File(root.toURI());
+    //     final String name = Dialog.getInstance().showInputDialog("Enter Name");
 
-        final ExtFileChooserDialog d = new ExtFileChooserDialog(0, "Choose folder", null, null);
-        d.setStorageID("EventSenderCReater");
-        d.setFileSelectionMode(FileChooserSelectionMode.DIRECTORIES_ONLY);
+    //     final ExtFileChooserDialog d = new ExtFileChooserDialog(0, "Choose folder", null, null);
+    //     d.setStorageID("EventSenderCReater");
+    //     d.setFileSelectionMode(FileChooserSelectionMode.DIRECTORIES_ONLY);
 
-        d.setType(FileChooserType.OPEN_DIALOG);
-        d.setMultiSelection(false);
-        d.setPreSelection(rootFile.getParentFile().getParentFile());
-        try {
-            Dialog.I().showDialog(d);
-        } catch (final DialogClosedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (final DialogCanceledException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    //     d.setType(FileChooserType.OPEN_DIALOG);
+    //     d.setMultiSelection(false);
+    //     d.setPreSelection(rootFile.getParentFile().getParentFile());
+    //     try {
+    //         Dialog.I().showDialog(d);
+    //     } catch (final DialogClosedException e) {
+    //         // TODO Auto-generated catch block
+    //         e.printStackTrace();
+    //     } catch (final DialogCanceledException e) {
+    //         // TODO Auto-generated catch block
+    //         e.printStackTrace();
+    //     }
 
-        Eventsender.create(name, d.getSelectedFile());
-        System.exit(1);
-    }
+    //     Eventsender.create(name, d.getSelectedFile());
+    //     System.exit(1);
+    // }
 
     /**
      * List of registered Eventlistener

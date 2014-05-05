@@ -20,7 +20,7 @@ import java.util.Vector;
 
 import jd.captcha.JAntiCaptcha;
 import jd.captcha.LetterComperator;
-import jd.captcha.gui.BasicWindow;
+// import jd.captcha.gui.BasicWindow;
 import jd.captcha.pixelobject.PixelObject;
 import jd.captcha.utils.Utilities;
 
@@ -426,7 +426,7 @@ public class Letter extends PixelGrid {
                 }
 
             }
-            BasicWindow.showImage(this.getImage(5));
+            // BasicWindow.showImage(this.getImage(5));
 
             logger.info("changed " + changed);
 

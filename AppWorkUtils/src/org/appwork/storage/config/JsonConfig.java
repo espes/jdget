@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.appwork.exceptions.WTFException;
 import org.appwork.storage.config.handler.StorageHandler;
 import org.appwork.utils.Application;
-import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.Dialog;
 
 /**
  * @author thomas
@@ -91,7 +91,7 @@ public class JsonConfig {
                 return ret;
             } catch (final RuntimeException e) {
                 e.printStackTrace();
-                Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
+                // Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
                 throw e;
             } finally {
                 JsonConfig.unLock(lock);
@@ -129,7 +129,7 @@ public class JsonConfig {
                 }
                 return ret;
             } catch (final RuntimeException e) {
-                Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
+                // Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
                 throw e;
             } finally {
                 JsonConfig.unLock(lock);
@@ -163,10 +163,10 @@ public class JsonConfig {
                 }
                 return ret;
             } catch (final RuntimeException e) {
-                Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
+                // Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
                 throw e;
             } catch (final URISyntaxException e) {
-                Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
+                // Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
                 throw new WTFException(e);
             } finally {
                 JsonConfig.unLock(lock);

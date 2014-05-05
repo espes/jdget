@@ -107,19 +107,19 @@ public class SubConfiguration extends Property implements Serializable {
         } else {
             writeMark.set(-1);
             /* import old DataBase if existing */
-            try {
-                final Object props = JDUtilities.getDatabaseConnector().getData(name);
-                if (props != null && props instanceof Map) {
-                    Map<String, Object> tmp = (Map<String, Object>) props;
-                    /* remove obsolet variables from old stable (09581) */
-                    tmp.remove("USE_PLUGIN");
-                    tmp.remove("AGB_CHECKED");
-                    setProperties(tmp);
-                }
-            } catch (final NoOldJDDataBaseFoundException e) {
-            } catch (final Throwable e) {
-                LogController.GL.log(e);
-            }
+            // try {
+            //     final Object props = JDUtilities.getDatabaseConnector().getData(name);
+            //     if (props != null && props instanceof Map) {
+            //         Map<String, Object> tmp = (Map<String, Object>) props;
+            //         /* remove obsolet variables from old stable (09581) */
+            //         tmp.remove("USE_PLUGIN");
+            //         tmp.remove("AGB_CHECKED");
+            //         setProperties(tmp);
+            //     }
+            // } catch (final NoOldJDDataBaseFoundException e) {
+            // } catch (final Throwable e) {
+            //     LogController.GL.log(e);
+            // }
         }
         valid = !importOnly;
     }

@@ -9,19 +9,19 @@ import java.util.Map.Entry;
 
 import org.appwork.app.launcher.parameterparser.CommandSwitch;
 import org.appwork.app.launcher.parameterparser.ParameterParser;
-import org.appwork.resources.AWUTheme;
+// import org.appwork.resources.AWUTheme;
 import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.shutdown.ShutdownRequest;
 import org.appwork.shutdown.ShutdownVetoException;
 import org.appwork.shutdown.ShutdownVetoListener;
-import org.appwork.uio.UIOManager;
+// import org.appwork.uio.UIOManager;
 import org.appwork.utils.Application;
 import org.appwork.utils.logging2.LogSource;
-import org.appwork.utils.swing.dialog.ConfirmDialog;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogNoAnswerException;
-import org.jdownloader.gui.IconKey;
+// import org.appwork.utils.swing.dialog.ConfirmDialog;
+// import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.DialogNoAnswerException;
+// import org.jdownloader.gui.IconKey;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.updatev2.restart.Restarter;
 
@@ -171,35 +171,37 @@ public class RestartController implements ShutdownVetoListener {
     public void onShutdownVetoRequest(ShutdownRequest shutdownVetoExceptions) throws ShutdownVetoException {
         if (shutdownVetoExceptions.hasVetos()) { return; }
         if (shutdownVetoExceptions.isSilent()) return;
-        try {
+        // try {
             if (shutdownVetoExceptions instanceof RestartRequest) {
 
-                new ConfirmDialog(UIOManager.LOGIC_COUNTDOWN | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL, _UPDATE._.RestartController_confirmTorestart_title(), _UPDATE._.RestartController_confirmTorestart_msg(), AWUTheme.I().getIcon(IconKey.ICON_RESTART, 32), null, null) {
+                // new ConfirmDialog(UIOManager.LOGIC_COUNTDOWN | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL, _UPDATE._.RestartController_confirmTorestart_title(), _UPDATE._.RestartController_confirmTorestart_msg(), AWUTheme.I().getIcon(IconKey.ICON_RESTART, 32), null, null) {
 
-                    @Override
-                    public String getDontShowAgainKey() {
-                        return "Exit - Are you sure?";
-                    }
+                //     @Override
+                //     public String getDontShowAgainKey() {
+                //         return "Exit - Are you sure?";
+                //     }
 
-                }.show().throwCloseExceptions();
+                // }.show().throwCloseExceptions();
+                throw new UnsupportedOperationException("jdget TODO");
 
             } else {
                 // if you do not want to ask here, use
                 // ShutdownController.getInstance().removeShutdownVetoListener(RestartController.getInstance());
 
-                new ConfirmDialog(UIOManager.LOGIC_COUNTDOWN | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL, _UPDATE._.RestartController_confirmToExit_(), _UPDATE._.RestartController_confirmToExit_msg(), AWUTheme.I().getIcon(IconKey.ICON_EXIT, 32), null, null) {
+                // new ConfirmDialog(UIOManager.LOGIC_COUNTDOWN | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL, _UPDATE._.RestartController_confirmToExit_(), _UPDATE._.RestartController_confirmToExit_msg(), AWUTheme.I().getIcon(IconKey.ICON_EXIT, 32), null, null) {
 
-                    @Override
-                    public String getDontShowAgainKey() {
-                        return "Exit - Are you sure?";
-                    }
+                //     @Override
+                //     public String getDontShowAgainKey() {
+                //         return "Exit - Are you sure?";
+                //     }
 
-                }.show().throwCloseExceptions();
+                // }.show().throwCloseExceptions();
+                throw new UnsupportedOperationException("jdget TODO");
 
             }
-        } catch (DialogNoAnswerException e) {
-            throw new ShutdownVetoException("Really Exit question denied", this);
-        }
+        // } catch (DialogNoAnswerException e) {
+        //     throw new ShutdownVetoException("Really Exit question denied", this);
+        // }
 
     }
 

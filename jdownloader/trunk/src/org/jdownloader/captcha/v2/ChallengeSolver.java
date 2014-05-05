@@ -10,7 +10,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.swing.Icon;
+// import javax.swing.Icon;
 
 import jd.controlling.captcha.SkipException;
 
@@ -148,6 +148,6 @@ public abstract class ChallengeSolver<T> {
 
     public abstract String getName();
 
-    public abstract Icon getIcon(int size);
+    // public abstract Icon getIcon(int size);
 
 }

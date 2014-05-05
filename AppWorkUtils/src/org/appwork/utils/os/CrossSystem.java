@@ -25,8 +25,8 @@ import java.util.LinkedList;
 import java.util.Locale;
 import java.util.logging.Level;
 
-import javax.swing.KeyStroke;
-import javax.swing.filechooser.FileFilter;
+// import javax.swing.KeyStroke;
+// import javax.swing.filechooser.FileFilter;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.shutdown.ShutdownController;
@@ -34,23 +34,23 @@ import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.shutdown.ShutdownRequest;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.StorageException;
-import org.appwork.uio.UIOManager;
+// import org.appwork.uio.UIOManager;
 import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.mime.Mime;
-import org.appwork.utils.os.mime.MimeDefault;
-import org.appwork.utils.os.mime.MimeLinux;
-import org.appwork.utils.os.mime.MimeWindows;
+// import org.appwork.utils.os.mime.MimeDefault;
+// import org.appwork.utils.os.mime.MimeLinux;
+// import org.appwork.utils.os.mime.MimeWindows;
 import org.appwork.utils.processes.ProcessBuilderFactory;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogCanceledException;
-import org.appwork.utils.swing.dialog.DialogClosedException;
-import org.appwork.utils.swing.dialog.DialogNoAnswerException;
-import org.appwork.utils.swing.dialog.ExtFileChooserDialog;
-import org.appwork.utils.swing.dialog.FileChooserSelectionMode;
-import org.appwork.utils.swing.dialog.FileChooserType;
+// import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.DialogCanceledException;
+// import org.appwork.utils.swing.dialog.DialogClosedException;
+// import org.appwork.utils.swing.dialog.DialogNoAnswerException;
+// import org.appwork.utils.swing.dialog.ExtFileChooserDialog;
+// import org.appwork.utils.swing.dialog.FileChooserSelectionMode;
+// import org.appwork.utils.swing.dialog.FileChooserType;
 
 /**
  * This class provides a few native features.
@@ -104,57 +104,57 @@ public class CrossSystem {
     private static String[]        FILE_COMMANDLINE          = null;
     private static String          JAVAINT                   = null;
 
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_BACKSPACE_CTRL = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_COPY           = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_CUT            = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_DELETE         = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+    // /**
+    //  * 
+    //  */
+    // private static final KeyStroke KEY_STROKE_BACKSPACE_CTRL = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    // /**
+    //  * 
+    //  */
+    // private static final KeyStroke KEY_STROKE_COPY           = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    // /**
+    //  * 
+    //  */
+    // private static final KeyStroke KEY_STROKE_CUT            = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    // /**
+    //  * 
+    //  */
+    // private static final KeyStroke KEY_STROKE_DELETE         = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_DOWN           = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
+    // /**
+    //  * 
+    //  */
+    // private static final KeyStroke KEY_STROKE_DOWN           = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
 
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_ESCAPE         = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+    // /**
+    //  * 
+    //  */
+    // private static final KeyStroke KEY_STROKE_ESCAPE         = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_FORCE_DELETE   = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, ActionEvent.SHIFT_MASK);
+    // /**
+    //  * 
+    //  */
+    // private static final KeyStroke KEY_STROKE_FORCE_DELETE   = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, ActionEvent.SHIFT_MASK);
 
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_PASTE          = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    // /**
+    //  * 
+    //  */
+    // private static final KeyStroke KEY_STROKE_PASTE          = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_SEARCH         = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    // /**
+    //  * 
+    //  */
+    // private static final KeyStroke KEY_STROKE_SEARCH         = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_SELECT_ALL     = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    // /**
+    //  * 
+    //  */
+    // private static final KeyStroke KEY_STROKE_SELECT_ALL     = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_UP             = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
+    // /**
+    //  * 
+    //  */
+    // private static final KeyStroke KEY_STROKE_UP             = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
 
     /**
      * Cache to store the Mime Class in
@@ -176,16 +176,17 @@ public class CrossSystem {
         CrossSystem.OS = CrossSystem.getOSByString(CrossSystem.OS_STRING);
 
         /* Init MIME */
-        if (CrossSystem.isWindows()) {
-            MIME = new MimeWindows();
-            CrossSystem.DESKTOP_SUPPORT = new DesktopSupportWindows();
-        } else if (CrossSystem.isLinux()) {
-            CrossSystem.DESKTOP_SUPPORT = new DesktopSupportLinux();
-            MIME = new MimeLinux();
-        } else {
+        // if (CrossSystem.isWindows()) {
+        //     MIME = new MimeWindows();
+        //     CrossSystem.DESKTOP_SUPPORT = new DesktopSupportWindows();
+        // } else if (CrossSystem.isLinux()) {
+        //     CrossSystem.DESKTOP_SUPPORT = new DesktopSupportLinux();
+        //     MIME = new MimeLinux();
+        // } else {
             CrossSystem.DESKTOP_SUPPORT = new DesktopSupportJavaDesktop();
-            MIME = new MimeDefault();
-        }
+            // MIME = new MimeDefault();
+        // }
+        MIME = new Mime();
     }
 
     /**
@@ -271,59 +272,59 @@ public class CrossSystem {
     /**
      * @return
      */
-    public static KeyStroke getDeleteShortcut() {
-        if (CrossSystem.isMac()) { return CrossSystem.KEY_STROKE_BACKSPACE_CTRL; }
-        return CrossSystem.KEY_STROKE_DELETE;
-    }
+    // public static KeyStroke getDeleteShortcut() {
+    //     if (CrossSystem.isMac()) { return CrossSystem.KEY_STROKE_BACKSPACE_CTRL; }
+    //     return CrossSystem.KEY_STROKE_DELETE;
+    // }
 
-    public static String[] getEditor(final String extension) throws DialogCanceledException, DialogClosedException, StorageException {
+    // public static String[] getEditor(final String extension) throws DialogCanceledException, DialogClosedException, StorageException {
 
-        final ExtFileChooserDialog d = new ExtFileChooserDialog(0, _AWU.T.fileditcontroller_geteditor_for(extension), null, null);
-        d.setStorageID("FILE_EDIT_CONTROLLER_" + extension);
-        d.setFileSelectionMode(FileChooserSelectionMode.FILES_ONLY);
-        d.setFileFilter(new FileFilter() {
+    //     final ExtFileChooserDialog d = new ExtFileChooserDialog(0, _AWU.T.fileditcontroller_geteditor_for(extension), null, null);
+    //     d.setStorageID("FILE_EDIT_CONTROLLER_" + extension);
+    //     d.setFileSelectionMode(FileChooserSelectionMode.FILES_ONLY);
+    //     d.setFileFilter(new FileFilter() {
 
-            @Override
-            public boolean accept(final File f) {
-                if (f.isDirectory()) { return true; }
-                if (CrossSystem.isWindows()) {
-                    return f.getName().endsWith(".exe");
-                } else {
-                    return f.canExecute();
-                }
+    //         @Override
+    //         public boolean accept(final File f) {
+    //             if (f.isDirectory()) { return true; }
+    //             if (CrossSystem.isWindows()) {
+    //                 return f.getName().endsWith(".exe");
+    //             } else {
+    //                 return f.canExecute();
+    //             }
 
-            }
+    //         }
 
-            @Override
-            public String getDescription() {
+    //         @Override
+    //         public String getDescription() {
 
-                return _AWU.T.fileeditcontroller_exechooser_description(extension);
+    //             return _AWU.T.fileeditcontroller_exechooser_description(extension);
 
-            }
+    //         }
 
-        });
-        d.setType(FileChooserType.OPEN_DIALOG_WITH_PRESELECTION);
-        d.setMultiSelection(false);
-        d.setPreSelection(new File(JSonStorage.getPlainStorage("EDITORS").get(extension, "")));
-        try {
-            Dialog.I().showDialog(d);
-        } catch (final DialogClosedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (final DialogCanceledException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    //     });
+    //     d.setType(FileChooserType.OPEN_DIALOG_WITH_PRESELECTION);
+    //     d.setMultiSelection(false);
+    //     d.setPreSelection(new File(JSonStorage.getPlainStorage("EDITORS").get(extension, "")));
+    //     try {
+    //         Dialog.I().showDialog(d);
+    //     } catch (final DialogClosedException e) {
+    //         // TODO Auto-generated catch block
+    //         e.printStackTrace();
+    //     } catch (final DialogCanceledException e) {
+    //         // TODO Auto-generated catch block
+    //         e.printStackTrace();
+    //     }
 
-        final File ret = d.getSelectedFile();
-        if (ret != null && ret.exists()) {
-            JSonStorage.getPlainStorage("EDITORS").put(extension, ret.toString());
-            return new String[] { ret.toString() };
-        } else {
-            return null;
-        }
+    //     final File ret = d.getSelectedFile();
+    //     if (ret != null && ret.exists()) {
+    //         JSonStorage.getPlainStorage("EDITORS").put(extension, ret.toString());
+    //         return new String[] { ret.toString() };
+    //     } else {
+    //         return null;
+    //     }
 
-    }
+    // }
 
     public static String[] getFileCommandLine() {
         return CrossSystem.FILE_COMMANDLINE;
@@ -543,13 +544,12 @@ public class CrossSystem {
      * @param ks
      * @return
      */
-    public static boolean isClearSelectionTrigger(final KeyStroke ks) {
-        return ks == CrossSystem.KEY_STROKE_ESCAPE;
-    }
+    // public static boolean isClearSelectionTrigger(final KeyStroke ks) {
+    //     return ks == CrossSystem.KEY_STROKE_ESCAPE;
+    // }
 
     /**
      * 
-     /**
      * 
      * @param e
      * @return
@@ -569,51 +569,51 @@ public class CrossSystem {
      * @param ks
      * @return
      */
-    public static boolean isCopySelectionTrigger(final KeyStroke ks) {
+    // public static boolean isCopySelectionTrigger(final KeyStroke ks) {
 
-        return ks == CrossSystem.KEY_STROKE_COPY;
-    }
-
-    /**
-     * @param ks
-     * @return
-     */
-    public static boolean isCutSelectionTrigger(final KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks == CrossSystem.KEY_STROKE_CUT;
-    }
+    //     return ks == CrossSystem.KEY_STROKE_COPY;
+    // }
 
     /**
      * @param ks
      * @return
      */
-    public static boolean isDeleteFinalSelectionTrigger(final KeyStroke ks) {
-        if (CrossSystem.isMac()) {
+    // public static boolean isCutSelectionTrigger(final KeyStroke ks) {
+    //     // TODO Auto-generated method stub
+    //     return ks == CrossSystem.KEY_STROKE_CUT;
+    // }
 
-            if (ks == KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | ActionEvent.SHIFT_MASK)) { return true; }
-        }
-        return ks == CrossSystem.KEY_STROKE_FORCE_DELETE;
-    }
+    /**
+     * @param ks
+     * @return
+     */
+    // public static boolean isDeleteFinalSelectionTrigger(final KeyStroke ks) {
+    //     if (CrossSystem.isMac()) {
+
+    //         if (ks == KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | ActionEvent.SHIFT_MASK)) { return true; }
+    //     }
+    //     return ks == CrossSystem.KEY_STROKE_FORCE_DELETE;
+    // }
 
     /**
      * @param e
      * @return
      */
-    public static boolean isDeleteSelectionTrigger(final KeyEvent e) {
-        return CrossSystem.isDeleteSelectionTrigger(KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers()));
-    }
+    // public static boolean isDeleteSelectionTrigger(final KeyEvent e) {
+    //     return CrossSystem.isDeleteSelectionTrigger(KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers()));
+    // }
 
     /**
      * @param ks
      * @return
      */
-    public static boolean isDeleteSelectionTrigger(final KeyStroke ks) {
-        if (CrossSystem.isMac()) {
+    // public static boolean isDeleteSelectionTrigger(final KeyStroke ks) {
+    //     if (CrossSystem.isMac()) {
 
-            if (ks == CrossSystem.KEY_STROKE_BACKSPACE_CTRL) { return true; }
-        }
-        return ks == CrossSystem.KEY_STROKE_DELETE;
-    }
+    //         if (ks == CrossSystem.KEY_STROKE_BACKSPACE_CTRL) { return true; }
+    //     }
+    //     return ks == CrossSystem.KEY_STROKE_DELETE;
+    // }
 
     public static boolean isLinux() {
         return CrossSystem.OS.getFamily() == OSFamily.LINUX;
@@ -655,46 +655,46 @@ public class CrossSystem {
      * @param ks
      * @return
      */
-    public static boolean isPasteSelectionTrigger(final KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks == CrossSystem.KEY_STROKE_PASTE;
-    }
+    // public static boolean isPasteSelectionTrigger(final KeyStroke ks) {
+    //     // TODO Auto-generated method stub
+    //     return ks == CrossSystem.KEY_STROKE_PASTE;
+    // }
 
     /**
      * @param ks
      * @return
      */
-    public static boolean isSearchTrigger(final KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks == CrossSystem.KEY_STROKE_SEARCH;
-    }
+    // public static boolean isSearchTrigger(final KeyStroke ks) {
+    //     // TODO Auto-generated method stub
+    //     return ks == CrossSystem.KEY_STROKE_SEARCH;
+    // }
 
     /**
      * @param ks
      * @return
      */
-    public static boolean isSelectionAllTrigger(final KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks == CrossSystem.KEY_STROKE_SELECT_ALL;
-    }
+    // public static boolean isSelectionAllTrigger(final KeyStroke ks) {
+    //     // TODO Auto-generated method stub
+    //     return ks == CrossSystem.KEY_STROKE_SELECT_ALL;
+    // }
 
     /**
      * @param ks
      * @return
      */
-    public static boolean isSelectionDownTrigger(final KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks == CrossSystem.KEY_STROKE_DOWN;
-    }
+    // public static boolean isSelectionDownTrigger(final KeyStroke ks) {
+    //     // TODO Auto-generated method stub
+    //     return ks == CrossSystem.KEY_STROKE_DOWN;
+    // }
 
     /**
      * @param ks
      * @return
      */
-    public static boolean isSelectionUpTrigger(final KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks == CrossSystem.KEY_STROKE_UP;
-    }
+    // public static boolean isSelectionUpTrigger(final KeyStroke ks) {
+    //     // TODO Auto-generated method stub
+    //     return ks == CrossSystem.KEY_STROKE_UP;
+    // }
 
     /**
      * Returns true if the OS is a Windows System
@@ -774,17 +774,17 @@ public class CrossSystem {
     /**
      * @param update_dialog_news_button_url
      */
-    public static void openURLOrShowMessage(final String urlString) {
-        try {
-            CrossSystem._openURL(urlString);
-        } catch (final Throwable e) {
-            Log.exception(Level.WARNING, e);
-            try {
-                Dialog.getInstance().showInputDialog(UIOManager.BUTTONS_HIDE_CANCEL, _AWU.T.crossSystem_open_url_failed_msg(), urlString);
-            } catch (final DialogNoAnswerException donothing) {
-            }
-        }
-    }
+    // public static void openURLOrShowMessage(final String urlString) {
+    //     try {
+    //         CrossSystem._openURL(urlString);
+    //     } catch (final Throwable e) {
+    //         Log.exception(Level.WARNING, e);
+    //         try {
+    //             Dialog.getInstance().showInputDialog(UIOManager.BUTTONS_HIDE_CANCEL, _AWU.T.crossSystem_open_url_failed_msg(), urlString);
+    //         } catch (final DialogNoAnswerException donothing) {
+    //         }
+    //     }
+    // }
 
     /**
      * @param class1

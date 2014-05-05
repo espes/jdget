@@ -28,22 +28,22 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
+// import javax.swing.BorderFactory;
+// import javax.swing.ImageIcon;
+// import javax.swing.JButton;
+// import javax.swing.JCheckBox;
+// import javax.swing.JDialog;
+// import javax.swing.JFrame;
+// import javax.swing.JLabel;
+// import javax.swing.JOptionPane;
+// import javax.swing.JPanel;
+// import javax.swing.JScrollPane;
+// import javax.swing.JSpinner;
+// import javax.swing.SpinnerNumberModel;
 
 import jd.captcha.easy.EasyMethodFile;
 import jd.captcha.translate.T;
-import jd.gui.swing.components.JDTextField;
+// import jd.gui.swing.components.JDTextField;
 import jd.http.Browser;
 import jd.nutils.Screen;
 import jd.parser.html.Form;
@@ -53,7 +53,7 @@ import jd.utils.JDUtilities;
 
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.os.CrossSystem;
-import org.appwork.utils.swing.EDTHelper;
+// import org.appwork.utils.swing.EDTHelper;
 import org.jdownloader.controlling.FileCreationManager;
 
 public class LoadCaptchas {
@@ -67,7 +67,7 @@ public class LoadCaptchas {
     }
     private java.util.List<LoadImage> images;
     private LoadImage                 selectedImage;
-    private JFrame                    owner;
+    // private JFrame                    owner;
     public int                        maxHeight        = 500;
     public boolean                    threaded         = false;
     public int                        maxWeight        = 600;
@@ -82,8 +82,8 @@ public class LoadCaptchas {
      * 
      * @return
      */
-    public LoadCaptchas(JFrame owner) {
-        this(owner, null);
+    public LoadCaptchas() {
+        this(null);
     }
 
     /**
@@ -92,8 +92,8 @@ public class LoadCaptchas {
      *            wenn der Hostname = null ist wird er aus dem Link erstellt
      * @return
      */
-    public LoadCaptchas(JFrame owner, String host) {
-        this(owner, host, false);
+    public LoadCaptchas(String host) {
+        this(host, false);
     }
 
     /**
@@ -104,145 +104,146 @@ public class LoadCaptchas {
      *            ob am ende der Captchaordner im Browser geöffnet werden soll
      * @return
      */
-    public LoadCaptchas(JFrame owner, String host, boolean opendir) {
+    public LoadCaptchas(String host, boolean opendir) {
         this.host = host;
         this.opendir = opendir;
-        this.owner = owner;
+        // this.owner = owner;
     }
 
     /**
      * @return true wenn erfolgreich geladen wurde
      */
     public boolean start() {
-        try {
-            selectedImage = LoadImage.loadFile(host);
-            loadinfo = getLoadInfo(selectedImage);
-            if (loadinfo == null) return false;
-            final JDialog dialog = new EDTHelper<JDialog>() {
-                public JDialog edtRun() {
-                    return new JDialog(owner);
-                }
-            }.getReturnValue();
-            dialog.setModal(true);
-            dialog.setAlwaysOnTop(true);
-            br.getPage(loadinfo.link);
-            if (host == null) {
-                host = br.getHost().toLowerCase();
-                if (host.matches(".*\\..*\\..*")) host = host.substring(host.indexOf('.') + 1);
-            }
-            if (dir == null) dir = JDUtilities.getJDHomeDirectoryFromEnvironment().getAbsolutePath() + "/captchas/" + host + "/";
-            FileCreationManager.getInstance().mkdir(new File(dir));
+        // try {
+        //     selectedImage = LoadImage.loadFile(host);
+        //     loadinfo = getLoadInfo(selectedImage);
+        //     if (loadinfo == null) return false;
+        //     final JDialog dialog = new EDTHelper<JDialog>() {
+        //         public JDialog edtRun() {
+        //             return new JDialog(owner);
+        //         }
+        //     }.getReturnValue();
+        //     dialog.setModal(true);
+        //     dialog.setAlwaysOnTop(true);
+        //     br.getPage(loadinfo.link);
+        //     if (host == null) {
+        //         host = br.getHost().toLowerCase();
+        //         if (host.matches(".*\\..*\\..*")) host = host.substring(host.indexOf('.') + 1);
+        //     }
+        //     if (dir == null) dir = JDUtilities.getJDHomeDirectoryFromEnvironment().getAbsolutePath() + "/captchas/" + host + "/";
+        //     FileCreationManager.getInstance().mkdir(new File(dir));
 
-            if (loadDirect()) {
-                if (opendir) openDir(dir);
-                new EasyMethodFile(host).copyExampleImage();
-                return true;
-            }
-            if (selectedImage != null)
-                selectedImage.load(host);
-            else {
-                dialog.setTitle(T._.easycaptcha_loadcaptchas_clickoncaptcha());
-                images = getAllImages(br);
-                loadImages();
-                dialog.addWindowListener(new WindowListener() {
+        //     if (loadDirect()) {
+        //         if (opendir) openDir(dir);
+        //         new EasyMethodFile(host).copyExampleImage();
+        //         return true;
+        //     }
+        //     if (selectedImage != null)
+        //         selectedImage.load(host);
+        //     else {
+        //         dialog.setTitle(T._.easycaptcha_loadcaptchas_clickoncaptcha());
+        //         images = getAllImages(br);
+        //         loadImages();
+        //         dialog.addWindowListener(new WindowListener() {
 
-                    public void windowActivated(WindowEvent e) {
-                    }
+        //             public void windowActivated(WindowEvent e) {
+        //             }
 
-                    public void windowClosed(WindowEvent e) {
+        //             public void windowClosed(WindowEvent e) {
 
-                    }
+        //             }
 
-                    public void windowClosing(WindowEvent e) {
-                        for (LoadImage loadImage : images) {
-                            FileCreationManager.getInstance().delete(loadImage.file, null);
-                        }
-                        dialog.dispose();
-                    }
+        //             public void windowClosing(WindowEvent e) {
+        //                 for (LoadImage loadImage : images) {
+        //                     FileCreationManager.getInstance().delete(loadImage.file, null);
+        //                 }
+        //                 dialog.dispose();
+        //             }
 
-                    public void windowDeactivated(WindowEvent e) {
-                    }
+        //             public void windowDeactivated(WindowEvent e) {
+        //             }
 
-                    public void windowDeiconified(WindowEvent e) {
-                    }
+        //             public void windowDeiconified(WindowEvent e) {
+        //             }
 
-                    public void windowIconified(WindowEvent e) {
-                    }
+        //             public void windowIconified(WindowEvent e) {
+        //             }
 
-                    public void windowOpened(WindowEvent e) {
-                    }
-                });
+        //             public void windowOpened(WindowEvent e) {
+        //             }
+        //         });
 
-                final java.util.List<JButton> bts = new ArrayList<JButton>();
-                for (int j = 0; j < images.size(); j++) {
-                    final LoadImage f = images.get(j);
-                    if (f == null || f.file == null || !f.file.exists() || f.file.length() < 100) continue;
-                    final BufferedImage captchaImage = ImageProvider.read(f.file);
-                    if (captchaImage == null) {
-                        FileCreationManager.getInstance().delete(f.file, null);
-                        continue;
-                    }
-                    int area = captchaImage.getHeight(null) * captchaImage.getHeight(null);
-                    if (area < 50 || captchaImage.getHeight(null) > maxHeight || captchaImage.getWidth(null) > maxWeight || captchaImage.getWidth(null) < 10 || captchaImage.getHeight(null) < 5) {
-                        FileCreationManager.getInstance().delete(f.file, null);
-                        continue;
-                    }
-                    double faktor = Math.max((double) captchaImage.getWidth(null) / 100, (double) captchaImage.getHeight(null) / 100);
-                    final int width = (int) (captchaImage.getWidth(null) / faktor);
-                    final int height = (int) (captchaImage.getHeight(null) / faktor);
-                    try {
-                        JButton ic = new EDTHelper<JButton>() {
-                            public JButton edtRun() {
-                                return new JButton(new ImageIcon(captchaImage.getScaledInstance(width, height, Image.SCALE_SMOOTH)));
-                            }
-                        }.getReturnValue();
-                        ic.addActionListener(new ActionListener() {
+        //         final java.util.List<JButton> bts = new ArrayList<JButton>();
+        //         for (int j = 0; j < images.size(); j++) {
+        //             final LoadImage f = images.get(j);
+        //             if (f == null || f.file == null || !f.file.exists() || f.file.length() < 100) continue;
+        //             final BufferedImage captchaImage = ImageProvider.read(f.file);
+        //             if (captchaImage == null) {
+        //                 FileCreationManager.getInstance().delete(f.file, null);
+        //                 continue;
+        //             }
+        //             int area = captchaImage.getHeight(null) * captchaImage.getHeight(null);
+        //             if (area < 50 || captchaImage.getHeight(null) > maxHeight || captchaImage.getWidth(null) > maxWeight || captchaImage.getWidth(null) < 10 || captchaImage.getHeight(null) < 5) {
+        //                 FileCreationManager.getInstance().delete(f.file, null);
+        //                 continue;
+        //             }
+        //             double faktor = Math.max((double) captchaImage.getWidth(null) / 100, (double) captchaImage.getHeight(null) / 100);
+        //             final int width = (int) (captchaImage.getWidth(null) / faktor);
+        //             final int height = (int) (captchaImage.getHeight(null) / faktor);
+        //             try {
+        //                 JButton ic = new EDTHelper<JButton>() {
+        //                     public JButton edtRun() {
+        //                         return new JButton(new ImageIcon(captchaImage.getScaledInstance(width, height, Image.SCALE_SMOOTH)));
+        //                     }
+        //                 }.getReturnValue();
+        //                 ic.addActionListener(new ActionListener() {
 
-                            public void actionPerformed(ActionEvent e) {
-                                selectedImage = f;
-                                dialog.dispose();
-                            }
-                        });
-                        bts.add(ic);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+        //                     public void actionPerformed(ActionEvent e) {
+        //                         selectedImage = f;
+        //                         dialog.dispose();
+        //                     }
+        //                 });
+        //                 bts.add(ic);
+        //             } catch (Exception e) {
+        //                 e.printStackTrace();
+        //             }
 
-                }
-                final JPanel panel = new EDTHelper<JPanel>() {
-                    public JPanel edtRun() {
-                        return new JPanel(new GridLayout((int) Math.ceil(((double) bts.size()) / 5), 5));
-                    }
-                }.getReturnValue();
-                for (JButton button : bts) {
-                    panel.add(button);
+        //         }
+        //         final JPanel panel = new EDTHelper<JPanel>() {
+        //             public JPanel edtRun() {
+        //                 return new JPanel(new GridLayout((int) Math.ceil(((double) bts.size()) / 5), 5));
+        //             }
+        //         }.getReturnValue();
+        //         for (JButton button : bts) {
+        //             panel.add(button);
 
-                }
-                new EDTHelper<Object>() {
-                    public Object edtRun() {
-                        dialog.add(new JScrollPane(panel));
+        //         }
+        //         new EDTHelper<Object>() {
+        //             public Object edtRun() {
+        //                 dialog.add(new JScrollPane(panel));
 
-                        dialog.pack();
-                        dialog.setLocation(Screen.getCenterOfComponent(owner, dialog));
-                        dialog.setAlwaysOnTop(true);
-                        dialog.setVisible(true);
+        //                 dialog.pack();
+        //                 dialog.setLocation(Screen.getCenterOfComponent(owner, dialog));
+        //                 dialog.setAlwaysOnTop(true);
+        //                 dialog.setVisible(true);
 
-                        return null;
-                    }
-                }.waitForEDT();
-            }
-            if (selectedImage != null && selectedImage.file != null) {
-                loadProcess();
-                if (opendir) openDir(dir);
-                new EasyMethodFile(host).copyExampleImage();
-                return dir.length() > 0;
-            } else
-                return false;
+        //                 return null;
+        //             }
+        //         }.waitForEDT();
+        //     }
+        //     if (selectedImage != null && selectedImage.file != null) {
+        //         loadProcess();
+        //         if (opendir) openDir(dir);
+        //         new EasyMethodFile(host).copyExampleImage();
+        //         return dir.length() > 0;
+        //     } else
+        //         return false;
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        // }
+        // return false;
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     /**
@@ -309,14 +310,14 @@ public class LoadCaptchas {
      * @param dir
      */
     private static void openDir(final String dir) {
-        new EDTHelper<Object>() {
-            public Object edtRun() {
-                if (JOptionPane.showConfirmDialog(null, "Captcha Ordner:" + dir + " jetzt öffnen?") == JOptionPane.YES_OPTION) CrossSystem.openFile(new File(dir));
+        // new EDTHelper<Object>() {
+        //     public Object edtRun() {
+        //         if (JOptionPane.showConfirmDialog(null, "Captcha Ordner:" + dir + " jetzt öffnen?") == JOptionPane.YES_OPTION) CrossSystem.openFile(new File(dir));
 
-                return null;
-            }
-        }.waitForEDT();
-
+        //         return null;
+        //     }
+        // }.waitForEDT();
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     /**
@@ -325,140 +326,140 @@ public class LoadCaptchas {
      * @return
      */
     private LoadInfo getLoadInfo(final LoadImage loadImage) {
-        final JDialog dialog = new EDTHelper<JDialog>() {
-            public JDialog edtRun() {
-                return new JDialog(owner);
-            }
-        }.getReturnValue();
-        dialog.setModal(true);
-        dialog.setAlwaysOnTop(true);
+        // final JDialog dialog = new EDTHelper<JDialog>() {
+        //     public JDialog edtRun() {
+        //         return new JDialog(owner);
+        //     }
+        // }.getReturnValue();
+        // dialog.setModal(true);
+        // dialog.setAlwaysOnTop(true);
 
-        final JPanel p = new EDTHelper<JPanel>() {
-            public JPanel edtRun() {
-                JPanel ret = new JPanel(new GridLayout(6, 2));
-                ret.add(new JLabel(T._.easycaptcha_loadcaptchas_link() + ":"));
-                return ret;
+        // final JPanel p = new EDTHelper<JPanel>() {
+        //     public JPanel edtRun() {
+        //         JPanel ret = new JPanel(new GridLayout(6, 2));
+        //         ret.add(new JLabel(T._.easycaptcha_loadcaptchas_link() + ":"));
+        //         return ret;
 
-            }
-        }.getReturnValue();
+        //     }
+        // }.getReturnValue();
 
-        final JDTextField tfl = new EDTHelper<JDTextField>() {
-            public JDTextField edtRun() {
-                return new JDTextField();
-            }
-        }.getReturnValue();
-        tfl.setBorder(BorderFactory.createEtchedBorder());
+        // final JDTextField tfl = new EDTHelper<JDTextField>() {
+        //     public JDTextField edtRun() {
+        //         return new JDTextField();
+        //     }
+        // }.getReturnValue();
+        // tfl.setBorder(BorderFactory.createEtchedBorder());
 
-        p.add(tfl);
-        JSpinner sm = new EDTHelper<JSpinner>() {
-            public JSpinner edtRun() {
-                p.add(new JLabel(T._.easycaptcha_loadcaptchas_howmuch() + ":"));
-                if (loadImage != null) tfl.setText(loadImage.baseUrl);
-                return new JSpinner(new SpinnerNumberModel(100, 1, 4000, 1));
-            }
-        }.getReturnValue();
-        p.add(sm);
-        JCheckBox followLinks = new EDTHelper<JCheckBox>() {
-            public JCheckBox edtRun() {
-                p.add(new JLabel(T._.easycaptcha_loadcaptchas_followlinks() + ":"));
-                JCheckBox checkBox = new JCheckBox();
-                checkBox.setSelected(false);
-                p.add(checkBox);
-                return checkBox;
-            }
-        }.getReturnValue();
-        JCheckBox threadedCheck = new EDTHelper<JCheckBox>() {
-            public JCheckBox edtRun() {
-                p.add(new JLabel(T._.easycaptcha_loadcaptchas_threaded() + ":"));
-                JCheckBox checkBox = new JCheckBox();
-                checkBox.setSelected(false);
-                p.add(checkBox);
-                return checkBox;
-            }
-        }.getReturnValue();
-        JCheckBox loadDirect = new EDTHelper<JCheckBox>() {
-            public JCheckBox edtRun() {
-                p.add(new JLabel(T._.easycaptcha_loadcaptchas_loaddirect() + ":"));
-                JCheckBox checkBox = new JCheckBox();
-                checkBox.setSelected(true);
-                p.add(checkBox);
-                return checkBox;
-            }
-        }.getReturnValue();
-        JButton ok = new EDTHelper<JButton>() {
-            public JButton edtRun() {
-                return new JButton(T._.gui_btn_ok());
-            }
-        }.getReturnValue();
-        ok.addActionListener(new ActionListener() {
+        // p.add(tfl);
+        // JSpinner sm = new EDTHelper<JSpinner>() {
+        //     public JSpinner edtRun() {
+        //         p.add(new JLabel(T._.easycaptcha_loadcaptchas_howmuch() + ":"));
+        //         if (loadImage != null) tfl.setText(loadImage.baseUrl);
+        //         return new JSpinner(new SpinnerNumberModel(100, 1, 4000, 1));
+        //     }
+        // }.getReturnValue();
+        // p.add(sm);
+        // JCheckBox followLinks = new EDTHelper<JCheckBox>() {
+        //     public JCheckBox edtRun() {
+        //         p.add(new JLabel(T._.easycaptcha_loadcaptchas_followlinks() + ":"));
+        //         JCheckBox checkBox = new JCheckBox();
+        //         checkBox.setSelected(false);
+        //         p.add(checkBox);
+        //         return checkBox;
+        //     }
+        // }.getReturnValue();
+        // JCheckBox threadedCheck = new EDTHelper<JCheckBox>() {
+        //     public JCheckBox edtRun() {
+        //         p.add(new JLabel(T._.easycaptcha_loadcaptchas_threaded() + ":"));
+        //         JCheckBox checkBox = new JCheckBox();
+        //         checkBox.setSelected(false);
+        //         p.add(checkBox);
+        //         return checkBox;
+        //     }
+        // }.getReturnValue();
+        // JCheckBox loadDirect = new EDTHelper<JCheckBox>() {
+        //     public JCheckBox edtRun() {
+        //         p.add(new JLabel(T._.easycaptcha_loadcaptchas_loaddirect() + ":"));
+        //         JCheckBox checkBox = new JCheckBox();
+        //         checkBox.setSelected(true);
+        //         p.add(checkBox);
+        //         return checkBox;
+        //     }
+        // }.getReturnValue();
+        // JButton ok = new EDTHelper<JButton>() {
+        //     public JButton edtRun() {
+        //         return new JButton(T._.gui_btn_ok());
+        //     }
+        // }.getReturnValue();
+        // ok.addActionListener(new ActionListener() {
 
-            public void actionPerformed(ActionEvent e) {
-                dialog.dispose();
-            }
-        });
-        p.add(ok);
-        WindowListener l = new WindowListener() {
-            public void windowActivated(WindowEvent e) {
-            }
+        //     public void actionPerformed(ActionEvent e) {
+        //         dialog.dispose();
+        //     }
+        // });
+        // p.add(ok);
+        // WindowListener l = new WindowListener() {
+        //     public void windowActivated(WindowEvent e) {
+        //     }
 
-            public void windowClosed(WindowEvent e) {
+        //     public void windowClosed(WindowEvent e) {
 
-            }
+        //     }
 
-            public void windowClosing(WindowEvent e) {
-                tfl.setText("");
-                dialog.dispose();
-            }
+        //     public void windowClosing(WindowEvent e) {
+        //         tfl.setText("");
+        //         dialog.dispose();
+        //     }
 
-            public void windowDeactivated(WindowEvent e) {
-            }
+        //     public void windowDeactivated(WindowEvent e) {
+        //     }
 
-            public void windowDeiconified(WindowEvent e) {
-            }
+        //     public void windowDeiconified(WindowEvent e) {
+        //     }
 
-            public void windowIconified(WindowEvent e) {
-            }
+        //     public void windowIconified(WindowEvent e) {
+        //     }
 
-            public void windowOpened(WindowEvent e) {
-            }
-        };
-        JButton cancel = new EDTHelper<JButton>() {
-            public JButton edtRun() {
-                return new JButton(T._.gui_btn_cancel());
-            }
-        }.getReturnValue();
-        cancel.addActionListener(new ActionListener() {
+        //     public void windowOpened(WindowEvent e) {
+        //     }
+        // };
+        // JButton cancel = new EDTHelper<JButton>() {
+        //     public JButton edtRun() {
+        //         return new JButton(T._.gui_btn_cancel());
+        //     }
+        // }.getReturnValue();
+        // cancel.addActionListener(new ActionListener() {
 
-            public void actionPerformed(ActionEvent e) {
-                tfl.setText("");
-                dialog.dispose();
-            }
-        });
-        p.add(cancel);
+        //     public void actionPerformed(ActionEvent e) {
+        //         tfl.setText("");
+        //         dialog.dispose();
+        //     }
+        // });
+        // p.add(cancel);
 
-        dialog.addWindowListener(l);
-        dialog.add(p);
-        new EDTHelper<Object>() {
-            public Object edtRun() {
-                dialog.setLocation(Screen.getCenterOfComponent(owner, dialog));
-                dialog.pack();
-                dialog.setAlwaysOnTop(true);
+        // dialog.addWindowListener(l);
+        // dialog.add(p);
+        // new EDTHelper<Object>() {
+        //     public Object edtRun() {
+        //         dialog.setLocation(Screen.getCenterOfComponent(owner, dialog));
+        //         dialog.pack();
+        //         dialog.setAlwaysOnTop(true);
 
-                dialog.setVisible(true);
+        //         dialog.setVisible(true);
 
-                return null;
-            }
-        }.waitForEDT();
-        String link = tfl.getText();
-        if (link == null || link.matches("\\s*")) return null;
-        int menge = (Integer) sm.getValue();
-        dialog.dispose();
-        LoadInfo retLI = new LoadInfo(link, menge);
-        retLI.followLinks = followLinks.isSelected();
-        this.threaded = threadedCheck.isSelected();
-        retLI.directLoad = loadDirect.isSelected();
-        return retLI;
-
+        //         return null;
+        //     }
+        // }.waitForEDT();
+        // String link = tfl.getText();
+        // if (link == null || link.matches("\\s*")) return null;
+        // int menge = (Integer) sm.getValue();
+        // dialog.dispose();
+        // LoadInfo retLI = new LoadInfo(link, menge);
+        // retLI.followLinks = followLinks.isSelected();
+        // this.threaded = threadedCheck.isSelected();
+        // retLI.directLoad = loadDirect.isSelected();
+        // return retLI;
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     /**

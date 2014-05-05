@@ -8,8 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
+// import javax.swing.Icon;
+// import javax.swing.ImageIcon;
 
 import jd.controlling.downloadcontroller.DownloadWatchDog;
 import jd.controlling.downloadcontroller.SingleDownloadController;
@@ -23,16 +23,16 @@ import org.jdownloader.DomainInfo;
 import org.jdownloader.controlling.Priority;
 import org.jdownloader.extensions.extraction.ExtractionProgress;
 import org.jdownloader.extensions.extraction.ExtractionStatus;
-import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.ExtractIconVariant;
-import org.jdownloader.gui.IconKey;
+// import org.jdownloader.extensions.extraction.contextmenu.downloadlist.action.ExtractIconVariant;
+// import org.jdownloader.gui.IconKey;
 import org.jdownloader.gui.translate._GUI;
-import org.jdownloader.gui.views.downloads.columns.AvailabilityColumn;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.gui.views.downloads.columns.AvailabilityColumn;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.plugins.ConditionalSkipReason;
 import org.jdownloader.plugins.FinalLinkState;
 import org.jdownloader.plugins.MirrorLoading;
 import org.jdownloader.plugins.SkipReason;
-import org.jdownloader.settings.GraphicalUserInterfaceSettings;
+// import org.jdownloader.settings.GraphicalUserInterfaceSettings;
 
 public class FilePackageView extends ChildrenView<DownloadLink> {
 
@@ -53,9 +53,10 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
 
     private java.util.List<DownloadLink> items                    = new ArrayList<DownloadLink>();
 
-    private ImageIcon                    falseIcon;
+    // private ImageIcon                    falseIcon;
 
-    protected static final long          GUIUPDATETIMEOUT         = JsonConfig.create(GraphicalUserInterfaceSettings.class).getDownloadViewRefresh();
+    // protected static final long          GUIUPDATETIMEOUT         = JsonConfig.create(GraphicalUserInterfaceSettings.class).getDownloadViewRefresh();
+    protected static final long          GUIUPDATETIMEOUT         = 5000;
 
     public boolean isEnabled() {
         return enabledCount > 0;
@@ -68,7 +69,7 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
      */
     public FilePackageView(FilePackage fp) {
         this.fp = fp;
-        this.falseIcon = NewTheme.I().getIcon("false", 16);
+        // this.falseIcon = NewTheme.I().getIcon("false", 16);
 
     }
 
@@ -188,24 +189,24 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
     public static class PluginState {
 
         private String description;
-        private Icon   icon;
+        // private Icon   icon;
 
         public String getDescription() {
             return description;
         }
 
-        public Icon getIcon() {
-            return icon;
-        }
+        // public Icon getIcon() {
+        //     return icon;
+        // }
 
-        private PluginState(String message, Icon icon2) {
+        private PluginState(String message) {
             this.description = message;
-            this.icon = icon2;
+            // this.icon = icon2;
         }
 
-        public static PluginState create(String message, Icon icon) {
-            if (StringUtils.isEmpty(message) && icon == null) return null;
-            return new PluginState(message, icon);
+        public static PluginState create(String message) {
+            if (StringUtils.isEmpty(message)/* && icon == null*/) return null;
+            return new PluginState(message/*, icon*/);
         }
 
     }
@@ -337,21 +338,21 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
         if (prog != null) {
             if (!(prog instanceof ExtractionProgress)) {
                 id = prog.getClass().getName() + link.getHost();
-                if (prog.getIcon(this) != null) {
-                    if (!tmp.pluginStates.containsKey(id)) {
-                        ps = PluginState.create(prog.getMessage(FilePackageView.this) + " (" + link.getDomainInfo().getTld() + ")", new FavitIcon(prog.getIcon(this), link.getDomainInfo()));
-                        if (ps != null) {
-                            tmp.pluginStates.put(id, ps);
-                        }
-                    }
-                }
+                // if (prog.getIcon(this) != null) {
+                //     if (!tmp.pluginStates.containsKey(id)) {
+                //         ps = PluginState.create(prog.getMessage(FilePackageView.this) + " (" + link.getDomainInfo().getTld() + ")", new FavitIcon(prog.getIcon(this), link.getDomainInfo()));
+                //         if (ps != null) {
+                //             tmp.pluginStates.put(id, ps);
+                //         }
+                //     }
+                // }
             }
         }
         ConditionalSkipReason conditionalSkipReason = getConditionalSkipReason(link);
         if (conditionalSkipReason != null) {
             id = conditionalSkipReason.getClass().getName() + link.getHost();
             if (!tmp.pluginStates.containsKey(id)) {
-                ps = PluginState.create(conditionalSkipReason.getMessage(this, link) + " (" + link.getDomainInfo().getTld() + ")", new FavitIcon(conditionalSkipReason.getIcon(this, link), link.getDomainInfo()));
+                ps = PluginState.create(conditionalSkipReason.getMessage(this, link) + " (" + link.getDomainInfo().getTld() + ")"/*, new FavitIcon(conditionalSkipReason.getIcon(this, link), link.getDomainInfo())*/);
                 if (ps != null) {
                     tmp.pluginStates.put(id, ps);
                 }
@@ -361,7 +362,7 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
         if (skipReason != null) {
             id = skipReason.name();
             if (!tmp.pluginStates.containsKey(id)) {
-                ps = PluginState.create(skipReason.getExplanation(this), skipReason.getIcon(this, 18));
+                ps = PluginState.create(skipReason.getExplanation(this)/*, skipReason.getIcon(this, 18)*/);
                 if (ps != null) {
                     tmp.pluginStates.put(id, ps);
                 }
@@ -381,7 +382,7 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
             case OFFLINE:
             case PLUGIN_DEFECT:
                 id = "error" + link.getHost();
-                ps = PluginState.create(_GUI._.FilePackageView_addLinkToTemp_downloaderror_() + " (" + link.getDomainInfo().getTld() + ")", new FavitIcon(this.falseIcon, link.getDomainInfo()));
+                ps = PluginState.create(_GUI._.FilePackageView_addLinkToTemp_downloaderror_() + " (" + link.getDomainInfo().getTld() + ")"/*, new FavitIcon(this.falseIcon, link.getDomainInfo())*/);
                 if (ps != null) {
                     tmp.pluginStates.put(id, ps);
                 }
@@ -409,7 +410,7 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
                     // ExtractionExtension.getIntance().createArchiveID(new DownloadLinkArchiveFactory(link));
                     if (StringUtils.isNotEmpty(archiveID)) {
                         id = "extractError:" + archiveID;
-                        ps = PluginState.create(extractionStatus.getExplanation() + " (" + link.getFinalFileName() + ")", new ExtractIconVariant("error", 18, 10));
+                        ps = PluginState.create(extractionStatus.getExplanation() + " (" + link.getFinalFileName() + ")"/*, new ExtractIconVariant("error", 18, 10)*/);
                         if (ps != null) {
                             tmp.pluginStates.put(id, ps);
                         }
@@ -421,7 +422,7 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
                     // ExtractionExtension.getIntance().createArchiveID(new DownloadLinkArchiveFactory(link));
                     if (StringUtils.isNotEmpty(archiveID)) {
                         id = "ExtractSuccess:" + archiveID;
-                        ps = PluginState.create(extractionStatus.getExplanation() + " (" + link.getFinalFileName() + ")", new ExtractIconVariant("ok", 18, 10));
+                        ps = PluginState.create(extractionStatus.getExplanation() + " (" + link.getFinalFileName() + ")"/*, new ExtractIconVariant("ok", 18, 10)*/);
 
                         if (ps != null) {
                             tmp.pluginStates.put(id, ps);
@@ -441,7 +442,7 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
                             if (prog instanceof ExtractionProgress) {
 
                                 if (!tmp.pluginStates.containsKey(id)) {
-                                    ps = PluginState.create(prog.getMessage(FilePackageView.this) + " (" + link.getFinalFileName() + ")", new ExtractIconVariant(IconKey.ICON_MEDIA_PLAYBACK_START, 18, 16, 3, 3).crop());
+                                    ps = PluginState.create(prog.getMessage(FilePackageView.this) + " (" + link.getFinalFileName() + ")"/*, new ExtractIconVariant(IconKey.ICON_MEDIA_PLAYBACK_START, 18, 16, 3, 3).crop()*/);
                                     if (ps != null) {
                                         tmp.pluginStates.put(id, ps);
                                     }
@@ -449,7 +450,7 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
                             }
                         }
                         if (ps == null) {
-                            ps = PluginState.create(extractionStatus.getExplanation() + " (" + link.getFinalFileName() + ")", new ExtractIconVariant(IconKey.ICON_MEDIA_PLAYBACK_START, 18, 16, 3, 3).crop());
+                            ps = PluginState.create(extractionStatus.getExplanation() + " (" + link.getFinalFileName() + ")"/*, new ExtractIconVariant(IconKey.ICON_MEDIA_PLAYBACK_START, 18, 16, 3, 3).crop()*/);
                             if (ps != null && !tmp.pluginStates.containsKey(id)) {
                                 tmp.pluginStates.put(id, ps);
                             }
@@ -599,7 +600,7 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
 
     @Override
     public String getMessage(Object requestor) {
-        if (requestor instanceof AvailabilityColumn) return availabilityColumnString;
+        // if (requestor instanceof AvailabilityColumn) return availabilityColumnString;
         return null;
     }
 
