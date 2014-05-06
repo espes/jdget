@@ -96,7 +96,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
         /* try all different ip's until one is valid and connectable */
         IOException ee = null;
         for (final InetAddress host : hosts) {
-            httpSocket = new Socket(Proxy.NO_PROXY);
+            httpSocket = new Socket(/*Proxy.NO_PROXY*/);
             httpSocket.setSoTimeout(readTimeout);
             httpResponseCode = -1;
             int port = httpURL.getPort();

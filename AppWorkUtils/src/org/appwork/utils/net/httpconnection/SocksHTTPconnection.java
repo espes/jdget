@@ -59,7 +59,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
             IOException ee = null;
             long startTime = System.currentTimeMillis();
             for (final InetAddress host : hosts) {
-                this.sockssocket = new Socket(Proxy.NO_PROXY);
+                this.sockssocket = new Socket(/*Proxy.NO_PROXY*/);
                 this.sockssocket.setSoTimeout(this.connectTimeout);
                 try {
                     /* create and connect to socks5 proxy */

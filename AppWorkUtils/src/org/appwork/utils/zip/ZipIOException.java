@@ -26,7 +26,8 @@ public class ZipIOException extends IOException {
     }
 
     public ZipIOException(final String message, final Throwable cause) {
-        super(message, cause);
+        super(message);
+        initCause(cause);
     }
 
     public ZipIOException(final String message, final ZipEntry entry) {
@@ -38,7 +39,8 @@ public class ZipIOException extends IOException {
      * @param signatureViolation
      */
     public ZipIOException(final Throwable e) {
-        super(e);
+        super();
+        initCause(e);
     }
 
     /**
@@ -46,7 +48,8 @@ public class ZipIOException extends IOException {
      * @param entry2
      */
     public ZipIOException(final Throwable e, final ZipEntry entry) {
-        super(e);
+        super();
+        initCause(e);
         this.entry = entry;
     }
 

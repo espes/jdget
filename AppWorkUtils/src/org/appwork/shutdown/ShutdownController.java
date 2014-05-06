@@ -134,58 +134,58 @@ public class ShutdownController extends Thread {
         hooks = new ArrayList<ShutdownEvent>();
         originalShutdownHooks = new ArrayList<ShutdownEvent>();
         vetoListeners = new ArrayList<ShutdownVetoListener>();
-        try {
-            // first try to hook in the original hooks manager
-            // to "disable" the original hook manager, we overwrite the actual
-            // hook list with our own one, and redirect all registered hooks to
-            // ShutdownController.
-            // this may fail (reflektion). As a fallback we just add
-            // Shutdowncontroller as a normal hook.
+        // try {
+        //     // first try to hook in the original hooks manager
+        //     // to "disable" the original hook manager, we overwrite the actual
+        //     // hook list with our own one, and redirect all registered hooks to
+        //     // ShutdownController.
+        //     // this may fail (reflektion). As a fallback we just add
+        //     // Shutdowncontroller as a normal hook.
 
-            final IdentityHashMap<Thread, Thread> hookDelegater = new IdentityHashMap<Thread, Thread>() {
-                /**
-                 * 
-                 */
-                private static final long serialVersionUID = 8334628124340671103L;
+        //     final IdentityHashMap<Thread, Thread> hookDelegater = new IdentityHashMap<Thread, Thread>() {
+        //         /**
+        //          * 
+        //          */
+        //         private static final long serialVersionUID = 8334628124340671103L;
 
-                {
-                    // SHutdowncontroller should be the only hook!!
-                    super.put(ShutdownController.this, ShutdownController.this);
-                }
+        //         {
+        //             // SHutdowncontroller should be the only hook!!
+        //             super.put(ShutdownController.this, ShutdownController.this);
+        //         }
 
-                @Override
-                public Thread put(final Thread key, final Thread value) {
-                    final ShutdownEventWrapper hook = new ShutdownEventWrapper(value);
+        //         @Override
+        //         public Thread put(final Thread key, final Thread value) {
+        //             final ShutdownEventWrapper hook = new ShutdownEventWrapper(value);
 
-                    ShutdownController.this.addShutdownEvent(hook);
-                    return null;
-                }
+        //             ShutdownController.this.addShutdownEvent(hook);
+        //             return null;
+        //         }
 
-                @Override
-                public Thread remove(final Object key) {
-                    ShutdownController.this.removeShutdownEvent(new ShutdownEventWrapper((Thread) key));
-                    return (Thread) key;
-                }
-            };
+        //         @Override
+        //         public Thread remove(final Object key) {
+        //             ShutdownController.this.removeShutdownEvent(new ShutdownEventWrapper((Thread) key));
+        //             return (Thread) key;
+        //         }
+        //     };
 
-            final Field field = Class.forName("java.lang.ApplicationShutdownHooks").getDeclaredField("hooks");
-            field.setAccessible(true);
-            final Map<Thread, Thread> hooks = (Map<Thread, Thread>) field.get(null);
-            synchronized (hooks) {
+        //     final Field field = Class.forName("java.lang.ApplicationShutdownHooks").getDeclaredField("hooks");
+        //     field.setAccessible(true);
+        //     final Map<Thread, Thread> hooks = (Map<Thread, Thread>) field.get(null);
+        //     synchronized (hooks) {
 
-                final Set<Thread> threads = hooks.keySet();
+        //         final Set<Thread> threads = hooks.keySet();
 
-                for (final Thread hook : threads) {
-                    addShutdownEvent(new ShutdownEventWrapper(hook));
+        //         for (final Thread hook : threads) {
+        //             addShutdownEvent(new ShutdownEventWrapper(hook));
 
-                }
-                field.set(null, hookDelegater);
-            }
+        //         }
+        //         field.set(null, hookDelegater);
+        //     }
 
-        } catch (final Throwable e) {
-            Log.exception(e);
+        // } catch (final Throwable e) {
+        //     Log.exception(e);
             Runtime.getRuntime().addShutdownHook(this);
-        }
+        // }
 
         // do not remove the Log call here. we have to be sure that Log.class is
         // already loaded

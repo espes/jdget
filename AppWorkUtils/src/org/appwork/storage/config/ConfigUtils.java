@@ -12,7 +12,7 @@ import org.appwork.storage.config.handler.ListHandler;
 // import org.appwork.utils.swing.dialog.DialogCanceledException;
 // import org.appwork.utils.swing.dialog.DialogClosedException;
 
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
+import java.lang.reflect.ParameterizedType;
 
 public class ConfigUtils {
 
@@ -89,10 +89,10 @@ public class ConfigUtils {
             strBuild.append("\r\n");
             if (kh.getClass().getName().contains("$")) {
                 if (ListHandler.class.isAssignableFrom(kh.getClass())) {
-                    final ParameterizedTypeImpl sc = (ParameterizedTypeImpl) kh.getClass().getGenericSuperclass();
+                    final ParameterizedType sc = (ParameterizedType) kh.getClass().getGenericSuperclass();
                     final Class type = (Class) sc.getActualTypeArguments()[0];
                     final String sn = type.getSimpleName();
-                    final Class<?> raw = sc.getRawType();
+                    final Class<?> raw = (Class<?>) sc.getRawType();
 
                     strBuild.append("public static final " + raw.getSimpleName() + "<" + sn + ">" + " " + sb + " = (" + raw.getSimpleName() + "<" + sn + ">" + ")SH.getKeyHandler(\"" + methodname + "\", " + raw.getSimpleName() + ".class);");
 continue;

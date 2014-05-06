@@ -228,7 +228,7 @@ public abstract class Request {
                 try {
                     this.collectCookiesFromConnection();
                 } catch (final NullPointerException e) {
-                    throw new IOException("Malformed url?", e);
+                    IOException e2 = new IOException("Malformed url?"); e2.initCause(e); throw e2;
                 }
             }
         } finally {

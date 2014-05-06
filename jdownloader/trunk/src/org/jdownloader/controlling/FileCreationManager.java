@@ -109,13 +109,13 @@ public class FileCreationManager {
             if (file.delete()) {
                 return true;
             } else {
-                if (Application.getJavaVersion() >= Application.JAVA17) {
-                    try {
-                        java.nio.file.Files.delete(file.toPath());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                // if (Application.getJavaVersion() >= Application.JAVA17) {
+                //     try {
+                //         java.nio.file.Files.delete(file.toPath());
+                //     } catch (Exception e) {
+                //         e.printStackTrace();
+                //     }
+                // }
                 return !file.exists();
             }
         case RECYCLE:

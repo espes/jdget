@@ -44,7 +44,7 @@ public class DiskSpaceManager {
         long requestedDiskSpace = Math.max(0, reservation.getSize()) + Math.max(0, config.getForcedFreeSpaceOnDisk() * 1024 * 1024);
         File destinationPath = reservation.getDestination();
         File checkPath = null;
-        long freeSpace = -1;
+        // long freeSpace = -1;
         if (destinationPath != null && destinationPath.isFile()) {
             destinationPath = destinationPath.getParentFile();
         }
@@ -52,8 +52,8 @@ public class DiskSpaceManager {
         while (destinationPath != null) {
             if (destinationPath.exists() && checkPath == null) {
                 checkPath = destinationPath;
-                freeSpace = checkPath.getUsableSpace();
-                if (freeSpace < requestedDiskSpace) { return DISKSPACERESERVATIONRESULT.FAILED; }
+                // freeSpace = checkPath.getUsableSpace();
+                // if (freeSpace < requestedDiskSpace) { return DISKSPACERESERVATIONRESULT.FAILED; }
             }
             destinationPath = destinationPath.getParentFile();
             if (destinationPath != null) {
@@ -70,7 +70,7 @@ public class DiskSpaceManager {
             while (destinationPath != null) {
                 if (reservationPaths.contains(destinationPath)) {
                     requestedDiskSpace += Math.max(0, reserved.getSize());
-                    if (freeSpace < requestedDiskSpace) { return DISKSPACERESERVATIONRESULT.FAILED; }
+                    // if (freeSpace < requestedDiskSpace) { return DISKSPACERESERVATIONRESULT.FAILED; }
                     break;
                 }
                 destinationPath = destinationPath.getParentFile();

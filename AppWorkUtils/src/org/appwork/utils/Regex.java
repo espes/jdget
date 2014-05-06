@@ -20,8 +20,25 @@ import java.util.regex.Pattern;
 
 public class Regex {
 
-    public static String escape(final String pattern) {
-        return Pattern.quote(pattern);
+    public static String escape(final String s) {
+        //return Pattern.quote(s);
+        // from openjdk:
+        int slashEIndex = s.indexOf("\\E");
+        if (slashEIndex == -1)
+            return "\\Q" + s + "\\E";
+
+        StringBuilder sb = new StringBuilder(s.length() * 2);
+        sb.append("\\Q");
+        slashEIndex = 0;
+        int current = 0;
+        while ((slashEIndex = s.indexOf("\\E", current)) != -1) {
+            sb.append(s.substring(current, slashEIndex));
+            current = slashEIndex + 2;
+            sb.append("\\E\\\\E\\Q");
+        }
+        sb.append(s.substring(current, s.length()));
+        sb.append("\\E");
+        return sb.toString();
     }
 
     public static String[] getLines(final String arg) {

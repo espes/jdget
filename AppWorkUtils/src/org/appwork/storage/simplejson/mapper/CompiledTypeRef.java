@@ -12,8 +12,8 @@ package org.appwork.storage.simplejson.mapper;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 
-import sun.reflect.generics.reflectiveObjects.GenericArrayTypeImpl;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.ParameterizedType;
 
 /**
  * @author Thomas
@@ -49,9 +49,9 @@ public class CompiledTypeRef {
     public CompiledTypeRef(final Type type) {
         this.type = type;
 
-        if (type instanceof ParameterizedTypeImpl) {
-            rawType = ((ParameterizedTypeImpl) type).getRawType();
-            final Type[] types = ((ParameterizedTypeImpl) type).getActualTypeArguments();
+        if (type instanceof ParameterizedType) {
+            rawType = (Class<?>)((ParameterizedType) type).getRawType();
+            final Type[] types = ((ParameterizedType) type).getActualTypeArguments();
             subTypes = new CompiledTypeRef[types.length];
             for (int i = 0; i < types.length; i++) {
                 subTypes[i] = new CompiledTypeRef(types[i]);
@@ -59,11 +59,11 @@ public class CompiledTypeRef {
 
         } else if (type instanceof Class) {
             rawType = (Class) type;
-        } else if (type instanceof GenericArrayTypeImpl) {
+        } else if (type instanceof GenericArrayType) {
             // this is for 1.6
             // for 1.7 we do not get GenericArrayTypeImpl here but the actual
             // array class
-            rawType = Array.newInstance((Class<?>) ((GenericArrayTypeImpl) type).getGenericComponentType(), 0).getClass();
+            rawType = Array.newInstance((Class<?>) ((GenericArrayType) type).getGenericComponentType(), 0).getClass();
         }
 
     }

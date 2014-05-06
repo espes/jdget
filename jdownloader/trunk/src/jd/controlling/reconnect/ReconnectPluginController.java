@@ -301,7 +301,7 @@ public class ReconnectPluginController {
             }
 
             Enumeration<URL> found = getClass().getClassLoader().getResources(ReconnectPluginController.JD_CONTROLLING_RECONNECT_PLUGINS);
-            Pattern pattern = Pattern.compile(Pattern.quote(JD_CONTROLLING_RECONNECT_PLUGINS) + "(\\w+)/");
+            Pattern pattern = Pattern.compile(JD_CONTROLLING_RECONNECT_PLUGINS.replace("/", "\\/") + "(\\w+)/");
             while (found.hasMoreElements()) {
                 URL url = found.nextElement();
 

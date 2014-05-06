@@ -36,7 +36,7 @@ import org.appwork.utils.logging2.LogSource;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.settings.advanced.AdvancedConfigManager;
 
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
+import java.lang.reflect.ParameterizedType;
 
 /**
  * Superclass for all extensions
@@ -200,8 +200,8 @@ public abstract class AbstractExtension<ConfigType extends ExtensionConfigInterf
 
     private void initTranslation() {
         Type type = getClass().getGenericSuperclass();
-        if (type instanceof ParameterizedTypeImpl) {
-            Class<TranslationType> cl = (Class<TranslationType>) ((ParameterizedTypeImpl) type).getActualTypeArguments()[1];
+        if (type instanceof ParameterizedType) {
+            Class<TranslationType> cl = (Class<TranslationType>) ((ParameterizedType) type).getActualTypeArguments()[1];
             if (cl == TranslateInterface.class) return;
             _ = TranslationFactory.create(cl);
         }
@@ -231,8 +231,8 @@ public abstract class AbstractExtension<ConfigType extends ExtensionConfigInterf
     @SuppressWarnings("unchecked")
     public Class<ConfigType> getConfigClass() {
         Type type = getClass().getGenericSuperclass();
-        if (type instanceof ParameterizedTypeImpl) {
-            return (Class<ConfigType>) ((ParameterizedTypeImpl) type).getActualTypeArguments()[0];
+        if (type instanceof ParameterizedType) {
+            return (Class<ConfigType>) ((ParameterizedType) type).getActualTypeArguments()[0];
         } else {
             throw new RuntimeException("Bad Extension Definition. Please add Generic ConfigClass: class " + getClass().getSimpleName() + " extends AbstractExtension<" + getClass().getSimpleName() + "Config>{... with 'public interface " + getClass().getSimpleName() + "Config extends ExtensionConfigInterface{...");
         }

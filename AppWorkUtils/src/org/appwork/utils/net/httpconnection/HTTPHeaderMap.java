@@ -211,7 +211,8 @@ public class HTTPHeaderMap<V> implements Map<String, V> {
 
             @Override
             public final int hashCode() {
-                return Objects.hashCode(this.getKey()) ^ Objects.hashCode(this.getValue());
+                // return Objects.hashCode(this.getKey()) ^ Objects.hashCode(this.getValue());
+                throw new UnsupportedOperationException("jdget TODO");
             }
 
             @Override
@@ -265,7 +266,8 @@ public class HTTPHeaderMap<V> implements Map<String, V> {
 
             @Override
             public final int hashCode() {
-                return Objects.hashCode(this.getKey()) ^ Objects.hashCode(this.getValue());
+                // return Objects.hashCode(this.getKey()) ^ Objects.hashCode(this.getValue());
+                throw new UnsupportedOperationException("jdget TODO");
             }
 
             @Override

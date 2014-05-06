@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 import jd.controlling.linkcrawler.CrawledLink;
 import jd.plugins.DownloadLink;
 
+import org.appwork.utils.Regex;
 import org.appwork.utils.Files;
 import org.appwork.utils.StringUtils;
 import org.jdownloader.myjdownloader.client.json.AvailableLinkState;
@@ -154,7 +155,7 @@ public class RuleWrapper<T extends FilterRule> {
                     if (actualParts > 0) {
                         sb.append("(.*?)");
                     }
-                    sb.append(Pattern.quote(parts[i]));
+                    sb.append(Regex.escape(parts[i]));
                     actualParts++;
                 }
             }

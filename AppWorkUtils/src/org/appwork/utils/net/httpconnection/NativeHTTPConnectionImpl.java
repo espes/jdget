@@ -144,17 +144,18 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
             synchronized (NativeHTTPConnectionImpl.availableProxies) {
                 NativeHTTPConnectionImpl.availableProxies.put(Thread.currentThread(), this.proxy);
             }
-            try {
-                /** http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6626700 **/
-                /**
-                 * Request for ability to turn off authentication caching in
-                 * HttpURLConnection
-                 **/
-                sun.net.www.protocol.http.AuthCacheValue.setAuthCache(new sun.net.www.protocol.http.AuthCacheImpl());
-            } catch (final Throwable e) {
-                /* sun/oracle java only? */
-            }
-            this.con = (HttpURLConnection) this.httpURL.openConnection(this.nativeProxy);
+            // try {
+            //     /** http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6626700 **/
+            //     /**
+            //      * Request for ability to turn off authentication caching in
+            //      * HttpURLConnection
+            //      **/
+            //     sun.net.www.protocol.http.AuthCacheValue.setAuthCache(new sun.net.www.protocol.http.AuthCacheImpl());
+            // } catch (final Throwable e) {
+            //     /* sun/oracle java only? */
+            // }
+            // this.con = (HttpURLConnection) this.httpURL.openConnection(this.nativeProxy);
+            throw new UnsupportedOperationException("jdget TODO");
         } else {
             synchronized (NativeHTTPConnectionImpl.availableProxies) {
                 NativeHTTPConnectionImpl.availableProxies.remove(Thread.currentThread());

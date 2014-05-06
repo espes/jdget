@@ -53,7 +53,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             IOException ee = null;
             long startTime = System.currentTimeMillis();
             for (final InetAddress host : hosts) {
-                this.httpSocket = new Socket(Proxy.NO_PROXY);
+                this.httpSocket = new Socket(/*Proxy.NO_PROXY*/);
                 this.httpSocket.setSoTimeout(this.readTimeout);
                 try {
                     /* create and connect to socks5 proxy */
@@ -169,7 +169,9 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                             this.httpSocket.close();
                         } catch (final Throwable e2) {
                         }
-                        throw new IOException("HTTPProxyHTTPConnection: " + e, e);
+                        IOException e2 = new IOException("HTTPProxyHTTPConnection: " + e);
+                        e2.initCause(e);
+                        throw e2;
                     }
                     this.httpSocket = sslSocket;
                 }

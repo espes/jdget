@@ -55,11 +55,11 @@ public class ContainerPluginController {
         } catch (final Throwable e) {
             Log.exception(e);
         }
-        try {
-            plugins.add(new org.jdownloader.container.SFT());
-        } catch (final Throwable e) {
-            Log.exception(e);
-        }
+        // try {
+        //     plugins.add(new org.jdownloader.container.SFT());
+        // } catch (final Throwable e) {
+        //     Log.exception(e);
+        // }
         list = Collections.unmodifiableList(plugins);
     }
 
