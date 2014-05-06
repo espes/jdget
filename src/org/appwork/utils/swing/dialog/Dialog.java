@@ -429,6 +429,22 @@ public class Dialog {
     }
 
     /**
+     * Keep this method for webinstaller compatibility reasons. People cannot uninstall if this method is missing
+     * @param flag
+     * @param title
+     * @param message
+     * @param tmpicon
+     * @param okOption
+     * @param cancelOption
+     * @return
+     * @throws DialogClosedException
+     * @throws DialogCanceledException
+     */
+    public int showConfirmDialog(final int flag, final String title, final String message, final ImageIcon tmpicon, final String okOption, final String cancelOption) throws DialogClosedException, DialogCanceledException {
+        return showConfirmDialog(flag, title, message, tmpicon, okOption, cancelOption);
+    }
+
+    /**
      * Requests a ConfirmDialog
      * 
      * @param flag
@@ -474,9 +490,10 @@ public class Dialog {
      */
     public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
         final DialogHandler lhandler = handler;
-        if (lhandler != null) { 
+        if (lhandler != null) {
             //
-            return lhandler.showDialog(dialog); }
+            return lhandler.showDialog(dialog);
+        }
         return this.showDialogRaw(dialog);
     }
 
@@ -529,7 +546,7 @@ public class Dialog {
             }
 
         };
-     
+
         try {
             if (Thread.interrupted()) { throw new InterruptedException(); }
             synchronized (waitingLock) {
