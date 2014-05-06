@@ -441,7 +441,7 @@ public class Dialog {
      * @throws DialogCanceledException
      */
     public int showConfirmDialog(final int flag, final String title, final String message, final ImageIcon tmpicon, final String okOption, final String cancelOption) throws DialogClosedException, DialogCanceledException {
-        return showConfirmDialog(flag, title, message, tmpicon, okOption, cancelOption);
+        return showConfirmDialog(flag, title, message, (Icon)tmpicon, okOption, cancelOption);
     }
 
     /**
