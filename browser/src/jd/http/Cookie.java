@@ -107,7 +107,6 @@ public class Cookie {
             return false;
         }
         if (this.hostTime == -1) {
-            Log.L.severe("Cookie: no HostTime found! ExpireStatus cannot be checked " + this.host + " " + this.key);
             return false;
         } else {
             final long timediff = this.creationTime - this.hostTime;
