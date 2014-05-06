@@ -52,7 +52,7 @@ public class Cookie {
         if (!(obj instanceof Cookie)) { return false; }
         final Cookie other = (Cookie) obj;
         if (!StringUtils.equalsIgnoreCase(this.getHost(), other.getHost())) { return false; }
-        if (!StringUtils.equalsIgnoreCase(this.getKey(), other.getKey())) { return false; }
+        if (!StringUtils.equals(this.getKey(), other.getKey())) { return false; }
         /*
          * domain property is not used at the moment, that's why we ignore it
          * 
