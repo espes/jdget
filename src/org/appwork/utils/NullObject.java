@@ -17,10 +17,10 @@ package org.appwork.utils;
  *         AtomicReference.compareAndSet(null,xy) can return false even when it
  *         is null!
  */
-public class NullObject {
+public final class NullObject {
 
     @Override
-    public boolean equals(final Object obj) {
+    public final boolean equals(final Object obj) {
         if (obj instanceof NullObject) { return true; }
         if (obj == this) { return true; }
         if (obj == null) { return true; }
