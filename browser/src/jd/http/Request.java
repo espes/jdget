@@ -35,6 +35,7 @@ import jd.parser.Regex;
 import org.appwork.exceptions.WTFException;
 import org.appwork.utils.Application;
 import org.appwork.utils.StringUtils;
+import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 
 public abstract class Request {
@@ -513,15 +514,17 @@ public abstract class Request {
         
         final RequestHeader headers = this.getHeaders();
         if (headers != null) {
-            final int headersSize = headers.size();
-            for (int i = 0; i < headersSize; i++) {
-                this.httpConnection.setRequestProperty(headers.getKey(i), headers.getValue(i));
+            for (final HTTPHeader header : headers) {
+                if (StringUtils.isEmpty(header.getValue())) {
+                    continue;
+                }
+                this.httpConnection.setRequestProperty(header.getKey(), header.getValue());
             }
         }
         this.preRequest();
         if (this.hasCookies()) {
             final String cookieString = this.getCookieString();
-            if (cookieString != null) {
+            if (StringUtils.isNotEmpty(cookieString)) {
                 this.httpConnection.setRequestProperty("Cookie", cookieString);
             }
         }
