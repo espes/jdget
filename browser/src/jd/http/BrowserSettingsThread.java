@@ -2,11 +2,9 @@ package jd.http;
 
 import java.util.logging.Logger;
 
-import org.appwork.utils.net.httpconnection.HTTPProxy;
-
 public class BrowserSettingsThread extends Thread implements BrowserSettings {
 
-    private HTTPProxy proxy;
+    private ProxySelectorInterface proxySelector;
     private boolean   debug;
     private boolean   verbose;
     protected Logger  logger;
@@ -33,16 +31,17 @@ public class BrowserSettingsThread extends Thread implements BrowserSettings {
          * use BrowserSettings from current thread if available
          */
         if (currentThread != null && currentThread instanceof BrowserSettings) {
+            @SuppressWarnings("unchecked")
             final BrowserSettings settings = (BrowserSettings) currentThread;
-            proxy = settings.getCurrentProxy();
+            proxySelector = settings.getProxySelector();
             debug = settings.isDebug();
             verbose = settings.isVerbose();
             logger = settings.getLogger();
         }
     }
 
-    public HTTPProxy getCurrentProxy() {
-        return proxy;
+    public ProxySelectorInterface getProxySelector() {
+        return proxySelector;
     }
 
     public Logger getLogger() {
@@ -57,8 +56,8 @@ public class BrowserSettingsThread extends Thread implements BrowserSettings {
         return verbose;
     }
 
-    public void setCurrentProxy(final HTTPProxy proxy) {
-        this.proxy = proxy;
+    public void setProxySelector(final ProxySelectorInterface proxy) {
+        this.proxySelector = proxy;
     }
 
     public void setDebug(final boolean b) {

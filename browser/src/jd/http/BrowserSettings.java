@@ -2,11 +2,9 @@ package jd.http;
 
 import java.util.logging.Logger;
 
-import org.appwork.utils.net.httpconnection.HTTPProxy;
-
 public interface BrowserSettings {
 
-    public HTTPProxy getCurrentProxy();
+    public ProxySelectorInterface getProxySelector();
 
     public Logger getLogger();
 
@@ -14,7 +12,7 @@ public interface BrowserSettings {
 
     public boolean isVerbose();
 
-    public void setCurrentProxy(HTTPProxy proxy);
+    public void setProxySelector(ProxySelectorInterface proxy);
 
     public void setDebug(boolean b);
 

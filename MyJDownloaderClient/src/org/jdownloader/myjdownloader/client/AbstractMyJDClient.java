@@ -341,7 +341,7 @@ public abstract class AbstractMyJDClient<GenericType> {
     }
     
     /**
-     * Get a new Session. Do never store email and password in your application. throw away the password after connect and work with #getSessionInfo
+     * Get a new Session. Do never store email and password in youra application. throw away the password after connect and work with #getSessionInfo
      * #setSessionInfo and #reconnect to restore a session
      * 
      * @param email
