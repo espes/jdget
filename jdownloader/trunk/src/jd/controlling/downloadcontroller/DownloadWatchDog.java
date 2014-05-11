@@ -117,7 +117,7 @@ import org.jdownloader.controlling.download.DownloadControllerListener;
 import org.jdownloader.controlling.hosterrule.AccountUsageRule;
 import org.jdownloader.controlling.hosterrule.HosterRuleController;
 import org.jdownloader.controlling.hosterrule.HosterRuleControllerListener;
-// import org.jdownloader.gui.views.SelectionInfo;
+import org.jdownloader.gui.views.SelectionInfo;
 // import org.jdownloader.images.NewTheme;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.plugins.ConditionalSkipReason;
@@ -3223,18 +3223,18 @@ public class DownloadWatchDog implements DownloadControllerListener, StateMachin
         return 0;
     }
 
-    // public long getNonResumableBytes(SelectionInfo<FilePackage, DownloadLink> selection) {
-    //     long i = 0;
-    //     if (this.stateMachine.isState(RUNNING_STATE, PAUSE_STATE, STOPPING_STATE)) {
-    //         for (final SingleDownloadController con : getSession().getControllers()) {
-    //             DownloadInterface dl = con.getDownloadInstance();
-    //             if (dl != null && !con.getDownloadLink().isResumeable() && selection.contains(con.getDownloadLink())) {
-    //                 i += con.getDownloadLink().getView().getBytesLoaded();
-    //             }
-    //         }
-    //     }
-    //     return i;
-    // }
+    public long getNonResumableBytes(SelectionInfo<FilePackage, DownloadLink> selection) {
+        long i = 0;
+        if (this.stateMachine.isState(RUNNING_STATE, PAUSE_STATE, STOPPING_STATE)) {
+            for (final SingleDownloadController con : getSession().getControllers()) {
+                DownloadInterface dl = con.getDownloadInstance();
+                if (dl != null && !con.getDownloadLink().isResumeable() && selection.contains(con.getDownloadLink())) {
+                    i += con.getDownloadLink().getView().getBytesLoaded();
+                }
+            }
+        }
+        return i;
+    }
 
     public int getNonResumableRunningCount() {
         int i = 0;

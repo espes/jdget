@@ -108,7 +108,7 @@ public class LinkCrawler {
          * 
          * http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7161229
          */
-        threadPool = new ThreadPoolExecutor(0, maxThreads, keepAlive, TimeUnit.MILLISECONDS, new PriorityBlockingQueue<Runnable>(100, new Comparator<Runnable>() {
+        threadPool = new ThreadPoolExecutor(1, maxThreads, keepAlive, TimeUnit.MILLISECONDS, new PriorityBlockingQueue<Runnable>(100, new Comparator<Runnable>() {
             public int compare(Runnable o1, Runnable o2) {
                 if (o1 == o2) return 0;
                 long l1 = ((LinkCrawlerRunnable) o1).getAverageRuntime();

@@ -410,6 +410,9 @@ public class UserIO {
     //     }
     //     return -1;
     // }
+    public int requestConfirmDialog(final int flag, final String title, final String message, final Object icon, final String okOption, final String cancelOption) {
+        throw new UnsupportedOperationException("jdget TODO");
+    }
     
     // public File[] requestFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final Boolean multiSelection) {
     //     return this.requestFileChooser(id, title, fileSelectionMode, fileFilter, multiSelection, null, null);
@@ -499,6 +502,9 @@ public class UserIO {
     //     }
     //     return null;
     // }
+    public String requestInputDialog(final int flag, final String title, final String message, final String defaultMessage, final Object icon, final String okOption, final String cancelOption) {
+        throw new UnsupportedOperationException("jdget TODO");
+    }
     
     public String requestInputDialog(final String message) {
         return this.requestInputDialog(0, message, null);

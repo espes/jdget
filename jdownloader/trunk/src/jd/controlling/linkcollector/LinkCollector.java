@@ -77,8 +77,8 @@ import org.jdownloader.controlling.packagizer.PackagizerController;
 import org.jdownloader.extensions.extraction.ExtractionExtension;
 import org.jdownloader.extensions.extraction.bindings.crawledlink.CrawledLinkFactory;
 import org.jdownloader.gui.translate._GUI;
-// import org.jdownloader.gui.views.SelectionInfo;
-// import org.jdownloader.gui.views.SelectionInfo.PackageView;
+import org.jdownloader.gui.views.SelectionInfo;
+import org.jdownloader.gui.views.SelectionInfo.PackageView;
 import org.jdownloader.gui.views.components.packagetable.LinkTreeUtils;
 // import org.jdownloader.gui.views.linkgrabber.LinkGrabberTable;
 // import org.jdownloader.gui.views.linkgrabber.LinkGrabberTableModel;
@@ -817,7 +817,6 @@ public class LinkCollector extends PackageController<CrawledPackage, CrawledLink
                 /*
                  * we don't want to keep reference on text during the whole link grabbing/checking/collecting way
                  */
-
                 onCrawlerAdded(lc);
                 // keep text if it is tiny.
                 // if we have the text in the job, we can display it for example in the balloons
@@ -1648,49 +1647,49 @@ public class LinkCollector extends PackageController<CrawledPackage, CrawledLink
         return true;
     }
 
-    // public void moveLinksToDownloadList(SelectionInfo<CrawledPackage, CrawledLink> selection) {
+    public void moveLinksToDownloadList(SelectionInfo<CrawledPackage, CrawledLink> selection) {
 
-    //     java.util.List<FilePackage> filePackagesToAdd = new ArrayList<FilePackage>();
+        java.util.List<FilePackage> filePackagesToAdd = new ArrayList<FilePackage>();
 
-    //     boolean autostart = false;
-    //     List<DownloadLink> force = new ArrayList<DownloadLink>();
+        boolean autostart = false;
+        List<DownloadLink> force = new ArrayList<DownloadLink>();
 
-    //     for (PackageView<CrawledPackage, CrawledLink> cp : selection.getPackageViews()) {
-    //         List<CrawledLink> links;
+        for (PackageView<CrawledPackage, CrawledLink> cp : selection.getPackageViews()) {
+            List<CrawledLink> links;
 
-    //         links = cp.getChildren();
+            links = cp.getChildren();
 
-    //         java.util.List<FilePackage> convertedLinks = LinkCollector.getInstance().convert(links, true);
-    //         for (CrawledLink cl : links) {
-    //             autostart |= cl.isAutoStartEnabled();
-    //             if (cl.isForcedAutoStartEnabled()) {
-    //                 force.add(cl.getDownloadLink());
-    //             }
-    //         }
+            java.util.List<FilePackage> convertedLinks = LinkCollector.getInstance().convert(links, true);
+            for (CrawledLink cl : links) {
+                autostart |= cl.isAutoStartEnabled();
+                if (cl.isForcedAutoStartEnabled()) {
+                    force.add(cl.getDownloadLink());
+                }
+            }
 
-    //         if (convertedLinks != null) {
-    //             filePackagesToAdd.addAll(convertedLinks);
-    //         }
+            if (convertedLinks != null) {
+                filePackagesToAdd.addAll(convertedLinks);
+            }
 
-    //     }
+        }
 
-    //     /* convert all selected CrawledLinks to FilePackages */
-    //     boolean addTop = org.jdownloader.settings.staticreferences.CFG_LINKGRABBER.LINKGRABBER_ADD_AT_TOP.getValue();
+        /* convert all selected CrawledLinks to FilePackages */
+        boolean addTop = org.jdownloader.settings.staticreferences.CFG_LINKGRABBER.LINKGRABBER_ADD_AT_TOP.getValue();
 
-    //     /* add the converted FilePackages to DownloadController */
-    //     /**
-    //      * addTop = 0, to insert the packages at the top
-    //      * 
-    //      * addBottom = negative number -> add at the end
-    //      */
-    //     DownloadController.getInstance().addAllAt(filePackagesToAdd, addTop ? 0 : -(filePackagesToAdd.size() + 10));
-    //     if (force.size() > 0) {
-    //         DownloadWatchDog.getInstance().forceDownload(force);
-    //     } else if (autostart) {
-    //         DownloadWatchDog.getInstance().startDownloads();
-    //     }
+        /* add the converted FilePackages to DownloadController */
+        /**
+         * addTop = 0, to insert the packages at the top
+         * 
+         * addBottom = negative number -> add at the end
+         */
+        DownloadController.getInstance().addAllAt(filePackagesToAdd, addTop ? 0 : -(filePackagesToAdd.size() + 10));
+        if (force.size() > 0) {
+            DownloadWatchDog.getInstance().forceDownload(force);
+        } else if (autostart) {
+            DownloadWatchDog.getInstance().startDownloads();
+        }
 
-    // }
+    }
 
     public static void requestDeleteLinks(final List<CrawledLink> nodesToDelete, final boolean containsOnline, final String string, final boolean byPassDialog, final boolean isCancelLinkcrawlerJobs, final boolean isResetTableSorter, final boolean isClearSearchFilter, final boolean isClearFilteredLinks) {
 

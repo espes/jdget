@@ -14,10 +14,6 @@ import org.appwork.utils.Application;
 
 public class NativeProcess {
 
-    private static native int sendCtrlCEvent(int pid);
-
-    private static native boolean sendSignal(int pid, int signal);
-
     private int                  pid         = -1;
     private final FileDescriptor inStreamFd  = new FileDescriptor();
     private final FileDescriptor outStreamFd = new FileDescriptor();
@@ -27,25 +23,40 @@ public class NativeProcess {
     private InputStream          stderr_stream;
 
     static {
-        /* these libs are 32bit */
-        try {
-            System.load(Application.getResource("tools/Windows/rtmpdump/NativeProcessx86.dll").getAbsolutePath());
-        } catch (final Throwable e) {
-            System.out.println("Error loading 32bit: " + e);
-            /* these libs are 64bit */
-            try {
-                System.load(Application.getResource("tools/Windows/rtmpdump/NativeProcessx64.dll").getAbsolutePath());
-            } catch (final Throwable e2) {
-                System.out.println("Error loading 64bit: " + e2);
-            }
-        }
+        // /* these libs are 32bit */
+        // try {
+        //     System.load(Application.getResource("tools/Windows/rtmpdump/NativeProcessx86.dll").getAbsolutePath());
+        // } catch (final Throwable e) {
+        //     System.out.println("Error loading 32bit: " + e);
+        //     /* these libs are 64bit */
+        //     try {
+        //         System.load(Application.getResource("tools/Windows/rtmpdump/NativeProcessx64.dll").getAbsolutePath());
+        //     } catch (final Throwable e2) {
+        //         System.out.println("Error loading 64bit: " + e2);
+        //     }
+        // }
     }
 
-    private static native int createProcess(String cmd, String param, boolean hidden, FileDescriptor in, FileDescriptor out, FileDescriptor err);
-
-    private static native boolean terminateProcess(int pid);
-
-    private static native boolean terminateProcessTree(int pid);
+    // private static native int sendCtrlCEvent(int pid);
+    // private static native boolean sendSignal(int pid, int signal);
+    // private static native int createProcess(String cmd, String param, boolean hidden, FileDescriptor in, FileDescriptor out, FileDescriptor err);
+    // private static native boolean terminateProcess(int pid);
+    // private static native boolean terminateProcessTree(int pid);
+    private static int sendCtrlCEvent(int pid) {
+        throw new UnsupportedOperationException("jdget TODO");
+    }
+    private static boolean sendSignal(int pid, int signal) {
+        throw new UnsupportedOperationException("jdget TODO");
+    }
+    private static int createProcess(String cmd, String param, boolean hidden, FileDescriptor in, FileDescriptor out, FileDescriptor err) {
+        throw new UnsupportedOperationException("jdget TODO");
+    }
+    private static boolean terminateProcess(int pid) {
+        throw new UnsupportedOperationException("jdget TODO");
+    }
+    private static boolean terminateProcessTree(int pid) {
+        throw new UnsupportedOperationException("jdget TODO");
+    }
 
     public NativeProcess(final String cmd, final String param) throws Exception {
 

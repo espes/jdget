@@ -31,7 +31,7 @@ import jd.plugins.PluginProgress;
 import jd.utils.JDHexUtils;
 
 import org.appwork.utils.logging2.LogSource;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.logging.LogController;
 
 public class FlvFixer {
@@ -361,7 +361,7 @@ public class FlvFixer {
                 progress.setCurrent(value);
             } else {
                 progress = new FlvFixerProgress(value, max, color);
-                progress.setIcon(NewTheme.I().getIcon("wait", 16));
+                // progress.setIcon(NewTheme.I().getIcon("wait", 16));
                 progress.setProgressSource(this);
                 downloadLink.setPluginProgress(progress);
             }

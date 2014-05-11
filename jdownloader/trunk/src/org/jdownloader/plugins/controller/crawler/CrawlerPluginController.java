@@ -190,10 +190,15 @@ public class CrawlerPluginController extends PluginController<PluginForDecrypt> 
 
     static public byte[] KEY = new byte[] { 0x01, 0x03, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 };
 
+    private List<PluginInfo<PluginForDecrypt>> scanCrawlerPlugins(HashMap<String, ArrayList<LazyPlugin>> pluginCache) {
+        // scan("jd/plugins/decrypter", pluginCache)
+        return StaticCrawlerPlugins.list();
+    }
+
     private List<LazyCrawlerPlugin> update(LogSource logger, HashMap<String, ArrayList<LazyPlugin>> pluginCache) throws MalformedURLException {
         ArrayList<AbstractCrawlerPlugin> ret = new ArrayList<AbstractCrawlerPlugin>();
         HashMap<String, ArrayList<LazyCrawlerPlugin>> ret2 = new HashMap<String, ArrayList<LazyCrawlerPlugin>>();
-        for (PluginInfo<PluginForDecrypt> c : scan("jd/plugins/decrypter", pluginCache)) {
+        for (PluginInfo<PluginForDecrypt> c : scanCrawlerPlugins(pluginCache)) {
             if (c.getLazyPlugin() != null) {
                 LazyCrawlerPlugin plugin = (LazyCrawlerPlugin) c.getLazyPlugin();
                 ret.add(plugin.getAbstractCrawlerPlugin());
@@ -234,10 +239,15 @@ public class CrawlerPluginController extends PluginController<PluginForDecrypt> 
                     }
                     ClassLoader oldCL = null;
                     try {
-                        PluginClassLoaderChild classLoader = (PluginClassLoaderChild) c.getClazz().getClassLoader();
-                        /* during init we dont want dummy libs being created */
-                        classLoader.setCreateDummyLibs(false);
-                        Thread.currentThread().setContextClassLoader(classLoader);
+                        PluginClassLoaderChild classLoader;
+                        if (c.getClazz().getClassLoader() instanceof PluginClassLoaderChild) {
+                            classLoader = (PluginClassLoaderChild) c.getClazz().getClassLoader();
+                            /* during init we dont want dummy libs being created */
+                            classLoader.setCreateDummyLibs(false);
+                            Thread.currentThread().setContextClassLoader(classLoader);
+                        } else {
+                            classLoader = null;
+                        }
                         for (int i = 0; i < names.length; i++) {
                             LazyCrawlerPlugin l = null;
                             try {
@@ -252,13 +262,15 @@ public class CrawlerPluginController extends PluginController<PluginForDecrypt> 
                                 /* information to speed up rescan */
                                 ap.setMainClassSHA256(c.getMainClassSHA256());
                                 ap.setMainClassLastModified(c.getMainClassLastModified());
-                                ap.setMainClassFilename(c.getFile().getName());
-                                l = new LazyCrawlerPlugin(ap, null, classLoader);
+                                if (c.getFile() != null) ap.setMainClassFilename(c.getFile().getName());
+                                l = new LazyCrawlerPlugin(ap, c.getClazz(), classLoader);
                                 ret.add(ap);
                                 try {
                                     /* check for stable compatibility */
-                                    classLoader.setPluginClass(new String(c.getClazz().getName()));
-                                    classLoader.setCheckStableCompatibility(a.interfaceVersion() == 2);
+                                    if (classLoader != null) {
+                                        classLoader.setPluginClass(new String(c.getClazz().getName()));
+                                        classLoader.setCheckStableCompatibility(a.interfaceVersion() == 2);
+                                    }
                                     PluginForDecrypt plg = l.newInstance(classLoader);
                                     Class<? extends ConfigInterface> configInterface = plg.getConfigInterface();
                                     if (configInterface != null) {
@@ -305,7 +317,7 @@ public class CrawlerPluginController extends PluginController<PluginForDecrypt> 
                 logger.severe("@CrawlerPlugin missing:" + simpleName);
             }
         }
-        save(ret);
+        // save(ret);
         validateCache();
         ArrayList<LazyCrawlerPlugin> retList = new ArrayList<LazyCrawlerPlugin>();
         for (ArrayList<LazyCrawlerPlugin> plugins : ret2.values()) {

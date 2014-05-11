@@ -1,0 +1,50 @@
+GCJ = gcj-mp-4.7
+GCJFLAGS = -g
+
+
+SOURCEPATHS = \
+	AppWorkUtils/src \
+	jdownloader/browser/src \
+	jdownloader/trunk/src \
+	jdownloader/MyJDownloaderClient/src \
+
+JARS = \
+	AppWorkUtils/libs/jackson-core.jar \
+	libs/jackson-mapper-fix.jar \
+	jdownloader/trunk/ressourcen/libs/sevenzipjbinding.jar \
+	jdownloader/trunk/ressourcen/libs/Filters.jar \
+	libs/bcprov-jdk14-150.jar \
+	AppWorkUtils/ant/joda-time-1.6.2.jar \
+	libs/cobra-fix.jar \
+	jdownloader/trunk/ressourcen/libs/js.jar \
+	libs/xbean-fix.jar \
+	jdownloader/trunk/ressourcen/libs/savemytube.jar
+
+classpathify = $(subst $(eval) ,:,$1)
+
+CLASSPATH := $(call classpathify,$(SOURCEPATHS) $(JARS))
+
+CLASSES = $(shell find $(SOURCEPATHS) -name '*.class')
+OBJECTS = $(CLASSES:%.class=%.o) $(JARS:%.jar=%.o)
+OBJECTS_STR = '$(subst $(eval) ,' ',$(OBJECTS))'
+
+jdget: JDGet.java $(OBJECTS)
+	$(GCJ) $(GCJFLAGS) --classpath $(CLASSPATH) --main=JDGet JDGet.java $(OBJECTS_STR) -o '$@'
+
+jdownloader/trunk/ressourcen/libs/sevenzipjbinding.o: jdownloader/trunk/ressourcen/libs/sevenzipjbinding.jar
+	$(GCJ) $(GCJFLAGS) --classpath $(CLASSPATH) -c '$<' -o '$@' -fjni
+
+libs/jackson-mapper-fix.jar: AppWorkUtils/libs/jackson-mapper.jar
+	cp '$<' '$@'
+	zip -d '$@' META-INF/LGPL2.1 META-INF/LICENSE META-INF/NOTICE
+
+%.o: %.class
+	$(GCJ) $(GCJFLAGS) --classpath $(CLASSPATH) -c '$<' -o '$@'
+
+%.o: %.jar
+	$(GCJ) $(GCJFLAGS) --classpath $(CLASSPATH) -c '$<' -o '$@'
+
+.PHONY: clean
+clean:
+	find $(SOURCEPATHS) -name '*.o' -exec rm {} \;
+	rm -f jdget

@@ -241,12 +241,17 @@ public class HostPluginController extends PluginController<PluginForHost> {
         return ret;
     }
 
+    private List<PluginInfo<PluginForHost>> scanHostPlugins(HashMap<String, ArrayList<LazyPlugin>> pluginCache) {
+        // return scan("jd/plugins/hoster", pluginCache);
+        return StaticHostPlugins.list();
+    }
+
     private List<LazyHostPlugin> update(LogSource logger, HashMap<String, ArrayList<LazyPlugin>> pluginCache) throws MalformedURLException {
         HashMap<String, AbstractHostPlugin> ret = new HashMap<String, AbstractHostPlugin>();
         HashMap<String, LazyHostPlugin> ret2 = new HashMap<String, LazyHostPlugin>();
         LazyHostPlugin fallBackPlugin = null;
         PluginClassLoaderChild classLoader;
-        for (PluginInfo<PluginForHost> c : scan("jd/plugins/hoster", pluginCache)) {
+        for (PluginInfo<PluginForHost> c : scanHostPlugins(pluginCache)) {
             if (c.getLazyPlugin() != null) {
                 LazyHostPlugin plugin = (LazyHostPlugin) c.getLazyPlugin();
                 if ("UpdateRequired".equalsIgnoreCase(plugin.getDisplayName())) {
@@ -288,10 +293,14 @@ public class HostPluginController extends PluginController<PluginForHost> {
                     ClassLoader oldCL = null;
                     try {
                         oldCL = Thread.currentThread().getContextClassLoader();
-                        classLoader = (PluginClassLoaderChild) c.getClazz().getClassLoader();
-                        /* during init we dont want dummy libs being created */
-                        classLoader.setCreateDummyLibs(false);
-                        Thread.currentThread().setContextClassLoader(classLoader);
+                        if (c.getClazz().getClassLoader() instanceof PluginClassLoaderChild) {
+                            classLoader = (PluginClassLoaderChild) c.getClazz().getClassLoader();
+                            /* during init we dont want dummy libs being created */
+                            classLoader.setCreateDummyLibs(false);
+                            Thread.currentThread().setContextClassLoader(classLoader);
+                        } else {
+                            classLoader = null;
+                        }
                         for (int i = 0; i < names.length; i++) {
                             LazyHostPlugin l = null;
                             try {
@@ -315,12 +324,14 @@ public class HostPluginController extends PluginController<PluginForHost> {
                                 /* information to speed up rescan */
                                 ap.setMainClassSHA256(c.getMainClassSHA256());
                                 ap.setMainClassLastModified(c.getMainClassLastModified());
-                                ap.setMainClassFilename(c.getFile().getName());
-                                l = new LazyHostPlugin(ap, null, classLoader);
+                                if (c.getFile() != null) ap.setMainClassFilename(c.getFile().getName());
+                                l = new LazyHostPlugin(ap, c.getClazz(), classLoader);
                                 try {
                                     /* check for stable compatibility */
-                                    classLoader.setPluginClass(new String(c.getClazz().getName()));
-                                    classLoader.setCheckStableCompatibility(a.interfaceVersion() == 2);
+                                    if (classLoader != null) {
+                                        classLoader.setPluginClass(new String(c.getClazz().getName()));
+                                        classLoader.setCheckStableCompatibility(a.interfaceVersion() == 2);
+                                    }
                                     PluginForHost plg = l.newInstance(classLoader);
                                     /* set configinterface */
                                     Class<? extends ConfigInterface> configInterface = plg.getConfigInterface();
@@ -403,7 +414,7 @@ public class HostPluginController extends PluginController<PluginForHost> {
                 logger.severe("@HostPlugin missing:" + simpleName);
             }
         }
-        save(new ArrayList<AbstractHostPlugin>(ret.values()));
+        // save(new ArrayList<AbstractHostPlugin>(ret.values()));
         java.util.List<LazyHostPlugin> ret3 = new ArrayList<LazyHostPlugin>(ret2.values());
         for (LazyHostPlugin lhp : ret3) {
             /* set fallBackPlugin to all plugins */

@@ -12,11 +12,11 @@ import jd.plugins.DownloadLink;
 import jd.plugins.FilePackage;
 import jd.plugins.PluginForHost;
 
-import org.jdownloader.gui.views.components.packagetable.PackageControllerTable;
-import org.jdownloader.gui.views.components.packagetable.PackageControllerTableModel;
-import org.jdownloader.gui.views.components.packagetable.PackageControllerTableModelFilter;
-import org.jdownloader.gui.views.downloads.table.DownloadsTable;
-import org.jdownloader.gui.views.linkgrabber.LinkGrabberTable;
+// import org.jdownloader.gui.views.components.packagetable.PackageControllerTable;
+// import org.jdownloader.gui.views.components.packagetable.PackageControllerTableModel;
+// import org.jdownloader.gui.views.components.packagetable.PackageControllerTableModelFilter;
+// import org.jdownloader.gui.views.downloads.table.DownloadsTable;
+// import org.jdownloader.gui.views.linkgrabber.LinkGrabberTable;
 
 public class SelectionInfo<PackageType extends AbstractPackageNode<ChildrenType, PackageType>, ChildrenType extends AbstractPackageChildrenNode<PackageType>> {
 
@@ -34,11 +34,11 @@ public class SelectionInfo<PackageType extends AbstractPackageNode<ChildrenType,
 
     private ArraySet<ChildrenType>                                             children;
 
-    private List<PackageControllerTableModelFilter<PackageType, ChildrenType>> filters = null;
+    // private List<PackageControllerTableModelFilter<PackageType, ChildrenType>> filters = null;
 
-    public List<PackageControllerTableModelFilter<PackageType, ChildrenType>> getTableFilters() {
-        return filters;
-    }
+    // public List<PackageControllerTableModelFilter<PackageType, ChildrenType>> getTableFilters() {
+    //     return filters;
+    // }
 
     private ArraySet<AbstractNode>                                       raw;
     private HashMap<PluginForHost, PluginView<ChildrenType>>             pluginView;
@@ -135,28 +135,28 @@ public class SelectionInfo<PackageType extends AbstractPackageNode<ChildrenType,
 
         // System.out.println(kEvent);
 
-        PackageControllerTable<PackageType, ChildrenType> table = null;
-        if (contextObject != null) {
-            if (contextObject instanceof DownloadLink || contextObject instanceof FilePackage) {
-                table = (PackageControllerTable<PackageType, ChildrenType>) DownloadsTable.getInstance();
-            } else {
-                table = (PackageControllerTable<PackageType, ChildrenType>) LinkGrabberTable.getInstance();
-            }
-        } else if (rawSelection != null && rawSelection.size() > 0) {
-            if (rawSelection.get(0) instanceof DownloadLink || rawSelection.get(0) instanceof FilePackage) {
-                table = (PackageControllerTable<PackageType, ChildrenType>) DownloadsTable.getInstance();
-            } else {
-                table = (PackageControllerTable<PackageType, ChildrenType>) LinkGrabberTable.getInstance();
-            }
-        }
-        if (table != null && applyTableFilter) {
-            PackageControllerTableModel<PackageType, ChildrenType> tableModel = table.getModel();
-            List<PackageControllerTableModelFilter<PackageType, ChildrenType>> lfilters = tableModel.getEnabledTableFilters();
-            if (lfilters != null && lfilters.size() > 0) {
-                filters = lfilters;
-            }
+        // PackageControllerTable<PackageType, ChildrenType> table = null;
+        // if (contextObject != null) {
+        //     if (contextObject instanceof DownloadLink || contextObject instanceof FilePackage) {
+        //         table = (PackageControllerTable<PackageType, ChildrenType>) DownloadsTable.getInstance();
+        //     } else {
+        //         table = (PackageControllerTable<PackageType, ChildrenType>) LinkGrabberTable.getInstance();
+        //     }
+        // } else if (rawSelection != null && rawSelection.size() > 0) {
+        //     if (rawSelection.get(0) instanceof DownloadLink || rawSelection.get(0) instanceof FilePackage) {
+        //         table = (PackageControllerTable<PackageType, ChildrenType>) DownloadsTable.getInstance();
+        //     } else {
+        //         table = (PackageControllerTable<PackageType, ChildrenType>) LinkGrabberTable.getInstance();
+        //     }
+        // }
+        // if (table != null && applyTableFilter) {
+        //     PackageControllerTableModel<PackageType, ChildrenType> tableModel = table.getModel();
+        //     List<PackageControllerTableModelFilter<PackageType, ChildrenType>> lfilters = tableModel.getEnabledTableFilters();
+        //     if (lfilters != null && lfilters.size() > 0) {
+        //         filters = lfilters;
+        //     }
 
-        }
+        // }
         agregate();
 
     }
@@ -238,31 +238,31 @@ public class SelectionInfo<PackageType extends AbstractPackageNode<ChildrenType,
                     try {
                         List<ChildrenType> childs = ((PackageType) node).getChildren();
                         ArraySet<ChildrenType> unFiltered = new ArraySet<ChildrenType>();
-                        if (filters == null) {
+                        // if (filters == null) {
                             children.addAll(childs);
 
                             pv.addChildren(childs);
                             for (ChildrenType l : childs) {
                                 addPluginView(l);
                             }
-                        } else {
-                            for (ChildrenType l : childs) {
-                                boolean filtered = false;
-                                for (PackageControllerTableModelFilter<PackageType, ChildrenType> filter : filters) {
-                                    if (filter.isFiltered(l)) {
-                                        filtered = true;
-                                        break;
-                                    }
-                                }
-                                if (!filtered) {
-                                    unFiltered.add(l);
-                                    pv.addChild(l);
-                                    addPluginView(l);
-                                }
-                            }
-                            children.addAll(unFiltered);
+                        // } else {
+                        //     for (ChildrenType l : childs) {
+                        //         boolean filtered = false;
+                        //         for (PackageControllerTableModelFilter<PackageType, ChildrenType> filter : filters) {
+                        //             if (filter.isFiltered(l)) {
+                        //                 filtered = true;
+                        //                 break;
+                        //             }
+                        //         }
+                        //         if (!filtered) {
+                        //             unFiltered.add(l);
+                        //             pv.addChild(l);
+                        //             addPluginView(l);
+                        //         }
+                        //     }
+                        //     children.addAll(unFiltered);
 
-                        }
+                        // }
                     } finally {
                         ((PackageType) node).getModifyLock().readUnlock(readL);
                     }
@@ -281,16 +281,16 @@ public class SelectionInfo<PackageType extends AbstractPackageNode<ChildrenType,
                                 containsNone = false;
                             } else {
                                 containsAll = false;
-                                if (filters != null) {
-                                    boolean filtered = false;
-                                    for (PackageControllerTableModelFilter<PackageType, ChildrenType> filter : filters) {
-                                        if (filter.isFiltered(l)) {
-                                            filtered = true;
-                                            break;
-                                        }
-                                    }
-                                    if (!filtered) unFiltered.add(l);
-                                }
+                                // if (filters != null) {
+                                //     boolean filtered = false;
+                                //     for (PackageControllerTableModelFilter<PackageType, ChildrenType> filter : filters) {
+                                //         if (filter.isFiltered(l)) {
+                                //             filtered = true;
+                                //             break;
+                                //         }
+                                //     }
+                                //     if (!filtered) unFiltered.add(l);
+                                // }
                             }
 
                         }
@@ -298,20 +298,20 @@ public class SelectionInfo<PackageType extends AbstractPackageNode<ChildrenType,
                         if (containsNone) {
                             // this is a special case. if the user selected only the package, we cannot simply add all children. We need to
                             // check if he works on a filtered view.
-                            if (filters == null) {
+                            // if (filters == null) {
                                 pv.addChildren(childs);
                                 children.addAll(childs);
                                 for (ChildrenType l : childs) {
                                     addPluginView(l);
                                 }
-                            } else {
-                                pv.addChildren(unFiltered);
-                                children.addAll(unFiltered);
-                                for (ChildrenType l : unFiltered) {
-                                    addPluginView(l);
-                                }
+                            // } else {
+                            //     pv.addChildren(unFiltered);
+                            //     children.addAll(unFiltered);
+                            //     for (ChildrenType l : unFiltered) {
+                            //         addPluginView(l);
+                            //     }
 
-                            }
+                            // }
                         } else if (containsAll) {
                             pv.addChildren(childs);
                             children.addAll(childs);
