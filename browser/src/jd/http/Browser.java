@@ -551,6 +551,7 @@ public class Browser {
             throw new IOException("requestIntervalTime Exception");
         }
         try {
+            if (request.getProxy() == null) request.setProxy(this.selectProxy(request.getUrl()));
             request.connect();
         } finally {
             if (this.isDebug()) {
@@ -1293,7 +1294,6 @@ public class Browser {
     public URLConnectionAdapter openRequestConnection(Request request) throws IOException {
         int redirectLoopPrevention = 0;
         while (true) {
-            request.setProxy(this.selectProxy(request.getUrl()));
             this.connect(request);
             this.updateCookies(request);
             final String redirect = request.getLocation();

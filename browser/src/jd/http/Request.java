@@ -219,8 +219,7 @@ public abstract class Request {
     protected Request connect() throws IOException {
         try {
             this.openConnection();
-            this.postRequest();
-            /*
+            this.postRequest();            /*
              * we connect to inputstream to make sure the response headers are getting parsed first
              */
             try {

@@ -36,7 +36,7 @@ public class Encoding {
         while (i < code.length()) {
             res[i / 2] = (byte) Integer.parseInt(code.substring(i, i + 2), 16);
             i += 2;
-            
+             
         }
         return res;
     }
