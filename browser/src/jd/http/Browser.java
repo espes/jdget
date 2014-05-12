@@ -118,6 +118,12 @@ public class Browser {
      */
     public static String correctURL(String url, final boolean replaceDoubleSlash) {
         if (url == null) { return url; }
+        // check to see if link complies with rfc. invalid url formats are common!
+        // this fixes eg. 'http://host:xx?blah' should be 'http://host:xx/?blah'
+        final String[] v = new Regex(url, "(?i-)(https?://[^/\\?]+)(\\?.+)").getRow(0);
+        if (v != null && v.length == 2) { 
+            url = v[0] + "/" + v[1];
+        }
         /* check if we need to correct url */
         int begin = url.indexOf("://");
         if (begin > 0 && url.indexOf("/", begin + 3) < 0) {
