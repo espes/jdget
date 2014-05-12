@@ -32,33 +32,35 @@ public class HTTPProxyStorable implements Storable {
     private TYPE    type                       = null;
     private boolean useConnectMethod           = false;
     private boolean preferNativeImplementation = false;
-
+public HTTPProxyStorable(/*storable*/){
+    
+}
     public String getAddress() {
-        return this.address;
+        return address;
     }
 
     public String getPassword() {
-        return this.password;
+        return password;
     }
 
     public int getPort() {
-        return this.port;
+        return port;
     }
 
     public TYPE getType() {
-        return this.type;
+        return type;
     }
 
     public String getUsername() {
-        return this.username;
+        return username;
     }
 
     public boolean isConnectMethodPrefered() {
-        return this.useConnectMethod;
+        return useConnectMethod;
     }
 
     public boolean isPreferNativeImplementation() {
-        return this.preferNativeImplementation;
+        return preferNativeImplementation;
     }
 
     public void setAddress(final String address) {
@@ -66,7 +68,7 @@ public class HTTPProxyStorable implements Storable {
     }
 
     public void setConnectMethodPrefered(final boolean value) {
-        this.useConnectMethod = value;
+        useConnectMethod = value;
     }
 
     public void setPassword(final String password) {
