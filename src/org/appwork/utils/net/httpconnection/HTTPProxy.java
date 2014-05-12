@@ -540,7 +540,7 @@ public class HTTPProxy  {
 
     @Override
     public String toString() {
-        return user+":"+pass+"@"+_toString();
+        return /*user+":"+pass+"@"+*/_toString();
     }
 
     public String _toString() {
