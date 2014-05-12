@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 
-import com.sun.java.browser.net.ProxyInfo;
-
 public class StaticProxySelector implements ProxySelectorInterface {
 
     private HTTPProxy       proxy;
@@ -25,6 +23,11 @@ public class StaticProxySelector implements ProxySelectorInterface {
     @Override
     public List<HTTPProxy> getProxiesByUrl(final String url) {
         return lst;
+    }
+
+    @Override
+    public boolean updateProxy(final Request request, final int retryCounter) {
+        return false;
     }
 
 }
