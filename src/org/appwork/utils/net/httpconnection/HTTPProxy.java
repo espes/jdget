@@ -274,20 +274,20 @@ public class HTTPProxy {
         HTTPProxy ret = null;
         if ("http".equalsIgnoreCase(type) || "https".equalsIgnoreCase(type)) {
             ret = new HTTPProxy(TYPE.HTTP);
-            ret.port = 8080;
+            ret.setPort(8080);
         } else if ("socks5".equalsIgnoreCase(type)) {
             ret = new HTTPProxy(TYPE.SOCKS5);
-            ret.port = 1080;
+            ret.setPort(1080);
         } else if ("socks4".equalsIgnoreCase(type)) {
             ret = new HTTPProxy(TYPE.SOCKS4);
-            ret.port = 1080;
+            ret.setPort(1080);
         } else if ("direct".equalsIgnoreCase(type)) {
             ret = new HTTPProxy(TYPE.DIRECT);
             final String hostname = new Regex(host, "(.*?)(:|$)").getMatch(0);
             if (!StringUtils.isEmpty(hostname)) {
                 try {
-                    final InetAddress ip = InetAddress.getByName(hostname);
-                    ret.localIP = ip;
+                    final InetAddress ip = InetAddress.getByName(hostname.trim());
+                    ret.setLocalIP(ip);
                     return ret;
                 } catch (final Throwable e) {
                     e.printStackTrace();
@@ -302,17 +302,17 @@ public class HTTPProxy {
                 ret.setHost(hostname);
             }
             if (!StringUtils.isEmpty(port)) {
-                ret.port = Integer.parseInt(port);
+                ret.setPort(Integer.parseInt(port));
             }
             final String username = new Regex(auth, "(.*?)(:|$)").getMatch(0);
             final String password = new Regex(auth, ".*?:(.+)").getMatch(0);
             if (!StringUtils.isEmpty(username)) {
-                ret.user = username;
+                ret.setUser(username);
             }
             if (!StringUtils.isEmpty(password)) {
-                ret.pass = password;
+                ret.setPass(password);
             }
-            if (!StringUtils.isEmpty(ret.host)) { return ret; }
+            if (!StringUtils.isEmpty(ret.getHost())) { return ret; }
         }
         return null;
     }
@@ -344,19 +344,43 @@ public class HTTPProxy {
     protected HTTPProxy() {
     }
 
+    public HTTPProxy(final HTTPProxy proxy) {
+        this.set(proxy);
+    }
+
     public HTTPProxy(final InetAddress direct) {
-        type = TYPE.DIRECT;
-        localIP = direct;
+        this.setType(TYPE.DIRECT);
+        this.setLocalIP(direct);
     }
 
     public HTTPProxy(final TYPE type) {
-        this.type = type;
+        this.setType(type);
     }
 
     public HTTPProxy(final TYPE type, final String host, final int port) {
-        this.port = port;
-        this.type = type;
-        setHost(HTTPProxy.getInfo(host, "" + port)[0]);
+        this.setPort(port);
+        this.setType(type);
+        this.setHost(HTTPProxy.getInfo(host, "" + port)[0]);
+    }
+
+    public String _toString() {
+        if (this.type == TYPE.NONE) {
+            return _AWU.T.proxy_none();
+        } else if (this.type == TYPE.DIRECT) {
+            return _AWU.T.proxy_direct(this.localIP.getHostAddress());
+        } else if (this.type == TYPE.HTTP) {
+            String ret = _AWU.T.proxy_http(this.getHost(), this.getPort());
+            if (this.isPreferNativeImplementation()) {
+                ret = ret + "(prefer native)";
+            }
+            return ret;
+        } else if (this.type == TYPE.SOCKS5) {
+            return _AWU.T.proxy_socks5(this.getHost(), this.getPort());
+        } else if (this.type == TYPE.SOCKS4) {
+            return _AWU.T.proxy_socks4(this.getHost(), this.getPort());
+        } else {
+            return "UNKNOWN";
+        }
     }
 
     /*
@@ -366,22 +390,14 @@ public class HTTPProxy {
      */
     @Override
     public HTTPProxy clone() {
-        HTTPProxy ret = new HTTPProxy();
+        final HTTPProxy ret = new HTTPProxy();
         ret.cloneProxy(this);
         return ret;
     }
 
     protected void cloneProxy(final HTTPProxy proxy) {
         if (proxy == null) { return; }
-        user = proxy.user;
-        setHost(proxy.host);
-        localIP = proxy.localIP;
-        pass = proxy.pass;
-        port = proxy.port;
-        type = proxy.type;
-        localIP = proxy.localIP;
-        useConnectMethod = proxy.useConnectMethod;
-        preferNativeImplementation = proxy.preferNativeImplementation;
+        this.set(proxy);
     }
 
     @Override
@@ -389,59 +405,51 @@ public class HTTPProxy {
         if (this == obj) { return true; }
         if (obj == null || !(obj instanceof HTTPProxy)) { return false; }
         final HTTPProxy p = (HTTPProxy) obj;
-        if (type != p.type) { return false; }
-        switch (type) {
+        if (this.type != p.type) { return false; }
+        switch (this.type) {
         case DIRECT:
-            if (localIP == null && p.localIP == null) { return true; }
-            if (localIP != null && localIP.equals(p.localIP)) { return true; }
+            if (this.localIP == null && p.localIP == null) { return true; }
+            if (this.localIP != null && this.localIP.equals(p.localIP)) { return true; }
             return false;
-
         default:
-            return StringUtils.equals(host, p.host) && StringUtils.equals(StringUtils.isEmpty(user) ? null : user, StringUtils.isEmpty(p.user) ? null : p.user) && StringUtils.equals(StringUtils.isEmpty(pass) ? null : pass, StringUtils.isEmpty(p.pass) ? null : p.pass) && port == p.port;
-
+            return StringUtils.equals(this.host, p.host) && StringUtils.equals(StringUtils.isEmpty(this.user) ? null : this.user, StringUtils.isEmpty(p.user) ? null : p.user) && StringUtils.equals(StringUtils.isEmpty(this.pass) ? null : this.pass, StringUtils.isEmpty(p.pass) ? null : p.pass) && this.port == p.port;
         }
-
     }
 
     public String getHost() {
-        return host;
+        return this.host;
     }
 
     /**
      * @return the localIP
      */
     public InetAddress getLocalIP() {
-        return localIP;
+        return this.localIP;
     }
 
     public String getPass() {
-        return pass;
+        return this.pass;
     }
 
     public int getPort() {
-        return port;
+        return this.port;
     }
 
     public TYPE getType() {
-        return type;
+        return this.type;
     }
 
     public String getUser() {
-        return user;
+        return this.user;
     }
 
     @Override
     public int hashCode() {
-        switch (type) {
-        case DIRECT:
-            return ("DIRECT://" + localIP).hashCode();
-        default:
-            return (type + "://" + user + ":" + pass + "@" + host + ":" + port).hashCode();
-        }
+        return HTTPProxy.class.hashCode();
     }
 
     public boolean isConnectMethodPrefered() {
-        return useConnectMethod;
+        return this.useConnectMethod;
     }
 
     /**
@@ -450,11 +458,11 @@ public class HTTPProxy {
      * @return
      */
     public boolean isDirect() {
-        return type == TYPE.DIRECT;
+        return this.type == TYPE.DIRECT;
     }
 
     public boolean isLocal() {
-        return isDirect() || isNone();
+        return this.isDirect() || this.isNone();
     }
 
     /**
@@ -463,14 +471,14 @@ public class HTTPProxy {
      * @return
      */
     public boolean isNone() {
-        return type == TYPE.NONE;
+        return this.type == TYPE.NONE;
     }
 
     /**
      * @return the preferNativeImplementation
      */
     public boolean isPreferNativeImplementation() {
-        return preferNativeImplementation;
+        return this.preferNativeImplementation;
     }
 
     /**
@@ -479,36 +487,23 @@ public class HTTPProxy {
      * @return
      */
     public boolean isRemote() {
-        return !isDirect() && !isNone();
+        return !this.isDirect() && !this.isNone();
     }
 
-    /**
-     * @Deprecated use {@link #equals(Object)} instead
-     * @param proxy
-     * @return
-     */
-    @Deprecated()
-    public boolean sameProxy(final HTTPProxy proxy) {
-        // if (proxy == null) { return false; }
-        // if (this == proxy) { return true; }
-        // if (!proxy.getType().equals(this.type)) { return false; }
-        // if (proxy.getType().equals(TYPE.DIRECT)) {
-        // /* Direct Proxies only differ in IP */
-        // if (!proxy.getLocalIP().equals(this.localIP)) { return false; }
-        // return true;
-        // } else {
-        // if (!proxy.getHost().equalsIgnoreCase(this.host)) { return false; }
-        // }
-        // if (!StringUtils.equals(proxy.getPass(), this.pass)) { return false;
-        // }
-        // if (!StringUtils.equals(proxy.getUser(), this.user)) { return false;
-        // }
-        // if (proxy.getPort() != this.port) { return false; }
-        return equals(proxy);
+    protected void set(final HTTPProxy proxy) {
+        if (proxy == null) { return; }
+        this.setUser(proxy.getUser());
+        this.setHost(proxy.getHost());
+        this.setLocalIP(proxy.getLocalIP());
+        this.setPass(proxy.getPass());
+        this.setPort(proxy.getPort());
+        this.setType(proxy.getType());
+        this.setConnectMethodPrefered(proxy.isConnectMethodPrefered());
+        this.setPreferNativeImplementation(proxy.isPreferNativeImplementation());
     }
 
     public void setConnectMethodPrefered(final boolean value) {
-        useConnectMethod = value;
+        this.useConnectMethod = value;
     }
 
     public void setHost(String host) {
@@ -552,27 +547,7 @@ public class HTTPProxy {
 
     @Override
     public String toString() {
-        return /* user+":"+pass+"@"+ */_toString();
-    }
-
-    public String _toString() {
-        if (type == TYPE.NONE) {
-            return _AWU.T.proxy_none();
-        } else if (type == TYPE.DIRECT) {
-            return _AWU.T.proxy_direct(localIP.getHostAddress());
-        } else if (type == TYPE.HTTP) {
-            String ret = _AWU.T.proxy_http(getHost(), getPort());
-            if (isPreferNativeImplementation()) {
-                ret = ret + "(prefer native)";
-            }
-            return ret;
-        } else if (type == TYPE.SOCKS5) {
-            return _AWU.T.proxy_socks5(getHost(), getPort());
-        } else if (type == TYPE.SOCKS4) {
-            return _AWU.T.proxy_socks4(getHost(), getPort());
-        } else {
-            return "UNKNOWN";
-        }
+        return this._toString();
     }
 
 }
