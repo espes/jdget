@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -31,12 +32,13 @@ import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 import org.appwork.utils.net.httpconnection.HTTPProxy.TYPE;
+import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
 
 public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListener {
 
     public static void main(final String[] args) throws UnsupportedEncodingException, DialogClosedException, DialogCanceledException {
-        // SyntheticaHelper.init();
+
         Dialog.getInstance().showDialog(new ProxyDialog(HTTPProxy.NONE, "No Connection to the Internet. Please check your Connection settings!"));
     }
 
@@ -74,13 +76,64 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
         return portEditable;
     }
 
-    private boolean hostEditable = true;
-    private boolean portEditable = true;
+    private boolean   hostEditable = true;
+    private boolean   portEditable = true;
+    private JCheckBox remember;
+    private JLabel    rememberLbl;
 
     public ProxyDialog(final HTTPProxy usedProxy, final String message) {
         super(Dialog.STYLE_HIDE_ICON, _AWU.T.proxydialog_title(), null, _AWU.T.lit_save(), _AWU.T.ABSTRACTDIALOG_BUTTON_CANCEL());
         proxy = usedProxy;
         this.message = message;
+    }
+
+    protected MigPanel createBottomPanel() {
+        return super.createBottomPanel();
+        // TODO Auto-generated method stub
+        // MigPanel ret = new MigPanel("ins 0", "[]20[grow,fill][]", "[]");
+        // JLabel tocs = new
+        // JLabel("<html><font color=\"#999999\"><a font href=\"https://www.oboom.com/#agb\">"
+        // + _GUI._.specialdeals_oboom_tocs() + "</a></font></html>");
+        // tocs.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        // tocs.addMouseListener(new MouseAdapter() {
+        // @Override
+        // public void mouseClicked(MouseEvent e) {
+        // CrossSystem.openURL("https://www.oboom.com/#agb");
+        // }
+        // });
+        // ret.add(tocs, "");
+        // return ret;
+    }
+
+    @Override
+    protected DefaultButtonPanel createBottomButtonPanel() {
+        if (!isShowRemember()) { return super.createBottomButtonPanel(); }
+        DefaultButtonPanel ret = new DefaultButtonPanel("ins 0", "[]", "0[grow,fill]0");
+
+        remember = new JCheckBox();
+        rememberLbl = new JLabel(_AWU.T.proxydialog_remember());
+        ret.add(rememberLbl, "");
+        ret.add(remember, "");
+        return ret;
+    }
+
+    public boolean isRememberChecked() {
+        return new EDTHelper<Boolean>() {
+
+            @Override
+            public Boolean edtRun() {
+
+                return remember != null && remember.isSelected();
+            }
+        }.getReturnValue() == Boolean.TRUE;
+    }
+
+    /**
+     * @return
+     */
+    protected boolean isShowRemember() {
+
+        return false;
     }
 
     @Override
@@ -399,9 +452,8 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
 
         panel.add(lblPass, "gapleft 10");
         panel.add(txtPass, "spanx");
-       
 
-//        lblType.setEnabled(typeEditable);
+        // lblType.setEnabled(typeEditable);
 
         okButton.setEnabled(true);
         registerFocus(txtPort);
@@ -474,8 +526,7 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
                     txtUser.setText(p.getUser());
                     break;
                 }
-                
-                
+
                 txtPort.setEditable(portEditable);
                 txtPort.setEnabled(portEditable);
 

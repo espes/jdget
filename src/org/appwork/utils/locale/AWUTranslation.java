@@ -236,22 +236,6 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Regular Expressions", "Reguläre Ausrücke" })
     String SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION();
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
     @Default(lngs = { "en", "de" }, values = { "Visit our Homepage", "Besuchen Sie unsere Homepage" })
     String Statusbar_Statusbar_visiturl_tooltip();
 
@@ -277,31 +261,21 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Files of Type:", "Dateityp:" })
     String DIALOG_FILECHOOSER_filesOfTypeLabelText();
 
-    
-
     // FileChooser =Up One Level
     @Default(lngs = { "en", "de" }, values = { "Up", "Nach oben" })
     String DIALOG_FILECHOOSER_upFolderAccessibleName();
-
-    
 
     // FileChooser =Home
     @Default(lngs = { "en", "de" }, values = { "Home", "Home" })
     String DIALOG_FILECHOOSER_homeFolderAccessibleName();
 
-    
-
     // FileChooser =Create New Folder
     @Default(lngs = { "en", "de" }, values = { "New Folder", "Neuer Ordner" })
     String DIALOG_FILECHOOSER_newFolderAccessibleName();
 
-    
-
     // FileChooser =List
     @Default(lngs = { "en", "de" }, values = { "List", "Liste" })
     String DIALOG_FILECHOOSER_listViewButtonAccessibleName();
-
-    
 
     // FileChooser =Details
     @Default(lngs = { "en", "de" }, values = { "Details", "Details" })
@@ -386,10 +360,10 @@ public interface AWUTranslation extends TranslateInterface {
     // FileChooser =FileChooser help
     @Default(lngs = { "en", "de" }, values = { "Open selected directory", "Ausgewähltes Verzeichnis öffnen" })
     String DIALOG_FILECHOOSER_directoryOpenButtonToolTipText();
+
     // FileChooser =Open selected directory
 
     @Default(lngs = { "en", "de" }, values = { "Network", "Netzwerk" })
-    
     String DIALOG_FILECHOOSER_networkfolder();
 
     @Default(lngs = { "en", "de" }, values = { "No Connection to the Internet", "Keine Internetverbindung" })
@@ -416,8 +390,6 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en" }, values = { "Direct" })
     String ProxyDialog_direct();
 
-    
-
     @Default(lngs = { "en" }, values = { "Type" })
     String ProxyDialog_type();
 
@@ -425,7 +397,6 @@ public interface AWUTranslation extends TranslateInterface {
     String ProxyDialog_username();
 
     @Default(lngs = { "en" }, values = { "dd.MM.yy HH:mm" })
-   
     String extdatecolumn_dateandtimeformat();
 
     @Default(lngs = { "en" }, values = { "Authorization required" })
@@ -451,4 +422,7 @@ public interface AWUTranslation extends TranslateInterface {
 
     @Default(lngs = { "en", "de" }, values = { "Column width locked", "Spaltenbreite verankert" })
     String unLockColumnWidthAction2();
+
+    @Default(lngs = { "en" }, values = { "Remember" })
+    String proxydialog_remember();
 }
