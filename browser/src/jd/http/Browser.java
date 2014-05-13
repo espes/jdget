@@ -1386,11 +1386,9 @@ public class Browser {
     public URLConnectionAdapter openRequestConnection(Request request) throws IOException {
         int redirectLoopPrevention = 0;
         while (true) {
-
             int proxyRetryCounter = 0;
             proxyAuthLoop: while (true) {
                 try {
-
                     // connect may throw ProxyAuthException for https or direct connection method requests
                     this.connect(request);
                     this.updateCookies(request);
@@ -1406,23 +1404,18 @@ public class Browser {
                     if (llogger != null) {
                         LogSource.exception(llogger, e);
                     }
-
                     if (this.updateProxy(++proxyRetryCounter, request)) {
-
                         continue proxyAuthLoop;
                     } else {
                         throw e;
-
                     }
-
                 }
             }
-
             final String redirect = request.getLocation();
             if (this.doRedirects && redirect != null) {
                 try {
                     /* close old connection, because we follow redirect */
-                    request.httpConnection.disconnect();
+                    request.getHttpConnection().disconnect();
                 } catch (final Throwable e) {
                 }
                 if (redirectLoopPrevention++ > 20) {
@@ -1433,7 +1426,6 @@ public class Browser {
                 this.currentURL = request.getUrl();
                 break;
             }
-
         }
         return request.getHttpConnection();
     }

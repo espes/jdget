@@ -40,9 +40,11 @@ import org.appwork.utils.net.httpconnection.HTTPProxy;
 
 public abstract class Request {
     // public static int MAX_REDIRECTS = 30;
-    
+
     public static String getCookieString(final Cookies cookies) {
-        if (cookies == null || cookies.isEmpty()) { return null; }
+        if (cookies == null || cookies.isEmpty()) {
+            return null;
+        }
         final StringBuilder buffer = new StringBuilder();
         for (final Cookie cookie : cookies.getCookies()) {
             // Pfade sollten verarbeitet werden...TODO
@@ -58,7 +60,7 @@ public abstract class Request {
         }
         return buffer.toString();
     }
-    
+
     /**
      * Gibt eine Hashmap mit allen key:value pairs im query zurück
      * 
@@ -67,15 +69,19 @@ public abstract class Request {
      * @return
      * @throws MalformedURLException
      */
-    
+
     public static LinkedHashMap<String, String> parseQuery(String query) throws MalformedURLException {
-        if (query == null) { return null; }
+        if (query == null) {
+            return null;
+        }
         final LinkedHashMap<String, String> ret = new LinkedHashMap<String, String>();
         if (query.toLowerCase().trim().startsWith("http")) {
             query = new URL(query).getQuery();
         }
-        
-        if (query == null) { return ret; }
+
+        if (query == null) {
+            return ret;
+        }
         final String[][] split = new Regex(query.trim(), "&?(.*?)=(.*?)($|&(?=.*?=.+))").getMatches();
         if (split != null) {
             final int splitLength = split.length;
@@ -85,7 +91,7 @@ public abstract class Request {
         }
         return ret;
     }
-    
+
     public static byte[] read(final URLConnectionAdapter con, int readLimit) throws IOException {
         readLimit = Math.max(0, readLimit);
         final InputStream is = con.getInputStream();
@@ -109,7 +115,9 @@ public abstract class Request {
             final byte[] buffer = new byte[32767];
             while ((len = is.read(buffer)) != -1) {
                 if (len > 0) {
-                    if (tmpOut.size() + len > readLimit) { throw new IOException("Content-length too big " + tmpOut.size() + len + " >= " + readLimit); }
+                    if (tmpOut.size() + len > readLimit) {
+                        throw new IOException("Content-length too big " + tmpOut.size() + len + " >= " + readLimit);
+                    }
                     tmpOut.write(buffer, 0, len);
                 }
             }
@@ -140,7 +148,7 @@ public abstract class Request {
         }
         return ret;
     }
-    
+
     /*
      * default timeouts, because 0 is infinite and BAD, if we need 0 then we have to set it manually
      */
@@ -148,26 +156,26 @@ public abstract class Request {
     protected int                  readTimeout    = 60000;
     protected Cookies              cookies        = null;
     protected RequestHeader        headers;
-    
+
     protected String               htmlCode;
-    
+
     protected URLConnectionAdapter httpConnection;
     protected long                 readTime       = -1;
-    
+
     protected boolean              requested      = false;
     protected int                  readLimit      = 1 * 1024 * 1024;
     protected HTTPProxy            proxy;
-    
+
     protected String               orgURL;
-    
+
     protected String               customCharset  = null;
-    
+
     protected byte[]               byteArray      = null;
-    
+
     protected boolean              contentDecoded = true;
-    
+
     protected boolean              keepByteArray  = false;
-    
+
     protected Request(final Request cloneRequest) {
         this.orgURL = cloneRequest.getUrl();
         this.setCustomCharset(cloneRequest.getCustomCharset());
@@ -183,7 +191,7 @@ public abstract class Request {
             this.setHeaders(new RequestHeader(cloneRequest.getHeaders()));
         }
     }
-    
+
     public Request(final String url) throws MalformedURLException {
         this.setURL(Browser.correctURL(url));
         this.setHeaders(this.getDefaultRequestHeader());
@@ -192,19 +200,21 @@ public abstract class Request {
             this.getHeaders().put("Authorization", "Basic " + basicAuth);
         }
     }
-    
+
     public Request(final URLConnectionAdapter con) {
         this.httpConnection = con;
         this.collectCookiesFromConnection();
     }
-    
+
     public Request cloneRequest() {
         throw new WTFException("Not Implemented");
     }
-    
+
     private void collectCookiesFromConnection() {
         final List<String> cookieHeaders = this.httpConnection.getHeaderFields("Set-Cookie");
-        if (cookieHeaders == null || cookieHeaders.size() == 0) { return; }
+        if (cookieHeaders == null || cookieHeaders.size() == 0) {
+            return;
+        }
         final String date = this.httpConnection.getHeaderField("Date");
         final String host = Browser.getHost(this.httpConnection.getURL());
         for (int i = 0; i < cookieHeaders.size(); i++) {
@@ -212,16 +222,16 @@ public abstract class Request {
             this.getCookies().add(Cookies.parseCookies(header, host, date));
         }
     }
-    
+
     /**
      * DO NEVER call this method directly... use browser.connect
      */
     protected Request connect() throws IOException {
         try {
             this.openConnection();
-            this.postRequest();            /*
-             * we connect to inputstream to make sure the response headers are getting parsed first
-             */
+            this.postRequest(); /*
+                                 * we connect to inputstream to make sure the response headers are getting parsed first
+                                 */
             try {
                 this.httpConnection.finalizeConnect();
             } finally {
@@ -236,11 +246,11 @@ public abstract class Request {
         }
         return this;
     }
-    
+
     public boolean containsHTML(final String html) throws CharacterCodingException {
         return this.getHtmlCode() == null ? false : this.getHtmlCode().contains(html);
     }
-    
+
     public void disconnect() {
         try {
             if (this.httpConnection != null) {
@@ -249,7 +259,7 @@ public abstract class Request {
         } catch (final Throwable e) {
         }
     }
-    
+
     public String getCharsetFromMetaTags() {
         String parseFrom = null;
         if (this.htmlCode == null && this.byteArray != null) {
@@ -257,43 +267,45 @@ public abstract class Request {
         } else if (this.htmlCode != null) {
             parseFrom = this.htmlCode;
         }
-        if (parseFrom == null) { return null; }
+        if (parseFrom == null) {
+            return null;
+        }
         String charSetMetaTag = new Regex(parseFrom, "http-equiv=\"Content-Type\"[^<>]+content=\"[^\"]+charset=(.*?)\"").getMatch(0);
         if (charSetMetaTag == null) {
             charSetMetaTag = new Regex(parseFrom, "meta charset=\"(.*?)\"").getMatch(0);
         }
         return charSetMetaTag;
     }
-    
+
     public int getConnectTimeout() {
         return this.connectTimeout;
     }
-    
+
     public long getContentLength() {
         return this.httpConnection == null ? -1 : this.httpConnection.getLongContentLength();
     }
-    
+
     public Cookies getCookies() {
         if (this.cookies == null) {
             this.cookies = new Cookies();
         }
         return this.cookies;
     }
-    
+
     public String getCookieString() {
         return Request.getCookieString(this.cookies);
     }
-    
+
     public String getCustomCharset() {
         return this.customCharset;
     }
-    
+
     protected RequestHeader getDefaultRequestHeader() {
         final RequestHeader headers = new RequestHeader();
         headers.put("User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.10) Gecko/2009042523 Ubuntu/9.04 (jaunty) Firefox/3.0.10");
         headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
         headers.put("Accept-Language", "de, en-gb;q=0.9, en;q=0.8");
-        
+
         if (Application.getJavaVersion() >= Application.JAVA16) {
             /* deflate only java >=1.6 */
             headers.put("Accept-Encoding", "gzip,deflate");
@@ -301,26 +313,30 @@ public abstract class Request {
             headers.put("Accept-Encoding", "gzip");
         }
         headers.put("Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.3");
-        
+
         headers.put("Cache-Control", "no-cache");
         headers.put("Pragma", "no-cache");
         headers.put("Connection", "close");
         return headers;
     }
-    
+
     public RequestHeader getHeaders() {
         return this.headers;
     }
-    
+
     public String getHtmlCode() throws CharacterCodingException {
-        if (this.htmlCode != null) { return this.htmlCode; }
+        if (this.htmlCode != null) {
+            return this.htmlCode;
+        }
         String ct = null;
         if (this.httpConnection != null) {
             ct = this.httpConnection.getContentType();
         }
         final boolean keepBytes = this.isKeepByteArray();
         /* check for image content type */
-        if (ct != null && Pattern.compile("images?/\\w*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(ct).matches()) { throw new IllegalStateException("Content-Type: " + ct); }
+        if (ct != null && Pattern.compile("images?/\\w*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(ct).matches()) {
+            throw new IllegalStateException("Content-Type: " + ct);
+        }
         if (this.htmlCode == null && this.byteArray != null) {
             /* use custom charset or charset from httpconnection */
             String useCS = this.customCharset;
@@ -367,14 +383,18 @@ public abstract class Request {
         }
         return this.htmlCode;
     }
-    
+
     protected String getHTMLSource() {
-        if (!this.requested) { return "Request not sent yet"; }
+        if (!this.requested) {
+            return "Request not sent yet";
+        }
         try {
             this.getHtmlCode();
             if (StringUtils.isEmpty(this.htmlCode)) {
                 final String location = this.getLocation();
-                if (location != null) { return "Not HTML Code. Redirect to: " + location; }
+                if (location != null) {
+                    return "Not HTML Code. Redirect to: " + location;
+                }
                 return "No htmlCode read";
             }
         } catch (final Throwable e) {
@@ -382,13 +402,15 @@ public abstract class Request {
         }
         return this.htmlCode;
     }
-    
+
     public URLConnectionAdapter getHttpConnection() {
         return this.httpConnection;
     }
-    
+
     public String getLocation() {
-        if (this.httpConnection == null) { return null; }
+        if (this.httpConnection == null) {
+            return null;
+        }
         String red = this.httpConnection.getHeaderField("Location");
         if (StringUtils.isEmpty(red)) {
             /* check if we have an old-school refresh header */
@@ -397,7 +419,9 @@ public abstract class Request {
                 // we need to filter the time count from the url
                 red = new Regex(red, "url=(.+);?").getMatch(0);
             }
-            if (StringUtils.isEmpty(red)) { return null; }
+            if (StringUtils.isEmpty(red)) {
+                return null;
+            }
         }
         final String encoding = this.httpConnection.getHeaderField("Content-Type");
         if (encoding != null && encoding.contains("UTF-8")) {
@@ -435,82 +459,82 @@ public abstract class Request {
             red = proto + this.getHttpConnection().getURL().getHost() + addPort + (red.charAt(0) == '/' ? red : path + "/" + red);
         }
         return Browser.correctURL(Encoding.urlEncode_light(red));
-        
+
     }
-    
+
     public HTTPProxy getProxy() {
         return this.proxy;
     }
-    
+
     public int getReadLimit() {
         return this.readLimit;
     }
-    
+
     public long getReadTime() {
         return this.readTime;
     }
-    
+
     public int getReadTimeout() {
         return this.readTimeout;
     }
-    
+
     public long getRequestTime() {
         return this.httpConnection == null ? -1 : this.httpConnection.getRequestTime();
     }
-    
+
     /**
      * @return the byteArray
      */
     public byte[] getResponseBytes() {
         return this.byteArray;
     }
-    
+
     public String getResponseHeader(final String key) {
         return this.httpConnection == null ? null : this.httpConnection.getHeaderField(key);
     }
-    
+
     public Map<String, List<String>> getResponseHeaders() {
         return this.httpConnection == null ? null : this.httpConnection.getHeaderFields();
     }
-    
+
     /**
      * Will replace #getHtmlCode() with next release
      */
     public String getResponseText() throws CharacterCodingException {
         return this.getHtmlCode();
     }
-    
+
     public String getUrl() {
         return this.orgURL;
     }
-    
+
     protected boolean hasCookies() {
         return this.cookies != null && !this.cookies.isEmpty();
     }
-    
+
     public boolean isContentDecoded() {
         return this.httpConnection == null ? this.isContentDecodedSet() : this.httpConnection.isContentDecoded();
     }
-    
+
     public boolean isContentDecodedSet() {
         return this.contentDecoded;
     }
-    
+
     public boolean isKeepByteArray() {
         return this.keepByteArray;
     }
-    
+
     public boolean isRequested() {
         return this.requested;
     }
-    
+
     private void openConnection() throws IOException {
         this.httpConnection = HTTPConnectionFactory.createHTTPConnection(new URL(this.getUrl()), this.getProxy());
         this.httpConnection.setRequest(this);
         this.httpConnection.setReadTimeout(this.getReadTimeout());
         this.httpConnection.setConnectTimeout(this.getConnectTimeout());
         this.httpConnection.setContentDecoded(this.isContentDecodedSet());
-        
+
         final RequestHeader headers = this.getHeaders();
         if (headers != null) {
             for (final HTTPHeader header : headers) {
@@ -528,16 +552,18 @@ public abstract class Request {
             }
         }
     }
-    
+
     abstract public long postRequest() throws IOException;
-    
+
     abstract public void preRequest() throws IOException;
-    
+
     public String printHeaders() {
-        if (this.httpConnection == null) { return null; }
+        if (this.httpConnection == null) {
+            return null;
+        }
         return this.httpConnection.toString();
     }
-    
+
     public Request read(final boolean keepByteArray) throws IOException {
         this.keepByteArray = keepByteArray;
         final long tima = System.currentTimeMillis();
@@ -546,44 +572,44 @@ public abstract class Request {
         this.readTime = System.currentTimeMillis() - tima;
         return this;
     }
-    
+
     public void setConnectTimeout(final int connectTimeout) {
         this.connectTimeout = connectTimeout;
     }
-    
+
     public void setContentDecoded(final boolean c) {
         this.contentDecoded = c;
     }
-    
+
     public void setCookies(final Cookies cookies) {
         this.cookies = cookies;
     }
-    
+
     public void setCustomCharset(final String charset) {
         this.customCharset = charset;
     }
-    
+
     /**
      * DO NOT USE in 09581 Stable
      */
     public void setHeaders(final RequestHeader headers) {
         this.headers = headers;
     }
-    
+
     public void setHtmlCode(final String htmlCode) {
         this.byteArray = null;
         this.htmlCode = htmlCode;
         this.requested = true;
     }
-    
+
     public void setProxy(final HTTPProxy proxy) {
         this.proxy = proxy;
     }
-    
+
     public void setReadLimit(final int readLimit) {
         this.readLimit = Math.max(0, readLimit);
     }
-    
+
     public void setReadTimeout(final int readTimeout) {
         this.readTimeout = readTimeout;
         final URLConnectionAdapter con = this.httpConnection;
@@ -591,14 +617,16 @@ public abstract class Request {
             con.setReadTimeout(readTimeout);
         }
     }
-    
+
     public void setURL(final String url) {
         this.orgURL = url;
     }
-    
+
     @Override
     public String toString() {
-        if (!this.requested) { return "Request not sent yet"; }
+        if (!this.requested) {
+            return "Request not sent yet";
+        }
         final StringBuilder sb = new StringBuilder();
         try {
             if (this.httpConnection != null) {
@@ -614,5 +642,5 @@ public abstract class Request {
         }
         return sb.toString();
     }
-    
+
 }
