@@ -1405,6 +1405,8 @@ public class Browser {
                         LogSource.exception(llogger, e);
                     }
                     if (this.updateProxy(++proxyRetryCounter, request)) {
+                        // reset proxy
+                        request.setProxy(null);
                         continue proxyAuthLoop;
                     } else {
                         throw e;
@@ -1468,7 +1470,7 @@ public class Browser {
         return this.loadConnection(null).getHtmlCode();
     }
 
-    protected HTTPProxy selectProxy(final String url) {
+    protected HTTPProxy selectProxy(final String url) throws IOException {
         ProxySelectorInterface selector = Browser.GLOBAL_PROXY;
         if (this.proxy != null) {
             selector = this.proxy;
@@ -1478,7 +1480,7 @@ public class Browser {
         }
         final List<HTTPProxy> list = selector.getProxiesByUrl(url);
         if (list == null || list.size() == 0) {
-            return HTTPProxy.NONE;
+            throw new IOException("No Gateway or Proxy Found");
         }
         // TODO: FALLBACK
         return list.get(0);

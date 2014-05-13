@@ -164,7 +164,8 @@ public abstract class Request {
 
     protected boolean              requested      = false;
     protected int                  readLimit      = 1 * 1024 * 1024;
-    protected HTTPProxy            proxy;
+
+    protected StaticProxy          proxy;
 
     protected String               orgURL;
 
@@ -185,7 +186,7 @@ public abstract class Request {
             this.setCookies(new Cookies(cloneRequest.getCookies()));
         }
         this.setReadLimit(cloneRequest.getReadLimit());
-        this.setProxy(cloneRequest.getProxy());
+        this.proxy = cloneRequest.proxy;
         this.setContentDecoded(cloneRequest.isContentDecodedSet());
         if (cloneRequest.getHeaders() != null) {
             this.setHeaders(new RequestHeader(cloneRequest.getHeaders()));
@@ -462,7 +463,8 @@ public abstract class Request {
 
     }
 
-    public HTTPProxy getProxy() {
+    public StaticProxy getProxy() {
+
         return this.proxy;
     }
 
@@ -529,7 +531,8 @@ public abstract class Request {
     }
 
     private void openConnection() throws IOException {
-        this.httpConnection = HTTPConnectionFactory.createHTTPConnection(new URL(this.getUrl()), this.getProxy());
+        StaticProxy lProxy = this.getProxy();
+        this.httpConnection = HTTPConnectionFactory.createHTTPConnection(new URL(this.getUrl()), lProxy == null ? null : lProxy.localClone);
         this.httpConnection.setRequest(this);
         this.httpConnection.setReadTimeout(this.getReadTimeout());
         this.httpConnection.setConnectTimeout(this.getConnectTimeout());
@@ -603,7 +606,8 @@ public abstract class Request {
     }
 
     public void setProxy(final HTTPProxy proxy) {
-        this.proxy = proxy;
+        this.proxy = proxy == null ? null : new StaticProxy(proxy);
+
     }
 
     public void setReadLimit(final int readLimit) {
