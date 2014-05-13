@@ -12,7 +12,7 @@ import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.processes.ProcessBuilderFactory;
 
-public class HTTPProxy  {
+public class HTTPProxy {
 
     public static enum TYPE {
         NONE,
@@ -359,6 +359,18 @@ public class HTTPProxy  {
         setHost(HTTPProxy.getInfo(host, "" + port)[0]);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#clone()
+     */
+    @Override
+    public HTTPProxy clone() {
+        HTTPProxy ret = new HTTPProxy();
+        ret.cloneProxy(this);
+        return ret;
+    }
+
     protected void cloneProxy(final HTTPProxy proxy) {
         if (proxy == null) { return; }
         user = proxy.user;
@@ -385,7 +397,7 @@ public class HTTPProxy  {
             return false;
 
         default:
-            return StringUtils.equals(host, p.host) && StringUtils.equals(user, p.user) && StringUtils.equals(pass, p.pass) && port == p.port;
+            return StringUtils.equals(host, p.host) && StringUtils.equals(StringUtils.isEmpty(user) ? null : user, StringUtils.isEmpty(p.user) ? null : p.user) && StringUtils.equals(StringUtils.isEmpty(pass) ? null : pass, StringUtils.isEmpty(p.pass) ? null : p.pass) && port == p.port;
 
         }
 
@@ -540,7 +552,7 @@ public class HTTPProxy  {
 
     @Override
     public String toString() {
-        return /*user+":"+pass+"@"+*/_toString();
+        return /* user+":"+pass+"@"+ */_toString();
     }
 
     public String _toString() {
@@ -562,6 +574,5 @@ public class HTTPProxy  {
             return "UNKNOWN";
         }
     }
-
 
 }
