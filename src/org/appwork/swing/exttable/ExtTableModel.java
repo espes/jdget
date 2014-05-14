@@ -506,7 +506,9 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     protected ExtColumn<E> getDefaultSortColumn() {
         for (final ExtColumn<E> c : this.columns) {
-            if (c.isSortable(null)) { return c; }
+            if (c.isSortable(null)) {
+
+            return c; }
         }
         return null;
     }
