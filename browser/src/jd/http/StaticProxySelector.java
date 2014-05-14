@@ -1,5 +1,6 @@
 package jd.http;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +28,11 @@ public class StaticProxySelector implements ProxySelectorInterface {
 
     @Override
     public boolean updateProxy(final Request request, final int retryCounter) {
+        return false;
+    }
+
+    @Override
+    public boolean reportConnectException(Request request, int retryCounter, IOException e) {
         return false;
     }
 

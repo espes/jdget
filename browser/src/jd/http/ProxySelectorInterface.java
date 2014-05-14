@@ -1,5 +1,6 @@
 package jd.http;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.appwork.utils.net.httpconnection.HTTPProxy;
@@ -17,5 +18,7 @@ public interface ProxySelectorInterface {
      * @return true if the http backend should try the request again
      */
     boolean updateProxy(Request request, int retryCounter);
+
+    boolean reportConnectException(Request request, int retryCounter, IOException e);
 
 }

@@ -111,8 +111,9 @@ public class Browser {
     }
 
     private static String removeURLPathTraversal(String path) {
-        if (path == null || !path.contains("./"))
+        if (path == null || !path.contains("./")) {
             return path;
+        }
         final boolean endsWithSlash = path.endsWith("/");
         final String pathParts[] = path.split("/");
         for (int i = 0; i < pathParts.length; i++) {
@@ -154,8 +155,9 @@ public class Browser {
     }
 
     private static String removeURLPathMultipleSlash(String path, boolean removeDoubleSlash) {
-        if (path == null || !path.contains("//"))
+        if (path == null || !path.contains("//")) {
             return path;
+        }
         if (removeDoubleSlash) {
             /**
              * http: // webmasters.stackexchange.com/questions/8354/what-does-the-double-slash-mean-in-urls
@@ -1395,7 +1397,9 @@ public class Browser {
                     // get Inputstream may throw the ProxyAuthException
                     request.getHttpConnection().getInputStream();
                     break proxyAuthLoop;
+
                 } catch (final ProxyAuthException e) {
+
                     try {
                         request.getHttpConnection().disconnect();
                     } catch (final Throwable e1) {
@@ -1404,7 +1408,26 @@ public class Browser {
                     if (llogger != null) {
                         LogSource.exception(llogger, e);
                     }
-                    if (this.updateProxy(++proxyRetryCounter, request)) {
+                    proxyRetryCounter++;
+                    if (reportConnectException(proxyRetryCounter, e, request) || this.updateProxy(proxyRetryCounter, request)) {
+                        // reset proxy
+                        request.setProxy(null);
+                        continue proxyAuthLoop;
+                    } else {
+                        throw e;
+                    }
+                } catch (IOException e) {
+
+                    try {
+                        request.getHttpConnection().disconnect();
+                    } catch (final Throwable e1) {
+                    }
+                    final Logger llogger = this.getLogger();
+                    if (llogger != null) {
+                        LogSource.exception(llogger, e);
+                    }
+                    proxyRetryCounter++;
+                    if (reportConnectException(proxyRetryCounter, e, request)) {
                         // reset proxy
                         request.setProxy(null);
                         continue proxyAuthLoop;
@@ -1430,6 +1453,17 @@ public class Browser {
             }
         }
         return request.getHttpConnection();
+    }
+
+    private boolean reportConnectException(int proxyRetryCounter, IOException e, Request request2) {
+        ProxySelectorInterface selector = Browser.GLOBAL_PROXY;
+        if (this.proxy != null) {
+            selector = this.proxy;
+        }
+        if (selector == null) {
+
+        }
+        return selector.reportConnectException(request, proxyRetryCounter, e);
     }
 
     /**
@@ -1480,7 +1514,7 @@ public class Browser {
         }
         final List<HTTPProxy> list = selector.getProxiesByUrl(url);
         if (list == null || list.size() == 0) {
-            throw new IOException("No Gateway or Proxy Found");
+            throw new NoGateWayException(selector, "No Gateway or Proxy Found");
         }
         // TODO: FALLBACK
         return list.get(0);
