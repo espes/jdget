@@ -24,30 +24,49 @@ public class HTTPProxy {
 
     // private static final int KEY_READ = 0x20019;
 
-    public static final HTTPProxy NONE = new HTTPProxy(TYPE.NONE) {
+    public static final HTTPProxy NONE = new HTTPProxy() {
+                                           {
+                                               type = TYPE.NONE;
+                                           }
 
                                            @Override
                                            public void setConnectMethodPrefered(final boolean value) {
+                                               // do not allow changes
                                            }
 
                                            @Override
-                                           public void setLocalIP(final InetAddress localIP) {
+                                           public void setLocalIP(final InetAddress localIP) { // do
+                                                                                               // not
+                                                                                               // allow
+                                                                                               // changes
                                            }
 
                                            @Override
-                                           public void setPass(final String pass) {
+                                           public void setPass(final String pass) { // do
+                                                                                    // not
+                                                                                    // allow
+                                                                                    // changes
                                            }
 
                                            @Override
-                                           public void setPort(final int port) {
+                                           public void setPort(final int port) { // do
+                                                                                 // not
+                                                                                 // allow
+                                                                                 // changes
                                            }
 
                                            @Override
-                                           public void setType(final TYPE type) {
+                                           public void setType(final TYPE type) { // do
+                                                                                  // not
+                                                                                  // allow
+                                                                                  // changes
                                            }
 
                                            @Override
-                                           public void setUser(final String user) {
+                                           public void setUser(final String user) { // do
+                                                                                    // not
+                                                                                    // allow
+                                                                                    // changes
                                            }
 
                                        };
@@ -335,7 +354,7 @@ public class HTTPProxy {
     private int         port                       = 80;
 
     protected String    host                       = null;
-    private TYPE        type                       = TYPE.DIRECT;
+    protected TYPE      type                       = TYPE.DIRECT;
 
     private boolean     useConnectMethod           = false;
 
