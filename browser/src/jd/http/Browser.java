@@ -610,7 +610,9 @@ public class Browser {
         }
         try {
             if (request.getProxy() == null) {
-                request.setProxy(this.selectProxy(request.getUrl()));
+                List<HTTPProxy> proxies = this.selectProxies(request.getUrl());
+                // choose first one
+                request.setProxy(proxies.get(0));
             }
             request.connect();
             return request.getHttpConnection();
@@ -1392,10 +1394,12 @@ public class Browser {
             proxyAuthLoop: while (true) {
                 try {
                     // connect may throw ProxyAuthException for https or direct connection method requests
+
                     this.connect(request);
                     this.updateCookies(request);
                     // get Inputstream may throw the ProxyAuthException
                     request.getHttpConnection().getInputStream();
+
                     break proxyAuthLoop;
 
                 } catch (final ProxyAuthException e) {
@@ -1504,20 +1508,26 @@ public class Browser {
         return this.loadConnection(null).getHtmlCode();
     }
 
-    protected HTTPProxy selectProxy(final String url) throws IOException {
+    protected List<HTTPProxy> selectProxies(final String url) throws IOException {
         ProxySelectorInterface selector = Browser.GLOBAL_PROXY;
         if (this.proxy != null) {
             selector = this.proxy;
         }
         if (selector == null) {
-            return HTTPProxy.NONE;
+            ArrayList<HTTPProxy> ret = new ArrayList<HTTPProxy>();
+            ret.add(HTTPProxy.NONE);
+            return ret;// ;
         }
-        final List<HTTPProxy> list = selector.getProxiesByUrl(url);
+        List<HTTPProxy> list = null;
+        try {
+            list = selector.getProxiesByUrl(url);
+        } catch (Throwable e) {
+            throw new NoGateWayException(selector, e);
+        }
         if (list == null || list.size() == 0) {
             throw new NoGateWayException(selector, "No Gateway or Proxy Found");
         }
-        // TODO: FALLBACK
-        return list.get(0);
+        return list;
 
     }
 

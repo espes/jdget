@@ -5,10 +5,14 @@ import java.util.logging.Logger;
 public class BrowserSettingsThread extends Thread implements BrowserSettings {
 
     private ProxySelectorInterface proxySelector;
-    private boolean   debug;
-    private boolean   verbose;
-    protected Logger  logger;
-   
+    private boolean                debug;
+    private boolean                verbose;
+    protected Logger               logger;
+
+    public BrowserSettingsThread() {
+
+        copySettings();
+    }
 
     public BrowserSettingsThread(final Runnable r) {
         super(r);

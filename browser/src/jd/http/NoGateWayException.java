@@ -15,4 +15,9 @@ public class NoGateWayException extends IOException {
         this.selector = selector;
     }
 
+    public NoGateWayException(ProxySelectorInterface selector, Throwable e) {
+        super(e);
+        this.selector = selector;
+    }
+
 }
