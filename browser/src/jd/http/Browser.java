@@ -1398,7 +1398,9 @@ public class Browser {
                     this.connect(request);
                     this.updateCookies(request);
                     // get Inputstream may throw the ProxyAuthException
-                    request.getHttpConnection().getInputStream();
+                    if (request.getHttpConnection().getResponseCode() == 407) {
+                        throw new ProxyAuthException(request.getProxy().getLocalClone());
+                    }
 
                     break proxyAuthLoop;
 
@@ -1465,7 +1467,7 @@ public class Browser {
             selector = this.proxy;
         }
         if (selector == null) {
-
+            return false;
         }
         return selector.reportConnectException(request, proxyRetryCounter, e);
     }

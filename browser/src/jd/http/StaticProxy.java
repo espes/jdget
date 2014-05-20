@@ -19,6 +19,7 @@ public class StaticProxy {
     public StaticProxy(HTTPProxy proxy) {
         this.orgReference = proxy;
         this.localClone = proxy == null ? null : proxy.clone();
+
     }
 
 }
