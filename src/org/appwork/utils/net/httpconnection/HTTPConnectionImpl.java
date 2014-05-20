@@ -203,7 +203,8 @@ public class HTTPConnectionImpl implements HTTPConnection {
         } else {
             this.invalidHttpHeader = this.httpHeader;
             this.httpHeader = HTTPConnectionImpl.UNKNOWN_HTTP_RESPONSE;
-            this.httpResponseCode = 200;
+            // Unknown HTTP Response: 999!
+            this.httpResponseCode = 999;
             this.httpResponseMessage = HTTPConnectionImpl.UNKNOWN_HTTP_RESPONSE;
             if (header.limit() > 0) {
                 /*
