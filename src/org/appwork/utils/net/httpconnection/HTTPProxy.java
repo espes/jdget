@@ -24,49 +24,31 @@ public class HTTPProxy {
 
     // private static final int KEY_READ = 0x20019;
 
-    public static final HTTPProxy NONE = new HTTPProxy() {
-                                           {
-                                               type = TYPE.NONE;
-                                           }
+    public static final HTTPProxy NONE = new HTTPProxy(TYPE.NONE) {
 
                                            @Override
                                            public void setConnectMethodPrefered(final boolean value) {
-                                               // do not allow changes
                                            }
 
                                            @Override
-                                           public void setLocalIP(final InetAddress localIP) { // do
-                                                                                               // not
-                                                                                               // allow
-                                                                                               // changes
+                                           public void setLocalIP(final InetAddress localIP) {
                                            }
 
                                            @Override
-                                           public void setPass(final String pass) { // do
-                                                                                    // not
-                                                                                    // allow
-                                                                                    // changes
+                                           public void setPass(final String pass) {
                                            }
 
                                            @Override
-                                           public void setPort(final int port) { // do
-                                                                                 // not
-                                                                                 // allow
-                                                                                 // changes
+                                           public void setPort(final int port) {
                                            }
 
                                            @Override
-                                           public void setType(final TYPE type) { // do
-                                                                                  // not
-                                                                                  // allow
-                                                                                  // changes
+                                           public void setType(final TYPE type) {
+                                               super.setType(TYPE.NONE);
                                            }
 
                                            @Override
-                                           public void setUser(final String user) { // do
-                                                                                    // not
-                                                                                    // allow
-                                                                                    // changes
+                                           public void setUser(final String user) {
                                            }
 
                                        };
@@ -345,20 +327,20 @@ public class HTTPProxy {
         return result;
     }
 
-    private InetAddress localIP                    = null;
+    protected InetAddress localIP                    = null;
 
-    private String      user                       = null;
+    protected String      user                       = null;
 
-    private String      pass                       = null;
+    protected String      pass                       = null;
 
-    private int         port                       = 80;
+    protected int         port                       = 80;
 
-    protected String    host                       = null;
-    protected TYPE      type                       = TYPE.DIRECT;
+    protected String      host                       = null;
+    protected TYPE        type                       = TYPE.DIRECT;
 
-    private boolean     useConnectMethod           = false;
+    protected boolean     useConnectMethod           = false;
 
-    private boolean     preferNativeImplementation = false;
+    protected boolean     preferNativeImplementation = false;
 
     protected HTTPProxy() {
     }
@@ -424,15 +406,29 @@ public class HTTPProxy {
         if (this == obj) { return true; }
         if (obj == null || !(obj instanceof HTTPProxy)) { return false; }
         final HTTPProxy p = (HTTPProxy) obj;
-        if (this.type != p.type) { return false; }
-        switch (this.type) {
+        if (this.getType() != p.getType()) { return false; }
+        switch (this.getType()) {
         case DIRECT:
-            if (this.localIP == null && p.localIP == null) { return true; }
-            if (this.localIP != null && this.localIP.equals(p.localIP)) { return true; }
+            if (this.getLocalIP() == null && p.getLocalIP() == null) { return true; }
+            if (this.getLocalIP() != null && this.getLocalIP().equals(p.getLocalIP())) { return true; }
             return false;
+        case NONE:
+            return true;
         default:
-            return StringUtils.equals(this.host, p.host) && StringUtils.equals(StringUtils.isEmpty(this.user) ? null : this.user, StringUtils.isEmpty(p.user) ? null : p.user) && StringUtils.equals(StringUtils.isEmpty(this.pass) ? null : this.pass, StringUtils.isEmpty(p.pass) ? null : p.pass) && this.port == p.port;
+            return StringUtils.equals(this.getHost(), p.getHost()) && StringUtils.equals(StringUtils.isEmpty(this.getUser()) ? null : this.getUser(), StringUtils.isEmpty(p.getUser()) ? null : p.getUser()) && StringUtils.equals(StringUtils.isEmpty(this.getPass()) ? null : this.getPass(), StringUtils.isEmpty(p.getPass()) ? null : p.getPass()) && this.getPort() == p.getPort();
         }
+    }
+
+    public boolean equalsWithSettings(HTTPProxy proxy) {
+        if (this.equals(proxy)) {
+            switch (this.getType()) {
+            case HTTP:
+                if (this.isConnectMethodPrefered() != proxy.isConnectMethodPrefered()) { return false; }
+            default:
+                return this.isPreferNativeImplementation() == proxy.isPreferNativeImplementation();
+            }
+        }
+        return false;
     }
 
     public String getHost() {
