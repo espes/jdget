@@ -2,6 +2,7 @@ package jd.http;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.appwork.utils.net.httpconnection.HTTPProxy;
@@ -13,17 +14,18 @@ public class StaticProxySelector implements ProxySelectorInterface {
 
     public StaticProxySelector(final HTTPProxy proxy) {
         this.proxy = proxy;
-        lst = new ArrayList<HTTPProxy>();
+        ArrayList<HTTPProxy> lst = new ArrayList<HTTPProxy>();
         lst.add(proxy);
+        this.lst = Collections.unmodifiableList(lst);
     }
 
     public HTTPProxy getProxy() {
-        return proxy;
+        return this.proxy;
     }
 
     @Override
     public List<HTTPProxy> getProxiesByUrl(final String url) {
-        return lst;
+        return this.lst;
     }
 
     @Override

@@ -165,7 +165,7 @@ public abstract class Request {
     protected boolean              requested      = false;
     protected int                  readLimit      = 1 * 1024 * 1024;
 
-    protected StaticProxy          proxy;
+    protected HTTPProxy            proxy;
 
     protected String               orgURL;
 
@@ -186,7 +186,7 @@ public abstract class Request {
             this.setCookies(new Cookies(cloneRequest.getCookies()));
         }
         this.setReadLimit(cloneRequest.getReadLimit());
-        this.proxy = cloneRequest.proxy;
+        this.setProxy(cloneRequest.getProxy());
         this.setContentDecoded(cloneRequest.isContentDecodedSet());
         if (cloneRequest.getHeaders() != null) {
             this.setHeaders(new RequestHeader(cloneRequest.getHeaders()));
@@ -204,6 +204,7 @@ public abstract class Request {
 
     public Request(final URLConnectionAdapter con) {
         this.httpConnection = con;
+        this.requested = true;
         this.collectCookiesFromConnection();
     }
 
@@ -230,9 +231,7 @@ public abstract class Request {
     protected Request connect() throws IOException {
         try {
             this.openConnection();
-            this.postRequest(); /*
-                                 * we connect to inputstream to make sure the response headers are getting parsed first
-                                 */
+            this.postRequest();
             try {
                 this.httpConnection.finalizeConnect();
             } finally {
@@ -463,8 +462,7 @@ public abstract class Request {
 
     }
 
-    public StaticProxy getProxy() {
-
+    public HTTPProxy getProxy() {
         return this.proxy;
     }
 
@@ -531,8 +529,7 @@ public abstract class Request {
     }
 
     private void openConnection() throws IOException {
-        StaticProxy lProxy = this.getProxy();
-        this.httpConnection = HTTPConnectionFactory.createHTTPConnection(new URL(this.getUrl()), lProxy == null ? null : lProxy.localClone);
+        this.httpConnection = HTTPConnectionFactory.createHTTPConnection(new URL(this.getUrl()), this.getProxy());
         this.httpConnection.setRequest(this);
         this.httpConnection.setReadTimeout(this.getReadTimeout());
         this.httpConnection.setConnectTimeout(this.getConnectTimeout());
@@ -606,8 +603,15 @@ public abstract class Request {
     }
 
     public void setProxy(final HTTPProxy proxy) {
-        this.proxy = proxy == null ? null : new StaticProxy(proxy);
+        if (proxy instanceof ClonedProxy) {
+            this.proxy = proxy;
+        } else {
+            this.proxy = new ClonedProxy(proxy);
+        }
+    }
 
+    public void setProxy(final ClonedProxy proxy) {
+        this.proxy = proxy;
     }
 
     public void setReadLimit(final int readLimit) {
