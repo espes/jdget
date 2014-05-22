@@ -568,39 +568,6 @@ public class Browser {
         return br;
     }
 
-    /**
-     * Connects a request. and sets the requests as the browsers latest request
-     * 
-     * @param request
-     * @throws IOException
-     */
-    public URLConnectionAdapter connect(final Request request) throws IOException {
-        try {
-            Browser.waitForPageAccess(this, request);
-        } catch (final InterruptedException e) {
-            throw new IOException("requestIntervalTime Exception");
-        }
-        try {
-            if (request.getProxy() == null) {
-                List<HTTPProxy> proxies = this.selectProxies(request.getUrl());
-                // choose first one
-                request.setProxy(proxies.get(0));
-            }
-            return request.connect().getHttpConnection();
-        } finally {
-            if (this.isDebug()) {
-                final Logger llogger = this.getLogger();
-                if (llogger != null) {
-                    try {
-                        llogger.finest("\r\n" + request.printHeaders());
-                    } catch (final Throwable e) {
-                        LogSource.exception(llogger, e);
-                    }
-                }
-            }
-        }
-    }
-
     public boolean containsHTML(final String regex) {
         return new Regex(this, regex).matches();
     }
@@ -1269,10 +1236,11 @@ public class Browser {
         }
     }
 
-    /**
-     * Opens a connection based on the request object
-     */
-    public URLConnectionAdapter openRequestConnection(Request request) throws IOException {
+    public URLConnectionAdapter openRequestConnection(final Request request) throws IOException {
+        return openRequestConnection(request, doRedirects);
+    }
+
+    public URLConnectionAdapter openRequestConnection(Request request, final boolean followRedirects) throws IOException {
         int redirectLoopPrevention = 0;
         final Request originalRequest = request;
         while (true) {
@@ -1281,13 +1249,39 @@ public class Browser {
             while (true) {
                 try {
                     // connect may throw ProxyAuthException for https or direct connection method requests
-                    final URLConnectionAdapter connection = this.connect(request);
+                    try {
+                        Browser.waitForPageAccess(this, request);
+                    } catch (final InterruptedException e) {
+                        throw new IOException("requestIntervalTime Exception");
+                    }
+                    URLConnectionAdapter connection;
+                    try {
+                        if (request.getProxy() == null) {
+                            List<HTTPProxy> proxies = this.selectProxies(request.getUrl());
+                            // choose first one
+                            request.setProxy(proxies.get(0));
+                        }
+                        connection = request.connect().getHttpConnection();
+                    } finally {
+                        if (this.isDebug()) {
+                            final Logger llogger = this.getLogger();
+                            if (llogger != null) {
+                                try {
+                                    llogger.finest("\r\n" + request.printHeaders());
+                                } catch (final Throwable e) {
+                                    LogSource.exception(llogger, e);
+                                }
+                            }
+                        }
+                    }
                     this.setRequest(request);
                     if (connection != null) {
                         connection.setAllowedResponseCodes(this.getAllowedResponseCodes());
-                    }
-                    if (connection.getResponseCode() == 407) {
-                        throw new ProxyAuthException(request.getProxy());
+                        if (connection.getResponseCode() == 407) {
+                            throw new ProxyAuthException(request.getProxy());
+                        }
+                    } else {
+                        throw new BrowserException("connection is null", request);
                     }
                     break;
                 } catch (BrowserException e) {
@@ -1309,7 +1303,7 @@ public class Browser {
                 }
             }
             final String redirect = request.getLocation();
-            if (this.doRedirects && redirect != null) {
+            if (followRedirects && redirect != null) {
                 request.disconnect();
                 if (redirectLoopPrevention++ > 20) {
                     throw new BrowserException("Too many redirects!", originalRequest);
