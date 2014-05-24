@@ -163,7 +163,7 @@ public class Browser {
             return url;
         }
         /** full URL */
-        String[] urlParts = new Regex(url, "^(?i-)([a-z]+)://([^/\\?#]+)([^\\?&]+)?(\\?.+)?$").getRow(0);
+        String[] urlParts = new Regex(url, "^(?i-)([a-z]+)://([^/\\?#]+)([^\\?&]+)?(\\?.*)?$").getRow(0);
         String[] locationParts = null;
         String protPart = null;
         String hostPart = null;
@@ -1097,7 +1097,8 @@ public class Browser {
                 string = base + string;
             }
         }
-        return Browser.correctURL(Encoding.urlEncode_light(string));
+        string = Browser.correctURL(Encoding.urlEncode_light(string));
+        return string;
     }
 
     public boolean isCookiesExclusive() {
