@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.SSLException;
@@ -33,40 +34,41 @@ public class HTTPConnectionImpl implements HTTPConnection {
     /**
      * 
      */
-    public static final String            UNKNOWN_HTTP_RESPONSE      = "unknown HTTP response";
+    public static final String                   UNKNOWN_HTTP_RESPONSE      = "unknown HTTP response";
 
-    protected HTTPHeaderMap<String>       requestProperties          = null;
+    protected HTTPHeaderMap<String>              requestProperties          = null;
 
-    protected long[]                      ranges;
+    protected long[]                             ranges;
 
-    protected String                      customcharset              = null;
-    protected Socket                      httpSocket                 = null;
-    protected URL                         httpURL                    = null;
-    protected HTTPProxy                   proxy                      = null;
+    protected String                             customcharset              = null;
+    protected Socket                             httpSocket                 = null;
+    protected URL                                httpURL                    = null;
+    protected HTTPProxy                          proxy                      = null;
 
-    protected String                      httpPath                   = null;
-    protected RequestMethod               httpMethod                 = RequestMethod.GET;
-    protected HTTPHeaderMap<List<String>> headers                    = null;
-    protected int                         httpResponseCode           = -1;
-    protected String                      httpResponseMessage        = "";
-    protected int                         readTimeout                = 30000;
-    protected int                         connectTimeout             = 30000;
-    protected long                        requestTime                = -1;
-    protected OutputStream                outputStream               = null;
-    protected InputStream                 inputStream                = null;
-    protected InputStream                 convertedInputStream       = null;
-    protected boolean                     inputStreamConnected       = false;
+    protected String                             httpPath                   = null;
+    protected RequestMethod                      httpMethod                 = RequestMethod.GET;
+    protected HTTPHeaderMap<List<String>>        headers                    = null;
+    protected int                                httpResponseCode           = -1;
+    protected String                             httpResponseMessage        = "";
+    protected int                                readTimeout                = 30000;
+    protected int                                connectTimeout             = 30000;
+    protected long                               requestTime                = -1;
+    protected OutputStream                       outputStream               = null;
+    protected InputStream                        inputStream                = null;
+    protected InputStream                        convertedInputStream       = null;
+    protected boolean                            inputStreamConnected       = false;
 
-    protected String                      httpHeader                 = null;
-    protected String                      invalidHttpHeader          = null;
-    protected boolean                     outputClosed               = false;
-    private boolean                       contentDecoded             = true;
-    protected long                        postTodoLength             = -1;
-    private int[]                         allowedResponseCodes       = new int[0];
-    private InetSocketAddress             proxyInetSocketAddress     = null;
-    protected InetSocketAddress           connectedInetSocketAddress = null;
+    protected String                             httpHeader                 = null;
+    protected String                             invalidHttpHeader          = null;
+    protected boolean                            outputClosed               = false;
+    private boolean                              contentDecoded             = true;
+    protected long                               postTodoLength             = -1;
+    private int[]                                allowedResponseCodes       = new int[0];
+    private InetSocketAddress                    proxyInetSocketAddress     = null;
+    protected InetSocketAddress                  connectedInetSocketAddress = null;
+    protected final CopyOnWriteArrayList<String> connectExceptions          = new CopyOnWriteArrayList<String>();
 
-    private SSLException                  sslException               = null;
+    private SSLException                         sslException               = null;
 
     public HTTPConnectionImpl(final URL url) {
         this(url, null);
@@ -112,6 +114,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
                     if (this.proxy.getLocalIP() == null) { throw new IOException("Invalid localIP"); }
                     this.httpSocket.bind(this.proxyInetSocketAddress = new InetSocketAddress(this.proxy.getLocalIP(), 0));
                 } catch (final IOException e) {
+                    this.connectExceptions.add(this.proxyInetSocketAddress + "|" + e.getMessage());
                     throw new ProxyConnectException(e, this.proxy);
                 }
             } else if (this.proxy != null && this.proxy.isNone()) {
@@ -135,6 +138,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 ee = null;
                 break;
             } catch (final IOException e) {
+                this.connectExceptions.add(this.connectedInetSocketAddress + "|" + e.getMessage());
                 try {
                     if (sslSocket != null) {
                         sslSocket.close();
@@ -157,6 +161,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
         try {
             this.sendRequest();
         } catch (final javax.net.ssl.SSLException e) {
+            this.connectExceptions.add(this.connectedInetSocketAddress + "|" + e.getMessage());
             if (this.sslException != null) {
                 throw e;
             } else {
@@ -481,6 +486,13 @@ public class HTTPConnectionImpl implements HTTPConnection {
         sb.append("----------------Request Information-------------\r\n");
         sb.append("URL: ").append(this.getURL()).append("\r\n");
         sb.append("Host: ").append(this.getURL().getHost()).append("\r\n");
+        if (this.connectExceptions.size() > 0) {
+            sb.append("ConnectionExceptions:\r\n");
+            int index = 0;
+            for (String connectException : this.connectExceptions) {
+                sb.append(index++).append(":").append(connectException).append("\r\n");
+            }
+        }
         if (this.connectedInetSocketAddress != null && this.connectedInetSocketAddress.getAddress() != null) {
             sb.append("HostIP: ").append(this.connectedInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
         }

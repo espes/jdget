@@ -70,6 +70,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
                     break;
                 } catch (final IOException e) {
                     /* connection failed, try next available ip */
+                    this.connectExceptions.add(this.proxyInetSocketAddress + "|" + e.getMessage());
                     try {
                         this.sockssocket.close();
                     } catch (final Throwable e2) {
@@ -133,6 +134,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
             /* now send Request */
             this.sendRequest();
         } catch (final javax.net.ssl.SSLException e) {
+            this.connectExceptions.add(this.proxyInetSocketAddress + "|" + e.getMessage());
             if (this.sslException != null) {
                 throw new ProxyConnectException(e, this.proxy);
             } else {
@@ -146,6 +148,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
             } catch (final Throwable e2) {
             }
             if (e instanceof HTTPProxyException) { throw e; }
+            this.connectExceptions.add(this.proxyInetSocketAddress + "|" + e.getMessage());
             throw new ProxyConnectException(e, this.proxy);
         }
     }

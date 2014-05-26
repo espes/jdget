@@ -63,6 +63,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                     ee = null;
                     break;
                 } catch (final IOException e) {
+                    this.connectExceptions.add(this.proxyInetSocketAddress + "|" + e.getMessage());
                     /* connection failed, try next available ip */
                     try {
                         this.httpSocket.close();
@@ -189,6 +190,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             /* now send Request */
             this.sendRequest();
         } catch (final javax.net.ssl.SSLException e) {
+            this.connectExceptions.add(this.proxyInetSocketAddress + "|" + e.getMessage());
             if (this.sslException != null) {
                 throw new ProxyConnectException(e, this.proxy);
             } else {
@@ -202,6 +204,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             } catch (final Throwable e2) {
             }
             if (e instanceof HTTPProxyException) { throw e; }
+            this.connectExceptions.add(this.proxyInetSocketAddress + "|" + e.getMessage());
             throw new ProxyConnectException(e, this.proxy);
         }
     }
