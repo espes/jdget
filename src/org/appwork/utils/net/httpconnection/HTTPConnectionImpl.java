@@ -112,7 +112,6 @@ public class HTTPConnectionImpl implements HTTPConnection {
                     if (this.proxy.getLocalIP() == null) { throw new IOException("Invalid localIP"); }
                     this.httpSocket.bind(this.proxyInetSocketAddress = new InetSocketAddress(this.proxy.getLocalIP(), 0));
                 } catch (final IOException e) {
-                    this.proxyInetSocketAddress = null;
                     throw new ProxyConnectException(e, this.proxy);
                 }
             } else if (this.proxy != null && this.proxy.isNone()) {
@@ -142,7 +141,6 @@ public class HTTPConnectionImpl implements HTTPConnection {
                     }
                 } catch (final Throwable nothing) {
                 }
-                this.connectedInetSocketAddress = null;
                 try {
                     this.httpSocket.close();
                 } catch (final Throwable nothing) {

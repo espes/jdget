@@ -64,7 +64,6 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                     break;
                 } catch (final IOException e) {
                     /* connection failed, try next available ip */
-                    this.proxyInetSocketAddress = null;
                     try {
                         this.httpSocket.close();
                     } catch (final Throwable e2) {

@@ -70,7 +70,6 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
                     break;
                 } catch (final IOException e) {
                     /* connection failed, try next available ip */
-                    this.proxyInetSocketAddress = null;
                     try {
                         this.sockssocket.close();
                     } catch (final Throwable e2) {
