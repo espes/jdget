@@ -730,9 +730,12 @@ public class Browser {
             newRequest = request.cloneRequest();
             break;
         default:
-            throw new IllegalStateException("ResponseCode " + responseCode + " is unsupported!");
+            Logger logger = this.getLogger();
+            if (logger != null && this.isVerbose()) {
+                LogSource.exception(logger, new IllegalStateException("ResponseCode " + responseCode + " is unsupported!"));
+            }
+            return null;
         }
-        /* TODO: check referer header */
         newRequest.setURL(location);
         return newRequest;
     }
@@ -1238,7 +1241,7 @@ public class Browser {
     }
 
     public URLConnectionAdapter openRequestConnection(final Request request) throws IOException {
-        return openRequestConnection(request, doRedirects);
+        return this.openRequestConnection(request, this.doRedirects);
     }
 
     public URLConnectionAdapter openRequestConnection(Request request, final boolean followRedirects) throws IOException {
@@ -1309,7 +1312,12 @@ public class Browser {
                 if (redirectLoopPrevention++ > 20) {
                     throw new BrowserException("Too many redirects!", originalRequest);
                 }
-                request = this.createRedirectFollowingRequest(request);
+                final Request redirectRequest = this.createRedirectFollowingRequest(request);
+                if (redirectRequest == null) {
+                    return request.getHttpConnection();
+                } else {
+                    request = redirectRequest;
+                }
             } else {
                 return request.getHttpConnection();
             }
