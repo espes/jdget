@@ -10,6 +10,7 @@
 package org.appwork.utils.net.httpconnection;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -36,11 +37,12 @@ public class Socks4HTTPConnectionImpl extends SocksHTTPconnection {
     protected Socket establishConnection() throws IOException {
         try {
             /* tcp/ip connection */
-            this.socksoutputstream.write((byte) 1);
+            final OutputStream outputStream = this.getSocksOutputStream();
+            outputStream.write((byte) 1);
             /* send port */
             /* network byte order */
-            this.socksoutputstream.write(this.httpPort >> 8 & 0xff);
-            this.socksoutputstream.write(this.httpPort & 0xff);
+            outputStream.write(this.httpPort >> 8 & 0xff);
+            outputStream.write(this.httpPort & 0xff);
             boolean ipResolvOK = false;
             /* send domain ip */
             try {
@@ -48,31 +50,31 @@ public class Socks4HTTPConnectionImpl extends SocksHTTPconnection {
                 if (addr == null) { throw new UnknownHostException("Could not resolv host"); }
                 final byte[] addrIP = addr.getAddress();
                 this.proxyRequest.append("->SEND tcp connect request by ip\r\n");
-                this.socksoutputstream.write(addrIP);
+                outputStream.write(addrIP);
                 ipResolvOK = true;
             } catch (final UnknownHostException e) {
             }
             if (ipResolvOK == false) {
                 this.proxyRequest.append("->SEND tcp connect request by domain\r\n");
-                this.socksoutputstream.write((byte) 0);
-                this.socksoutputstream.write((byte) 0);
-                this.socksoutputstream.write((byte) 0);
-                this.socksoutputstream.write((byte) 100);
+                outputStream.write((byte) 0);
+                outputStream.write((byte) 0);
+                outputStream.write((byte) 0);
+                outputStream.write((byte) 100);
             }
             /* user ID string */
             final String user = this.proxy.getUser() == null ? "" : this.proxy.getUser().trim();
             final byte[] username = user.getBytes("ISO-8859-1");
             if (username.length > 0) {
-                this.socksoutputstream.write(username);
+                outputStream.write(username);
             }
-            this.socksoutputstream.write((byte) 0);
+            outputStream.write((byte) 0);
             if (ipResolvOK == false) {
                 /* send domain as string,socks4a */
                 final byte[] domain = this.httpHost.getBytes("ISO-8859-1");
-                this.socksoutputstream.write(domain);
-                this.socksoutputstream.write((byte) 0);
+                outputStream.write(domain);
+                outputStream.write((byte) 0);
             }
-            this.socksoutputstream.flush();
+            outputStream.flush();
             /* read response, 8 bytes */
             final byte[] resp = this.readResponse(8);
             switch (resp[1]) {
@@ -89,10 +91,7 @@ public class Socks4HTTPConnectionImpl extends SocksHTTPconnection {
             }
             return this.sockssocket;
         } catch (final IOException e) {
-            try {
-                this.sockssocket.close();
-            } catch (final Throwable e2) {
-            }
+            this.disconnect();
             if (e instanceof HTTPProxyException) { throw e; }
             throw new ProxyConnectException(e, this.proxy);
         }
@@ -103,13 +102,10 @@ public class Socks4HTTPConnectionImpl extends SocksHTTPconnection {
         try {
             this.proxyRequest.append("->SOCKS4 Hello\r\n");
             /* socks4 */
-            this.socksoutputstream.write((byte) 4);
+            this.getSocksOutputStream().write((byte) 4);
             return AUTH.NONE;
         } catch (final IOException e) {
-            try {
-                this.sockssocket.close();
-            } catch (final Throwable e2) {
-            }
+            this.disconnect();
             if (e instanceof HTTPProxyException) { throw e; }
             throw new ProxyConnectException(e, this.proxy);
         }

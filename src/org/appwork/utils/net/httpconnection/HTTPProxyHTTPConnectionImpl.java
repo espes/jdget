@@ -19,13 +19,13 @@ import org.appwork.utils.Regex;
 import org.appwork.utils.encoding.Base64;
 
 public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
-    private int               httpPort;
-    private String            httpHost;
-    private StringBuilder     proxyRequest;
-    private InetSocketAddress proxyInetSocketAddress = null;
+    private int                 httpPort;
+    private String              httpHost;
+    private StringBuilder       proxyRequest;
 
-    private boolean           preferConnectMethod    = true;
-    private SSLException      sslException           = null;
+    private final boolean       preferConnectMethod;
+    protected InetSocketAddress proxyInetSocketAddress = null;
+    private SSLException        sslException           = null;
 
     public HTTPProxyHTTPConnectionImpl(final URL url, final HTTPProxy p) {
         super(url, p);
@@ -39,7 +39,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
      */
     @Override
     public void connect() throws IOException {
-        if (this.isConnected()) { return;/* oder fehler */
+        if (this.isConnectionSocketValid()) { return;/* oder fehler */
         }
         try {
             if (this.proxy == null || !this.proxy.getType().equals(HTTPProxy.TYPE.HTTP)) { throw new IOException("HTTPProxyHTTPConnection: invalid HTTP Proxy!"); }
@@ -53,12 +53,12 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             IOException ee = null;
             long startTime = System.currentTimeMillis();
             for (final InetAddress host : hosts) {
-                this.httpSocket = new Socket(Proxy.NO_PROXY);
-                this.httpSocket.setSoTimeout(this.readTimeout);
+                this.connectionSocket = new Socket(Proxy.NO_PROXY);
+                this.connectionSocket.setSoTimeout(this.readTimeout);
                 try {
                     /* create and connect to socks5 proxy */
                     startTime = System.currentTimeMillis();
-                    this.httpSocket.connect(this.proxyInetSocketAddress = new InetSocketAddress(host, this.proxy.getPort()), this.connectTimeout);
+                    this.connectionSocket.connect(this.proxyInetSocketAddress = new InetSocketAddress(host, this.proxy.getPort()), this.connectTimeout);
                     /* connection is okay */
                     ee = null;
                     break;
@@ -66,7 +66,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                     this.connectExceptions.add(this.proxyInetSocketAddress + "|" + e.getMessage());
                     /* connection failed, try next available ip */
                     try {
-                        this.httpSocket.close();
+                        this.connectionSocket.close();
                     } catch (final Throwable e2) {
                     }
                     ee = e;
@@ -96,10 +96,10 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                 }
                 this.proxyRequest.append("\r\n");
                 /* send CONNECT to proxy */
-                this.httpSocket.getOutputStream().write(this.proxyRequest.toString().getBytes("UTF-8"));
-                this.httpSocket.getOutputStream().flush();
+                this.connectionSocket.getOutputStream().write(this.proxyRequest.toString().getBytes("UTF-8"));
+                this.connectionSocket.getOutputStream().flush();
                 /* parse CONNECT response */
-                ByteBuffer header = HTTPConnectionUtils.readheader(this.httpSocket.getInputStream(), true);
+                ByteBuffer header = HTTPConnectionUtils.readheader(this.connectionSocket.getInputStream(), true);
                 byte[] bytes = new byte[header.limit()];
                 header.get(bytes);
                 final String proxyResponseStatus = new String(bytes, "ISO-8859-1").trim();
@@ -112,7 +112,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                 if (!"200".equals(proxyCode)) {
                     /* something went wrong */
                     try {
-                        this.httpSocket.close();
+                        this.connectionSocket.close();
                     } catch (final Throwable nothing) {
                     }
                     if ("407".equals(proxyCode)) {
@@ -135,7 +135,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                      * read line by line until we reach the single empty line as
                      * seperator
                      */
-                    header = HTTPConnectionUtils.readheader(this.httpSocket.getInputStream(), true);
+                    header = HTTPConnectionUtils.readheader(this.connectionSocket.getInputStream(), true);
                     if (header.limit() <= 2) {
                         /* empty line, <=2, as it may contains \r and/or \n */
                         break;
@@ -154,7 +154,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                     SSLSocket sslSocket = null;
                     try {
                         final SSLSocketFactory socketFactory = TrustALLSSLFactory.getSSLFactoryTrustALL();
-                        sslSocket = (SSLSocket) socketFactory.createSocket(this.httpSocket, this.httpHost, this.httpPort, true);
+                        sslSocket = (SSLSocket) socketFactory.createSocket(this.connectionSocket, this.httpHost, this.httpPort, true);
                         if (this.sslException != null && this.sslException.getMessage().contains("bad_record_mac")) {
                             /* workaround for SSLv3 only hosts */
                             sslSocket.setEnabledProtocols(new String[] { "SSLv3" });
@@ -166,12 +166,12 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                         } catch (final Throwable e3) {
                         }
                         try {
-                            this.httpSocket.close();
+                            this.connectionSocket.close();
                         } catch (final Throwable e2) {
                         }
                         throw new IOException("HTTPProxyHTTPConnection: " + e, e);
                     }
-                    this.httpSocket = sslSocket;
+                    this.connectionSocket = sslSocket;
                 }
                 /* httpPath needs to be like normal http request, eg /index.html */
                 this.httpPath = new org.appwork.utils.Regex(this.httpURL.toString(), "https?://.*?(/.+)").getMatch(0);
@@ -194,7 +194,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             if (this.sslException != null) {
                 throw new ProxyConnectException(e, this.proxy);
             } else {
-                this.disconnect(true);
+                this.disconnect();
                 this.sslException = e;
                 this.connect();
             }
@@ -207,6 +207,11 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             this.connectExceptions.add(this.proxyInetSocketAddress + "|" + e.getMessage());
             throw new ProxyConnectException(e, this.proxy);
         }
+    }
+
+    @Override
+    protected boolean isKeepAlivedEnabled() {
+        return false;
     }
 
     @Override
@@ -242,7 +247,4 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
         return this.preferConnectMethod;
     }
 
-    public void setPreferConnectMethod(final boolean preferConnectMethod) {
-        this.preferConnectMethod = preferConnectMethod;
-    }
 }

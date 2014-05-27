@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.net.httpconnection;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,12 +35,21 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
         NONE
     }
 
-    protected Socket            sockssocket            = null;
-    protected InputStream       socksinputstream       = null;
+    protected Socket      sockssocket      = null;
+    protected InputStream socksinputstream = null;
+
+    protected InputStream getSocksInputStream() {
+        return this.socksinputstream;
+    }
+
+    protected OutputStream getSocksOutputStream() {
+        return this.socksoutputstream;
+    }
+
     protected OutputStream      socksoutputstream      = null;
     protected int               httpPort;
     protected String            httpHost;
-    protected StringBuilder     proxyRequest           = null;
+    protected StringBuffer      proxyRequest           = null;
     protected InetSocketAddress proxyInetSocketAddress = null;
     private SSLException        sslException           = null;
 
@@ -51,7 +61,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
 
     @Override
     public void connect() throws IOException {
-        if (this.isConnected()) { return;/* oder fehler */
+        if (this.isConnectionSocketValid()) { return;/* oder fehler */
         }
         try {
             this.validateProxy();
@@ -82,7 +92,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
             this.socksinputstream = this.sockssocket.getInputStream();
             this.socksoutputstream = this.sockssocket.getOutputStream();
             /* establish connection to socks */
-            this.proxyRequest = new StringBuilder();
+            this.proxyRequest = new StringBuffer();
             final AUTH auth = this.sayHello();
             switch (auth) {
             case PLAIN:
@@ -119,10 +129,10 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
                     }
                     throw new ProxyConnectException(e, this.proxy);
                 }
-                this.httpSocket = sslSocket;
+                this.connectionSocket = sslSocket;
             } else {
                 /* we can continue to use the socks connection */
-                this.httpSocket = establishedConnection;
+                this.connectionSocket = establishedConnection;
             }
             this.sockssocket.setSoTimeout(this.readTimeout);
             this.httpResponseCode = -1;
@@ -138,15 +148,12 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
             if (this.sslException != null) {
                 throw new ProxyConnectException(e, this.proxy);
             } else {
-                this.disconnect(true);
+                this.disconnect();
                 this.sslException = e;
                 this.connect();
             }
         } catch (final IOException e) {
-            try {
-                this.disconnect();
-            } catch (final Throwable e2) {
-            }
+            this.disconnect();
             if (e instanceof HTTPProxyException) { throw e; }
             this.connectExceptions.add(this.proxyInetSocketAddress + "|" + e.getMessage());
             throw new ProxyConnectException(e, this.proxy);
@@ -154,20 +161,28 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
     }
 
     @Override
-    public void disconnect() {
-        super.disconnect();
+    public void setReadTimeout(int readTimeout) {
         try {
-            this.sockssocket.close();
-        } catch (final Throwable e) {
+            this.readTimeout = Math.max(0, readTimeout);
+            this.sockssocket.setSoTimeout(this.readTimeout);
+            this.connectionSocket.setSoTimeout(this.readTimeout);
+        } catch (final Throwable ignore) {
         }
     }
 
     @Override
-    public void disconnect(final boolean freeConnection) {
+    protected boolean isKeepAlivedEnabled() {
+        return false;
+    }
+
+    @Override
+    public void disconnect() {
         try {
-            super.disconnect(freeConnection);
+            super.disconnect();
         } finally {
-            if (freeConnection) {
+            try {
+                this.sockssocket.close();
+            } catch (final Throwable e) {
                 this.sockssocket = null;
             }
         }
@@ -198,11 +213,12 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
         final byte[] response = new byte[expLength];
         int index = 0;
         int read = 0;
-        while (index < expLength && (read = this.socksinputstream.read()) != -1) {
+        final InputStream inputStream = this.getSocksInputStream();
+        while (index < expLength && (read = inputStream.read()) != -1) {
             response[index] = (byte) read;
             index++;
         }
-        if (index < expLength) { throw new IOException("SocksHTTPConnection: not enough data read"); }
+        if (index < expLength) { throw new EOFException("SocksHTTPConnection: not enough data read"); }
         return response;
     }
 

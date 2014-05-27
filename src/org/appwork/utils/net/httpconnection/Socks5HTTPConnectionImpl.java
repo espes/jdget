@@ -1,6 +1,7 @@
 package org.appwork.utils.net.httpconnection;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -22,14 +23,15 @@ public class Socks5HTTPConnectionImpl extends SocksHTTPconnection {
             this.proxyRequest.append("->AUTH user:pass\r\n");
             final byte[] username = user.getBytes("ISO-8859-1");
             final byte[] password = pass.getBytes("ISO-8859-1");
+            final OutputStream outputStream = this.getSocksOutputStream();
             /* must be 1 */
-            this.socksoutputstream.write((byte) 1);
+            outputStream.write((byte) 1);
             /* send username */
-            this.socksoutputstream.write((byte) username.length);
-            this.socksoutputstream.write(username);
+            outputStream.write((byte) username.length);
+            outputStream.write(username);
             /* send password */
-            this.socksoutputstream.write((byte) password.length);
-            this.socksoutputstream.write(password);
+            outputStream.write((byte) password.length);
+            outputStream.write(password);
             /* read response, 2 bytes */
             final byte[] resp = this.readResponse(2);
             if (resp[0] != 1) { throw new ProxyConnectException(this.proxy); }
@@ -52,24 +54,25 @@ public class Socks5HTTPConnectionImpl extends SocksHTTPconnection {
     @Override
     protected Socket establishConnection() throws IOException {
         try {
+            final OutputStream outputStream = this.getSocksOutputStream();
             /* socks5 */
-            this.socksoutputstream.write((byte) 5);
+            outputStream.write((byte) 5);
             /* tcp/ip connection */
-            this.socksoutputstream.write((byte) 1);
+            outputStream.write((byte) 1);
             /* reserved */
-            this.socksoutputstream.write((byte) 0);
+            outputStream.write((byte) 0);
             /* we use domain names */
-            this.socksoutputstream.write((byte) 3);
+            outputStream.write((byte) 3);
             /* send domain name */
             this.proxyRequest.append("->SEND tcp connect request by domain\r\n");
             final byte[] domain = this.httpHost.getBytes("ISO-8859-1");
-            this.socksoutputstream.write((byte) domain.length);
-            this.socksoutputstream.write(domain);
+            outputStream.write((byte) domain.length);
+            outputStream.write(domain);
             /* send port */
             /* network byte order */
-            this.socksoutputstream.write(this.httpPort >> 8 & 0xff);
-            this.socksoutputstream.write(this.httpPort & 0xff);
-            this.socksoutputstream.flush();
+            outputStream.write(this.httpPort >> 8 & 0xff);
+            outputStream.write(this.httpPort & 0xff);
+            outputStream.flush();
             /* read response, 4 bytes and then read rest of response */
             final byte[] resp = this.readResponse(4);
             if (resp[0] != 5) { throw new ProxyConnectException("Socks5HTTPConnection: invalid Socks5 response", this.proxy); }
@@ -103,10 +106,7 @@ public class Socks5HTTPConnectionImpl extends SocksHTTPconnection {
             }
             return this.sockssocket;
         } catch (final IOException e) {
-            try {
-                this.sockssocket.close();
-            } catch (final Throwable e2) {
-            }
+            this.disconnect();
             if (e instanceof HTTPProxyException) { throw e; }
             throw new ProxyConnectException(e, this.proxy);
         }
@@ -117,26 +117,27 @@ public class Socks5HTTPConnectionImpl extends SocksHTTPconnection {
         try {
             this.proxyRequest.append("->SOCKS5 Hello\r\n");
             /* socks5 */
-            this.socksoutputstream.write((byte) 5);
+            final OutputStream outputStream = this.getSocksOutputStream();
+            outputStream.write((byte) 5);
             /* only none ans password/username auth method */
             boolean plainAuthPossible = false;
             if (!StringUtils.isEmpty(this.proxy.getUser()) || !StringUtils.isEmpty(this.proxy.getPass())) {
                 plainAuthPossible = true;
             }
             if (plainAuthPossible) {
-                this.socksoutputstream.write((byte) 2);
+                outputStream.write((byte) 2);
                 this.proxyRequest.append("->SOCKS5 Offer None&Plain Authentication\r\n");
                 /* none */
-                this.socksoutputstream.write((byte) 0);
+                outputStream.write((byte) 0);
                 /* username/password */
-                this.socksoutputstream.write((byte) 2);
-                this.socksoutputstream.flush();
+                outputStream.write((byte) 2);
+                outputStream.flush();
             } else {
-                this.socksoutputstream.write((byte) 1);
+                outputStream.write((byte) 1);
                 this.proxyRequest.append("->SOCKS5 Offer None Authentication\r\n");
                 /* none */
-                this.socksoutputstream.write((byte) 0);
-                this.socksoutputstream.flush();
+                outputStream.write((byte) 0);
+                outputStream.flush();
             }
             /* read response, 2 bytes */
             final byte[] resp = this.readResponse(2);
@@ -154,10 +155,7 @@ public class Socks5HTTPConnectionImpl extends SocksHTTPconnection {
             if (resp[1] == 0) { return AUTH.NONE; }
             throw new IOException("Unsupported auth " + resp[1]);
         } catch (final IOException e) {
-            try {
-                this.sockssocket.close();
-            } catch (final Throwable e2) {
-            }
+            this.disconnect();
             if (e instanceof HTTPProxyException) { throw e; }
             throw new ProxyConnectException(e, this.proxy);
         }
@@ -165,6 +163,6 @@ public class Socks5HTTPConnectionImpl extends SocksHTTPconnection {
 
     @Override
     protected void validateProxy() throws IOException {
-        if (this.proxy == null || !this.proxy.getType().equals(HTTPProxy.TYPE.SOCKS5)) { throw new IOException("Socks5HTTPConnection: invalid Socks5 Proxy!"); }
+        if (this.proxy == null || !HTTPProxy.TYPE.SOCKS5.equals(this.proxy.getType())) { throw new ProxyConnectException("Socks5HTTPConnection: invalid Socks5 Proxy!", this.proxy); }
     }
 }

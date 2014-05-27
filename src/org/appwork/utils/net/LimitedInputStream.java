@@ -16,10 +16,10 @@ import java.io.InputStream;
  * @author daniel
  * 
  */
-public class LimitedInputStream extends CountingInputStream {
+public class LimitedInputStream extends CountingInputStream implements StreamValidEOF {
 
-    private final long limit;
-    protected byte[]   skipBuffer = new byte[32767];
+    private final long     limit;
+    protected final byte[] skipBuffer = new byte[32767];
 
     public LimitedInputStream(final InputStream in, final long limit) {
         super(in);
@@ -48,11 +48,15 @@ public class LimitedInputStream extends CountingInputStream {
 
     @Override
     public long skip(long n) throws IOException {
-        if (n < skipBuffer.length) {
-            return read(skipBuffer, 0, (int) n);
+        if (n < this.skipBuffer.length) {
+            return this.read(this.skipBuffer, 0, (int) n);
         } else {
-            return read(skipBuffer);
+            return this.read(this.skipBuffer);
         }
     }
 
+    @Override
+    public boolean isValidEOF() {
+        return this.transferedBytes() == this.getLimit();
+    }
 }
