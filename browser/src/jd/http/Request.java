@@ -247,7 +247,7 @@ public abstract class Request {
                     }
                     return this;
                 } catch (final HTTPKeepAliveSocketException ignore) {
-                    ignore.printStackTrace();
+                    // ignore.printStackTrace();
                 }
             }
         } finally {
