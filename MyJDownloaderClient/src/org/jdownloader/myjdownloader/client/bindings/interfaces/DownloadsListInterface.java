@@ -3,13 +3,14 @@ package org.jdownloader.myjdownloader.client.bindings.interfaces;
 import java.util.List;
 
 import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
-import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadLinkStorable;
-import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadPackageStorable;
+import org.jdownloader.myjdownloader.client.bindings.PriorityStorable;
 import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadLinkQuery;
+import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadLinkStorable;
 import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadPackageQuery;
+import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadPackageStorable;
 
 @ClientApiNameSpace("downloadsV2")
-public interface DownloadsListInterface extends Linkable{
+public interface DownloadsListInterface extends Linkable {
 
     void setEnabled(boolean enabled, long[] linkIds, long[] packageIds);
 
@@ -35,6 +36,15 @@ public interface DownloadsListInterface extends Linkable{
     void movePackages(long[] packageIds, long afterDestPackageId);
 
     void moveLinks(long[] linkIds, long afterLinkID, long destPackageID);
+
+    /**
+     * Set the priority for the given link or package ids
+     * 
+     * @param priority
+     * @param linkIds
+     * @param packageIds
+     */
+    void setPriority(PriorityStorable priority, long[] linkIds, long[] packageIds);
 
     /**
      * Query Packages links in downloads

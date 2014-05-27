@@ -3,6 +3,7 @@ package org.jdownloader.myjdownloader.client.bindings.interfaces;
 import org.jdownloader.myjdownloader.client.bindings.AddLinksQuery;
 import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
 import org.jdownloader.myjdownloader.client.bindings.LinkVariantStorable;
+import org.jdownloader.myjdownloader.client.bindings.PriorityStorable;
 import org.jdownloader.myjdownloader.client.bindings.linkgrabber.CrawledLinkQuery;
 import org.jdownloader.myjdownloader.client.bindings.linkgrabber.CrawledLinkStorable;
 import org.jdownloader.myjdownloader.client.bindings.linkgrabber.CrawledPackageQuery;
@@ -44,4 +45,13 @@ public interface LinkgrabberInterface extends Linkable {
     void setVariant(long linkid, String variantID);
 
     void addVariantCopy(long linkid, long destinationAfterLinkID, long destinationPackageID, String variantID);
+
+    /**
+     * Set the priority for the given link or package ids
+     * 
+     * @param priority
+     * @param linkIds
+     * @param packageIds
+     */
+    void setPriority(PriorityStorable priority, long[] linkIds, long[] packageIds);
 }
