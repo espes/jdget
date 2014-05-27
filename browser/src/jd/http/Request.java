@@ -30,12 +30,16 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import jd.nutils.encoding.Encoding;
-import jd.parser.Regex;
 
 import org.appwork.exceptions.WTFException;
+import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.utils.Application;
+import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.net.HTTPHeader;
+import org.appwork.utils.net.httpconnection.HTTPConnectionImpl;
+import org.appwork.utils.net.httpconnection.HTTPConnectionImpl.KEEPALIVE;
+import org.appwork.utils.net.httpconnection.HTTPKeepAliveSocketException;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 
 public abstract class Request {
@@ -230,21 +234,25 @@ public abstract class Request {
      */
     protected Request connect() throws IOException {
         try {
-            this.openConnection();
-            this.postRequest();
-            try {
-                this.httpConnection.finalizeConnect();
-            } finally {
+            while (true) {
                 try {
-                    this.collectCookiesFromConnection();
-                } catch (final NullPointerException e) {
-                    throw new IOException("Malformed url?", e);
+                    this.disconnect();
+                    this.openConnection();
+                    this.postRequest();
+                    this.httpConnection.finalizeConnect();
+                    try {
+                        this.collectCookiesFromConnection();
+                    } catch (final NullPointerException e) {
+                        throw new IOException("Malformed url?", e);
+                    }
+                    return this;
+                } catch (final HTTPKeepAliveSocketException ignore) {
+                    ignore.printStackTrace();
                 }
             }
         } finally {
             this.requested = true;
         }
-        return this;
     }
 
     public boolean containsHTML(final String html) throws CharacterCodingException {
@@ -256,7 +264,7 @@ public abstract class Request {
             if (this.httpConnection != null) {
                 this.httpConnection.disconnect();
             }
-        } catch (final Throwable e) {
+        } catch (final Throwable ignore) {
         }
     }
 
@@ -316,7 +324,6 @@ public abstract class Request {
 
         headers.put("Cache-Control", "no-cache");
         headers.put("Pragma", "no-cache");
-        headers.put("Connection", "close");
         return headers;
     }
 
@@ -534,7 +541,6 @@ public abstract class Request {
         this.httpConnection.setReadTimeout(this.getReadTimeout());
         this.httpConnection.setConnectTimeout(this.getConnectTimeout());
         this.httpConnection.setContentDecoded(this.isContentDecodedSet());
-
         final RequestHeader headers = this.getHeaders();
         if (headers != null) {
             for (final HTTPHeader header : headers) {
@@ -542,6 +548,13 @@ public abstract class Request {
                     continue;
                 }
                 this.httpConnection.setRequestProperty(header.getKey(), header.getValue());
+            }
+        }
+        if (this.httpConnection instanceof HTTPConnectionImpl) {
+            final String connectionRequest = this.httpConnection.getRequestProperty(HTTPConstants.HEADER_REQUEST_CONNECTION);
+            if (connectionRequest == null || StringUtils.containsIgnoreCase(connectionRequest, "Keep-Alive")) {
+                HTTPConnectionImpl httpConnectionImpl = (HTTPConnectionImpl) this.httpConnection;
+                httpConnectionImpl.setKeepAlive(KEEPALIVE.EXTERNAL_EXCEPTION);
             }
         }
         this.preRequest();
