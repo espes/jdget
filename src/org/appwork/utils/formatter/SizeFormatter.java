@@ -44,15 +44,23 @@ public class SizeFormatter {
         MB(1024l * 1024l),
         KB(1024l),
         B(1l);
-        private long bytes;
+        private final long bytes;
 
         private Unit(long bytes) {
             this.bytes = bytes;
         }
 
         public long getBytes() {
-            return bytes;
+            return this.bytes;
         }
+    }
+
+    public static Unit getSmallerUnit(Unit unit) {
+        return Unit.values()[Math.min(Unit.values().length - 1, unit.ordinal() + 1)];
+    }
+
+    public static Unit getBiggerUnit(Unit unit) {
+        return Unit.values()[Math.max(0, unit.ordinal() - 1)];
     }
 
     public static Unit getBestUnit(long fileSize) {
@@ -65,7 +73,7 @@ public class SizeFormatter {
     }
 
     public static long getSize(final String string) {
-       
+
         return SizeFormatter.getSize(string, true, false);
     }
 
@@ -107,7 +115,7 @@ public class SizeFormatter {
     }
 
     public static long getSize(final String string, final boolean kibi) {
-        return getSize(string, kibi, false);
+        return SizeFormatter.getSize(string, kibi, false);
 
     }
 }

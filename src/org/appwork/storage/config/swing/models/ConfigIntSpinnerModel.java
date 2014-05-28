@@ -10,7 +10,7 @@ import org.appwork.storage.config.handler.IntegerKeyHandler;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.utils.swing.EDTRunner;
 
-public class ConfigIntSpinnerModel extends SpinnerNumberModel implements GenericConfigEventListener<Integer>   {
+public class ConfigIntSpinnerModel extends SpinnerNumberModel implements GenericConfigEventListener<Integer> {
 
     /**
      * 
@@ -20,21 +20,21 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements Generic
 
     public ConfigIntSpinnerModel(final IntegerKeyHandler keyHandler) {
         super();
-        
+
         this.keyHandler = keyHandler;
         // keyHandler.getEventSender().removeListener(this);
         keyHandler.getEventSender().addListener(this, true);
 
         final SpinnerValidator spinn = keyHandler.getAnnotation(SpinnerValidator.class);
         if (spinn != null) {
-            setMinimum(spinn.min());
-            setMaximum(spinn.max());
-            setStepSize(spinn.step());
+            this.setMinimum(spinn.min());
+            this.setMaximum(spinn.max());
+            this.setStepSize(spinn.step());
         }
     }
 
     public IntegerKeyHandler getKeyHandler() {
-        return keyHandler;
+        return this.keyHandler;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements Generic
     @Override
     public Number getNumber() {
 
-        return keyHandler.getValue();
+        return this.keyHandler.getValue();
 
     }
 
@@ -74,30 +74,30 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements Generic
      * @see #getPreviousValue
      * @see #setStepSize
      */
+    @Override
     public Object getNextValue() {
-        return incrValue(+1);
+        return this.incrValue(+1);
     }
 
+    @Override
     public Object getPreviousValue() {
-        return incrValue(-1);
+        return this.incrValue(-1);
     }
 
     protected Number incrValue(final int i) {
-
-        return ((Integer) getValue()).intValue() + getStepSize().intValue() * i;
-
+        return ((Integer) this.getValue()).intValue() + this.getStepSize().intValue() * i;
     }
 
     @Override
     public Object getValue() {
 
-        return keyHandler.getValue();
+        return this.keyHandler.getValue();
     }
 
     @Override
     public void setValue(final Object value) {
         try {
-            keyHandler.setValue(((Number) value).intValue());
+            this.keyHandler.setValue(((Number) value).intValue());
         } catch (final ValidationException e) {
             java.awt.Toolkit.getDefaultToolkit().beep();
 
@@ -109,7 +109,7 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements Generic
 
             @Override
             protected void runInEDT() {
-                fireStateChanged();
+                ConfigIntSpinnerModel.this.fireStateChanged();
             }
         };
     }
@@ -119,7 +119,7 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements Generic
         new EDTRunner() {
             @Override
             protected void runInEDT() {
-                fireStateChanged();
+                ConfigIntSpinnerModel.this.fireStateChanged();
             }
         };
     }
