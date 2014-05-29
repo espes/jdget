@@ -215,7 +215,8 @@ public class Browser {
             }
             return sb.toString();
         }
-        return null;
+        System.out.println("WARNING: correctURL failed for "+url);
+        return url;
     }
 
     public static String getBasicAuthfromURL(final String url) {
@@ -1468,7 +1469,7 @@ public class Browser {
     }
 
     public void setHeaders(final RequestHeader h) {
-        this.headers = h;
+        this.headers = h; 
     }
 
     public void setKeepResponseContentBytes(final boolean keepResponseContentBytes) {
