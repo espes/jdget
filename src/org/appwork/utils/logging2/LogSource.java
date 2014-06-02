@@ -58,10 +58,20 @@ public class LogSource extends Logger implements LogInterface {
     private boolean                   closed                = false;
 
     private boolean                   allowTimeoutFlush     = true;
-    private boolean                   instantFlush          = false;
-    private boolean                   flushOnFinalize       = false;
+    private boolean                   autoFlushOnThrowable  = false;
 
-    private Logger                    parent                = null;
+    public boolean isAutoFlushOnThrowable() {
+        return this.autoFlushOnThrowable;
+    }
+
+    public void setAutoFlushOnThrowable(boolean autoFlushOnThrowable) {
+        this.autoFlushOnThrowable = autoFlushOnThrowable;
+    }
+
+    private boolean instantFlush    = false;
+    private boolean flushOnFinalize = false;
+
+    private Logger  parent          = null;
 
     public LogSource(final String name) {
         this(name, -1);
@@ -240,6 +250,9 @@ public class LogSource extends Logger implements LogInterface {
         final LogRecord lr = new LogRecord(lvl, Exceptions.getStackTrace(e));
         lr.setLoggerName(this.getName());
         this.log(lr);
+        if (this.isAutoFlushOnThrowable()) {
+            this.flush();
+        }
     }
 
     /**
