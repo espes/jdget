@@ -781,9 +781,9 @@ public class Browser {
             if (llogger != null) {
                 llogger.warning("Request has already been read");
             }
-            return lRequest.getHtmlCode();
+            return lRequest.getHTMLSource();
         }
-        return this.loadConnection(lRequest.getHttpConnection()).getHtmlCode();
+        return this.loadConnection(lRequest.getHttpConnection()).getHTMLSource();
     }
 
     /**
@@ -1339,7 +1339,7 @@ public class Browser {
      * loads a new page (post)
      */
     public String postPage(final String url, final LinkedHashMap<String, String> post) throws IOException {
-        return this.loadConnection(this.openPostConnection(url, post)).getHtmlCode();
+        return this.loadConnection(this.openPostConnection(url, post)).getHTMLSource();
     }
 
     /**
@@ -1352,7 +1352,7 @@ public class Browser {
     public String postPageRaw(final String url, final byte[] post) throws IOException {
         final PostRequest request = (PostRequest) this.createPostRequest(url, new ArrayList<RequestVariable>(), null);
         request.setPostBytes(post);
-        return this.loadConnection(this.openRequestConnection(request)).getHtmlCode();
+        return this.loadConnection(this.openRequestConnection(request)).getHTMLSource();
     }
 
     /**
@@ -1361,7 +1361,7 @@ public class Browser {
     public String postPageRaw(final String url, final String post) throws IOException {
         final PostRequest request = (PostRequest) this.createPostRequest(url, new ArrayList<RequestVariable>(), null);
         request.setPostDataString(post);
-        return this.loadConnection(this.openRequestConnection(request)).getHtmlCode();
+        return this.loadConnection(this.openRequestConnection(request)).getHTMLSource();
     }
 
     protected List<HTTPProxy> selectProxies(final String url) throws IOException {
@@ -1551,8 +1551,7 @@ public class Browser {
     }
 
     public String submitForm(final Form form) throws Exception {
-        this.openFormConnection(form);
-        return this.followConnection();
+        return this.loadConnection(this.openFormConnection(form)).getHTMLSource();
     }
 
     @Override

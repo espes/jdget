@@ -256,7 +256,8 @@ public abstract class Request {
     }
 
     public boolean containsHTML(final String html) throws CharacterCodingException {
-        return this.getHtmlCode() == null ? false : this.getHtmlCode().contains(html);
+        final String htmlCode = this.getHtmlCode();
+        return htmlCode == null ? false : htmlCode.contains(html);
     }
 
     public void disconnect() {
