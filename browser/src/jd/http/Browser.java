@@ -215,7 +215,7 @@ public class Browser {
             }
             return sb.toString();
         }
-        System.out.println("WARNING: correctURL failed for "+url);
+        System.out.println("WARNING: correctURL failed for " + url);
         return url;
     }
 
@@ -515,7 +515,8 @@ public class Browser {
             long length = -1;
             final int limit = this.getLoadLimit();
             request.setReadLimit(limit);
-            if ((length = request.getHttpConnection().getLongContentLength()) >= 0 && length > limit) {
+            length = request.getHttpConnection().getLongContentLength();
+            if (length >= 0 && length > limit) {
                 request.disconnect();
                 throw new BrowserException("Content-length too big:" + length + ">" + limit, request);
             }
@@ -985,8 +986,7 @@ public class Browser {
     }
 
     public String getPage(final String string) throws IOException {
-        return this.loadConnection(this.openRequestConnection(this.createGetRequest(string))).getHtmlCode();
-
+        return this.loadConnection(this.openRequestConnection(this.createGetRequest(string))).getHTMLSource();
     }
 
     public String getPage(final URL url) throws IOException {
@@ -1469,7 +1469,7 @@ public class Browser {
     }
 
     public void setHeaders(final RequestHeader h) {
-        this.headers = h; 
+        this.headers = h;
     }
 
     public void setKeepResponseContentBytes(final boolean keepResponseContentBytes) {
