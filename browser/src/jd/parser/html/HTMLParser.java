@@ -365,8 +365,8 @@ public class HTMLParser {
     }
 
     final private static Pattern                unescapePattern             = Pattern.compile("unescape\\(('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    final private static Pattern                checkPatternHREFUNESCAPESRC = Pattern.compile(".*?(href|unescape|src=).*?", Pattern.CASE_INSENSITIVE);
-    final private static Pattern                checkPatternHREFSRC         = Pattern.compile(".*?(href|src=).*?", Pattern.CASE_INSENSITIVE);
+    final private static Pattern                checkPatternHREFUNESCAPESRC = Pattern.compile(".*?(href|unescape|src=).+", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                checkPatternHREFSRC         = Pattern.compile(".*?(href|src=).+", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     final private static Pattern                unhexPattern                = Pattern.compile("(([0-9a-fA-F]{2}| )+)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     final private static Pattern                paramsCut1                  = Pattern.compile("://[^\r\n]*?/[^\r\n]+\\?.[^\r\n]*?=(.*?)($|\r|\n)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
