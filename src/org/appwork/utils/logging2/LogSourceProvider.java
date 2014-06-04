@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -75,15 +76,16 @@ public abstract class LogSourceProvider {
 
     protected boolean                        instantFlushDefault;
     private long                             initTime;
-    private final static Object              TRASHLOCK   = new Object();
+    private final static AtomicBoolean       TRASHLOCK   = new AtomicBoolean(false);
 
     public LogSourceProvider(final long timeStamp) {
         this.initTime = timeStamp;
         this.consoleHandler = new LogConsoleHandler();
-        this.maxSize = JsonConfig.create(LogConfig.class).getMaxLogFileSize();
-        this.maxLogs = JsonConfig.create(LogConfig.class).getMaxLogFiles();
-        this.logTimeout = JsonConfig.create(LogConfig.class).getLogFlushTimeout() * 1000l;
-        this.instantFlushDefault = JsonConfig.create(LogConfig.class).isDebugModeEnabled();
+        final LogConfig config = JsonConfig.create(LogConfig.class);
+        this.maxSize = config.getMaxLogFileSize();
+        this.maxLogs = config.getMaxLogFiles();
+        this.logTimeout = config.getLogFlushTimeout() * 1000l;
+        this.instantFlushDefault = config.isDebugModeEnabled();
         File llogFolder = Application.getResource("logs/" + timeStamp + "_" + new SimpleDateFormat("HH.mm").format(new Date(timeStamp)) + "/");
         if (llogFolder.exists()) {
             llogFolder = Application.getResource("logs/" + timeStamp + "_" + new SimpleDateFormat("HH.mm.ss").format(new Date(timeStamp)) + "/");
@@ -105,15 +107,14 @@ public abstract class LogSourceProvider {
             }
 
         });
-        new Thread("LogsCleanup") {
-            long newestTimeStamp = -1;
+        if (LogSourceProvider.TRASHLOCK.compareAndSet(false, true)) {
+            new Thread("LogsCleanup") {
+                long newestTimeStamp = -1;
 
-            @Override
-            public void run() {
-                synchronized (LogSourceProvider.TRASHLOCK) {
+                @Override
+                public void run() {
                     final File oldLogs[] = Application.getResource("logs/").listFiles(new FilenameFilter() {
-
-                        long removeTimeStamp = timeStamp - JsonConfig.create(LogConfig.class).getCleanupLogsOlderThanXDays() * 24 * 60 * 60 * 1000l;
+                        long removeTimeStamp = timeStamp - config.getCleanupLogsOlderThanXDays() * 24 * 60 * 60 * 1000l;
 
                         @Override
                         public boolean accept(final File dir, final String name) {
@@ -148,9 +149,9 @@ public abstract class LogSourceProvider {
                         }
                     }
                 }
-            }
 
-        }.start();
+            }.start();
+        }
     }
 
     /**
