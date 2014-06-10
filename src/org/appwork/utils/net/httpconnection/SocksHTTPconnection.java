@@ -19,7 +19,6 @@ import java.net.Proxy;
 import java.net.Socket;
 import java.net.URL;
 
-import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocket;
 
 /**
@@ -84,10 +83,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
                         ee = null;
                         break;
                     } catch (final IOException e) {
-                        try {
-                            this.sockssocket.close();
-                        } catch (final Throwable e2) {
-                        }
+                        this.disconnect();
                         /* connection failed, try next available ip */
                         this.connectExceptions.add(this.proxyInetSocketAddress + "|" + e.getMessage());
                         ee = e;
@@ -131,7 +127,8 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
                             sslSocket.setEnabledProtocols(new String[] { "SSLv3" });
                         }
                         sslSocket.startHandshake();
-                    } catch (final SSLHandshakeException e) {
+                    } catch (final IOException e) {
+                        this.connectExceptions.add(this.sockssocket + "|" + e.getMessage());
                         this.disconnect();
                         if (sslSNIWorkAround == false && e.getMessage().contains("unrecognized_name")) {
                             sslSNIWorkAround = true;
@@ -167,7 +164,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
                     sslV3Workaround = true;
                     continue connect;
                 }
-                throw e;
+                throw new ProxyConnectException(e, this.proxy);
             } catch (final IOException e) {
                 this.disconnect();
                 if (e instanceof HTTPProxyException) { throw e; }
