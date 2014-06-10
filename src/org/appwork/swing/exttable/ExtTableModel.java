@@ -591,10 +591,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param sortOrderIdentifier
      */
     public String getNextSortIdentifier(final String sortOrderIdentifier) {
-        if (sortOrderIdentifier == null || sortOrderIdentifier.equals(ExtColumn.SORT_ASC)) {
-            return ExtColumn.SORT_DESC;
-        } else {
+        if (sortOrderIdentifier == null || sortOrderIdentifier.equals(ExtColumn.SORT_DESC)) {
             return ExtColumn.SORT_ASC;
+        } else {
+            return ExtColumn.SORT_DESC;
         }
 
     }

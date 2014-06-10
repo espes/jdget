@@ -25,7 +25,6 @@ import java.util.WeakHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.zip.GZIPInputStream;
 
-import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
 
 import org.appwork.net.protocol.http.HTTPConstants;
@@ -152,8 +151,6 @@ public class HTTPConnectionImpl implements HTTPConnection {
                                                                                              };
     protected static final WeakHashMap<Socket, HTTPKeepAliveSocket>         KEEPALIVESOCKETS = new WeakHashMap<Socket, HTTPKeepAliveSocket>();
     protected static final Object                                           LOCK             = new Object();
-
-    private SSLException                                                    sslException     = null;
 
     public HTTPConnectionImpl(final URL url) {
         this(url, null);
@@ -334,13 +331,18 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     public void connect() throws IOException {
-        while (true) {
+        boolean sslSNIWorkAround = false;
+        boolean sslV3Workaround = false;
+        InetAddress hosts[] = null;
+        connect: while (true) {
             if (this.isConnectionSocketValid()) { return;/* oder fehler */
             }
             this.resetConnection();
             this.connectionSocket = this.getKeepAliveSocket();
             if (this.connectionSocket == null) {
-                final InetAddress hosts[] = this.resolvHostIP(this.httpURL.getHost());
+                if (hosts == null) {
+                    hosts = this.resolvHostIP(this.httpURL.getHost());
+                }
                 /* try all different ip's until one is valid and connectable */
                 IOException ee = null;
                 for (final InetAddress host : hosts) {
@@ -372,11 +374,15 @@ public class HTTPConnectionImpl implements HTTPConnection {
                         connectedInetSocketAddress = new InetSocketAddress(host, port);
                         this.connectionSocket.connect(connectedInetSocketAddress, this.connectTimeout);
                         if (this.httpURL.getProtocol().startsWith("https")) {
-                            /* https */
-                            sslSocket = (SSLSocket) TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket(this.connectionSocket, this.httpURL.getHost(), port, true);
-                            if (this.sslException != null && this.sslException.getMessage().contains("bad_record_mac")) {
+                            if (sslSNIWorkAround) {
+                                /* wrong configured SNI at serverSide */
+                                sslSocket = (SSLSocket) TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket(this.connectionSocket, "", port, true);
+                            } else {
+                                sslSocket = (SSLSocket) TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket(this.connectionSocket, this.httpURL.getHost(), port, true);
+                            }
+                            if (sslV3Workaround && sslSocket != null) {
                                 /* workaround for SSLv3 only hosts */
-                                ((SSLSocket) this.connectionSocket).setEnabledProtocols(new String[] { "SSLv3" });
+                                sslSocket.setEnabledProtocols(new String[] { "SSLv3" });
                             }
                             sslSocket.startHandshake();
                             this.connectionSocket = sslSocket;
@@ -386,13 +392,14 @@ public class HTTPConnectionImpl implements HTTPConnection {
                         break;
                     } catch (final IOException e) {
                         this.connectExceptions.add(connectedInetSocketAddress + "|" + e.getMessage());
-                        try {
-                            if (sslSocket != null) {
-                                sslSocket.close();
-                            }
-                        } catch (final Throwable nothing) {
-                        }
                         this.disconnect();
+                        if (sslSNIWorkAround == false && e.getMessage().contains("unrecognized_name")) {
+                            sslSNIWorkAround = true;
+                            continue connect;
+                        } else if (sslV3Workaround == false && e.getMessage().contains("bad_record_mac")) {
+                            sslV3Workaround = true;
+                            continue connect;
+                        }
                         ee = e;
                     }
                 }
@@ -405,12 +412,15 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 return;
             } catch (final javax.net.ssl.SSLException e) {
                 this.connectExceptions.add(this.connectionSocket.getInetAddress() + "|" + e.getMessage());
-                if (this.sslException != null) {
-                    throw e;
-                } else {
-                    this.disconnect();
-                    this.sslException = e;
+                this.disconnect();
+                if (sslSNIWorkAround == false && e.getMessage().contains("unrecognized_name")) {
+                    sslSNIWorkAround = true;
+                    continue connect;
+                } else if (sslV3Workaround == false && e.getMessage().contains("bad_record_mac")) {
+                    sslV3Workaround = true;
+                    continue connect;
                 }
+                throw e;
             } catch (final HTTPKeepAliveSocketException e) {
                 if (KEEPALIVE.EXTERNAL_EXCEPTION.equals(this.getKeepAlive())) {
                     //
