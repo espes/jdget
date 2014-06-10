@@ -1189,7 +1189,11 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             } catch (final Exception e) {
                 Log.exception(e);
             }
-            Collections.sort(data, column.getRowSorter());
+            try {
+                Collections.sort(data, column.getRowSorter());
+            } catch (final Throwable e) {
+                Log.exception(e);
+            }
         } else {
             try {
                 this.getStorage().put(ExtTableModel.SORT_ORDER_ID_KEY, (String) null);
