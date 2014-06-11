@@ -11,22 +11,37 @@ public class BrowserSettingsThread extends Thread implements BrowserSettings {
 
     public BrowserSettingsThread() {
 
-        copySettings();
+        this.copySettings();
+    }
+
+    public BrowserSettingsThread(ThreadGroup group, Runnable target, String name) {
+        super(group, target, name);
+        this.copySettings();
+    }
+
+    public BrowserSettingsThread(ThreadGroup group, Runnable target) {
+        super(group, target);
+        this.copySettings();
+    }
+
+    public BrowserSettingsThread(ThreadGroup group, String name) {
+        super(group, name);
+        this.copySettings();
     }
 
     public BrowserSettingsThread(final Runnable r) {
         super(r);
-        copySettings();
+        this.copySettings();
     }
 
     public BrowserSettingsThread(final Runnable r, final String name) {
         super(r, name);
-        copySettings();
+        this.copySettings();
     }
 
     public BrowserSettingsThread(final String name) {
         super(name);
-        copySettings();
+        this.copySettings();
     }
 
     private void copySettings() {
@@ -37,27 +52,27 @@ public class BrowserSettingsThread extends Thread implements BrowserSettings {
         if (currentThread != null && currentThread instanceof BrowserSettings) {
             @SuppressWarnings("unchecked")
             final BrowserSettings settings = (BrowserSettings) currentThread;
-            proxySelector = settings.getProxySelector();
-            debug = settings.isDebug();
-            verbose = settings.isVerbose();
-            logger = settings.getLogger();
+            this.proxySelector = settings.getProxySelector();
+            this.debug = settings.isDebug();
+            this.verbose = settings.isVerbose();
+            this.logger = settings.getLogger();
         }
     }
 
     public ProxySelectorInterface getProxySelector() {
-        return proxySelector;
+        return this.proxySelector;
     }
 
     public Logger getLogger() {
-        return logger;
+        return this.logger;
     }
 
     public boolean isDebug() {
-        return debug;
+        return this.debug;
     }
 
     public boolean isVerbose() {
-        return verbose;
+        return this.verbose;
     }
 
     public void setProxySelector(final ProxySelectorInterface proxy) {
@@ -65,7 +80,7 @@ public class BrowserSettingsThread extends Thread implements BrowserSettings {
     }
 
     public void setDebug(final boolean b) {
-        debug = b;
+        this.debug = b;
     }
 
     public void setLogger(final Logger logger) {
@@ -73,7 +88,7 @@ public class BrowserSettingsThread extends Thread implements BrowserSettings {
     }
 
     public void setVerbose(final boolean b) {
-        verbose = b;
+        this.verbose = b;
     }
 
 }
