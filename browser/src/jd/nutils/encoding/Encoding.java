@@ -48,7 +48,7 @@ public class Encoding {
         try {
 
             final byte[] plain = Base64.decode(base64);
-            if (Encoding.filterString(new String(plain), "UTF-8").length() < plain.length / 1.5) {
+            if (Encoding.filterString(new String(plain)).length() < plain.length / 1.5) {
                 return base64;
             }
             return new String(plain, "UTF-8");
