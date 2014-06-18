@@ -142,33 +142,47 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
 
     @Override
     public Object getNextValue() {
-        final Object ret = this.getValue();
-        final long num = ((Number) ret).longValue();
+        Object ret = getValue();
+        long num = ((Number) ret).longValue();
 
-        final Unit unit = SizeFormatter.getBestUnit(num);
+        Unit unit = SizeFormatter.getBestUnit(num);
+        long add = getStep(num, unit);
 
-        int c = (int) (num == 0 ? 0 : Math.log10(num / unit.getBytes()));
-        c = Math.max(0, c - 1);
         long newV;
-        if (this.nm.getMaximum() != null) {
-            newV = (long) Math.min(((Number) this.nm.getMaximum()).longValue(), num + unit.getBytes() * Math.pow(10, c));
+        if (nm.getMaximum() != null) {
+
+            newV = (long) Math.min(((Number) nm.getMaximum()).longValue(), num + add);
         } else {
-            newV = (long) (num + unit.getBytes() * Math.pow(10, c));
+            newV = (long) (num + add);
         }
-        final Unit newUnit = SizeFormatter.getBestUnit(newV);
+        Unit newUnit = SizeFormatter.getBestUnit((long) newV);
         if (newUnit == unit) {
             if (newV == num) {
-                this.beep();
+                beep();
             }
             return newV;
         }
 
-        newV = (int) (newV / newUnit.getBytes()) * newUnit.getBytes();
+        newV = newUnit.getBytes1024() * 1;
+
         if (newV == num) {
-            this.beep();
+            beep();
         }
         return newV;
 
+    }
+
+    public long getStep(long num, Unit unit) {
+        long display = num / unit.getBytes1024();
+        int log = display < 1 ? 0 : (int) Math.log10(display);
+        log -= 1;
+        long add = 0;
+        if (log < 0) {
+            add = (long) ((unit.getBytes1024() / 1024) * 100);
+        } else {
+            add = (long) (Math.pow(10, log) * unit.getBytes1024());
+        }
+        return Math.max(1, add);
     }
 
     @Override
@@ -176,13 +190,12 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
         final Object ret = this.getValue();
         final long num = ((Number) ret).longValue();
         final Unit unit = SizeFormatter.getBestUnit(num);
-        int c = (int) (num == 0 ? 0 : Math.log10(num / unit.getBytes()));
-        c = Math.max(0, c - 1);
+        long add = getStep(num, unit);
         long nv;
         if (this.nm.getMinimum() != null) {
-            nv = (long) Math.max(((Number) this.nm.getMinimum()).longValue(), num - unit.getBytes() * Math.pow(10, c));
+            nv = (long) Math.max(((Number) this.nm.getMinimum()).longValue(), num - add);
         } else {
-            nv = (long) (num - unit.getBytes() * Math.pow(10, c));
+            nv = (long) (num - add);
         }
         final Unit nunit = SizeFormatter.getBestUnit(nv);
         if (nunit == unit) {
@@ -192,8 +205,7 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
             return nv;
         }
 
-        nv = Math.max(((Number) this.nm.getMinimum()).longValue(), num - unit.getBytes() / 1024);
-
+        nv = nunit.getBytes1024() * 1000;
         if (nv == num) {
             this.beep();
         }

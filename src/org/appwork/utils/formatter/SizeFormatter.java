@@ -31,10 +31,10 @@ public class SizeFormatter {
     public static String formatBytes(long fileSize) {
         final long abs = Math.abs(fileSize);
         final DecimalFormat c = new DecimalFormat("0.00");
-        if (abs >= Unit.TB.getKibytes()) { return _AWU.T.literally_tebibyte(c.format(fileSize / Unit.TB.getDkibytes())); }
-        if (abs >= Unit.GB.getKibytes()) { return _AWU.T.literally_gibibyte(c.format(fileSize / Unit.GB.getDkibytes())); }
-        if (abs >= Unit.MB.getKibytes()) { return _AWU.T.literally_mebibyte(c.format(fileSize / Unit.MB.getDkibytes())); }
-        if (abs >= Unit.KB.getKibytes()) { return _AWU.T.literally_kibibyte(c.format(fileSize / Unit.KB.getDkibytes())); }
+        if (abs >= Unit.TB.getBytes1024()) { return _AWU.T.literally_tebibyte(c.format(fileSize / (double) Unit.TB.getBytes1024())); }
+        if (abs >= Unit.GB.getBytes1024()) { return _AWU.T.literally_gibibyte(c.format(fileSize / (double) Unit.GB.getBytes1024())); }
+        if (abs >= Unit.MB.getBytes1024()) { return _AWU.T.literally_mebibyte(c.format(fileSize / (double) Unit.MB.getBytes1024())); }
+        if (abs >= Unit.KB.getBytes1024()) { return _AWU.T.literally_kibibyte(c.format(fileSize / (double) Unit.KB.getBytes1024())); }
         return _AWU.T.literally_byte(fileSize);
     }
 
@@ -44,32 +44,20 @@ public class SizeFormatter {
         MB(1024l * 1024l, 1000l * 1000l),
         KB(1024l, 1000l),
         B(1l, 1l);
-        private final long   bytes;
-        private final double dbytes;
-        private final double dkibytes;
-
-        public final double getDkibytes() {
-            return this.dkibytes;
-        }
-
-        public final long getKibytes() {
-            return this.kibytes;
-        }
-
+        private final long bytes;
         private final long kibytes;
 
-        public final double getDbytes() {
-            return this.dbytes;
+        public final long getBytes1024() {
+            return this.kibytes;
         }
 
         private Unit(long kibytes, long bytes) {
             this.bytes = bytes;
             this.kibytes = kibytes;
-            this.dbytes = bytes;
-            this.dkibytes = kibytes;
+
         }
 
-        public final long getBytes() {
+        public final long getBytes1000() {
             return this.bytes;
         }
     }
@@ -84,10 +72,10 @@ public class SizeFormatter {
 
     public static Unit getBestUnit(long fileSize) {
         final long abs = Math.abs(fileSize);
-        if (abs >= Unit.TB.getKibytes()) { return Unit.TB; }
-        if (abs >= Unit.GB.getKibytes()) { return Unit.GB; }
-        if (abs >= Unit.MB.getKibytes()) { return Unit.MB; }
-        if (abs >= Unit.KB.getKibytes()) { return Unit.KB; }
+        if (abs >= Unit.TB.getBytes1024()) { return Unit.TB; }
+        if (abs >= Unit.GB.getBytes1024()) { return Unit.GB; }
+        if (abs >= Unit.MB.getBytes1024()) { return Unit.MB; }
+        if (abs >= Unit.KB.getBytes1024()) { return Unit.KB; }
         return Unit.B;
     }
 
@@ -110,7 +98,7 @@ public class SizeFormatter {
             matches = new Regex(string, SizeFormatter.NUMBER).getMatches();
         }
         if (matches != null && matches.length >= 1) {
-            final long unitLong = kibi ? SizeFormatter.getBestUnit(string).getKibytes() : SizeFormatter.getBestUnit(string).getBytes();
+            final long unitLong = kibi ? SizeFormatter.getBestUnit(string).getBytes1024() : SizeFormatter.getBestUnit(string).getBytes1000();
             if (matches[0].length == 2 && Long.parseLong(matches[0][1]) > 0) {
                 final double ret = Double.parseDouble(matches[0][0] + "." + matches[0][1]) * unitLong;
                 return negative ? -Math.round(ret) : Math.round(ret);

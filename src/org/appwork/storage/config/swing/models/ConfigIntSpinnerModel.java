@@ -97,6 +97,7 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements Generic
     @Override
     public void setValue(final Object value) {
         try {
+
             this.keyHandler.setValue(((Number) value).intValue());
         } catch (final ValidationException e) {
             java.awt.Toolkit.getDefaultToolkit().beep();
