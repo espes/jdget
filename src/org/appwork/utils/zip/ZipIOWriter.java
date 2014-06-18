@@ -251,6 +251,12 @@ public class ZipIOWriter {
             } catch (final Throwable e2) {
             }
             try {
+                if (this.fileStream instanceof FileOutputStream) {
+                    ((FileOutputStream) this.fileStream).getChannel().force(true);
+                }
+            } catch (final Throwable e2) {
+            }
+            try {
                 this.fileStream.close();
             } catch (final Throwable e2) {
             }
