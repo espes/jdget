@@ -31,6 +31,11 @@ public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDia
         this.message = message;
     }
 
+    @Override
+    public boolean isRemoteAPIEnabled() {
+        return true;
+    }
+
     private JTextPane textField;
 
     public ConfirmDialog(final int flag, final String title, final String message, final Icon icon, final String okOption, final String cancelOption) {

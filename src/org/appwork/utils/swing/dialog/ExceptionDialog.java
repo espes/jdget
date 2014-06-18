@@ -28,6 +28,7 @@ import javax.swing.event.HyperlinkListener;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.resources.AWUTheme;
+import org.appwork.uio.ExceptionDialogInterface;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.Exceptions;
 import org.appwork.utils.locale._AWU;
@@ -38,7 +39,7 @@ import org.appwork.utils.os.CrossSystem;
  * @author thomas
  * 
  */
-public class ExceptionDialog extends AbstractDialog<Integer> {
+public class ExceptionDialog extends AbstractDialog<Integer> implements ExceptionDialogInterface {
 
     private final String    message;
     private JTextPane       textField;
@@ -56,6 +57,11 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
 
     public boolean isExpanded() {
         return expanded;
+    }
+
+    @Override
+    public boolean isRemoteAPIEnabled() {
+        return true;
     }
 
     public void setExpanded(boolean expanded) {
@@ -198,6 +204,16 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
     public void setMore(String string) {
         moreString = string;
 
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.uio.ExceptionDialogInterface#getStacktrace()
+     */
+    @Override
+    public String getStacktrace() {
+        return Exceptions.getStackTrace(ExceptionDialog.this.exception);
     }
 
 }

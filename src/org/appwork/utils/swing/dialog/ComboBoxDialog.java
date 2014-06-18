@@ -48,6 +48,11 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
      */
     private final ListCellRenderer renderer;
 
+    @Override
+    public boolean isRemoteAPIEnabled() {
+        return true;
+    }
+
     /**
      * 
      * @see Dialog#showComboDialog(int, String, String, Object[], int,
@@ -153,12 +158,5 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
     public int getSelectedIndex() {
         return getReturnIndex();
     }
-
-
-
-
-
-
- 
 
 }

@@ -44,6 +44,11 @@ public class SearchComboBoxDialog<Type> extends AbstractDialog<Type> implements 
     private final Type[]         options;
     private SearchComboBox<Type> box;
 
+    @Override
+    public boolean isRemoteAPIEnabled() {
+        return true;
+    }
+
     /**
      * 
      * @see Dialog#showComboDialog(int, String, String, Object[], int,
@@ -182,9 +187,7 @@ public class SearchComboBoxDialog<Type> extends AbstractDialog<Type> implements 
     public int getSelectedIndex() {
         if ((getReturnmask() & Dialog.RETURN_OK) == 0) { return -1; }
         if (box != null) { return box.getSelectedIndex(); }
-        if (defaultAnswer == null) {
-            return -1;
-        }
+        if (defaultAnswer == null) { return -1; }
         return Arrays.binarySearch(options, defaultAnswer);
     }
 
