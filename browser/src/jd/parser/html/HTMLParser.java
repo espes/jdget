@@ -857,8 +857,8 @@ public class HTMLParser {
             } else {
                 tmplinks.add(link);
             }
-            // this finds a URL within link that's URLEncoded.
-            final String urlEncodedLink = new Regex(link, "(?:https?|ftp)" + HTMLParser.urlEncodedProtocol + ".+").getMatch(-1);
+            // this finds a URLencoded URL within 'link'. We only want to find URLEncoded link, and not a value belonging to 'link'
+            final String urlEncodedLink = new Regex(link, "(?:https?|ftp)" + HTMLParser.urlEncodedProtocol + "[^&]+").getMatch(-1);
             if (urlEncodedLink != null) {
                 tmplinks.add(decodeURLParamEncodedURL(urlEncodedLink));
             }
