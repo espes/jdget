@@ -892,8 +892,7 @@ public class Browser {
     /**
      * Returns the first form that has a 'key' that equals 'value'.
      * 
-     * NOTE: JDownloader 2 dependent
-     * 
+     * @since JD2
      * @param key
      * @param value
      * @return
@@ -924,7 +923,9 @@ public class Browser {
     }
 
     /**
-     * Returns the first form with an Submitvalue of name
+     * Returns the first form with an Submitvalue of name<br />
+     * Note: String needs to be urlEncoded as values it's comparing against are!
+     * 
      * 
      * @param name
      * @return

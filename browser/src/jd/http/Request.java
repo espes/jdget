@@ -449,7 +449,28 @@ public abstract class Request {
                  */
                 final String validPath = new Regex(path, "(/.*?/.*?)(\\?|$)").getMatch(0);
                 if (validPath != null && validPath.length() > 0) {
-                    path = validPath;
+                    if (!red.matches("/.+|http.+|ftp.+")) {
+                        if (red.startsWith("?")) {
+                            // rhetorically redirects could start with '?', here we should keep current path and file and replace all after '?'.
+                            final String lastFile = new Regex(validPath, "^(.+)\\?[^?]+$").getMatch(0);
+                            if (lastFile != null) {
+                                path = lastFile;
+                            }
+                        } else {
+                            /* 
+                             * for when links do no start with protocol or / we need to construct a proper URL
+                             * eg. URL: http://domain.net/path/file.php?k=123&u=&s=a and location: index_blah.php,
+                             * currently it will combine the two resulting in next request at /path/file.php/index_blah.php
+                             *   
+                            */
+                            final String lastBslash = new Regex(validPath, "^(.+)/[^/]+$").getMatch(0);
+                            if (lastBslash != null) { 
+                                path = lastBslash;
+                                }                        
+                            }
+                    } else {
+                        path = validPath;
+                    }
                 } else {
                     path = "";
                 }
