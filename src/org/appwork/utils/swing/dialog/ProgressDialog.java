@@ -174,6 +174,7 @@ public class ProgressDialog extends AbstractDialog<Integer> implements ProgressI
         textField = getTextfield();
 
         textField.setText(message);
+        extendLayout(p);
         if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
 
             p.add(new JScrollPane(textField), "pushx,growx,spanx");
@@ -183,7 +184,7 @@ public class ProgressDialog extends AbstractDialog<Integer> implements ProgressI
             p.add(textField, "growx,pushx,spanx,wmin 350");
 
         }
-
+        extendLayout(p);
         final JProgressBar bar;
         p.add(bar = new JProgressBar(0, 100), "growx,pushx" + (isLabelEnabled() ? "" : ",spanx"));
         bar.setStringPainted(true);
@@ -192,10 +193,7 @@ public class ProgressDialog extends AbstractDialog<Integer> implements ProgressI
             lbl.setHorizontalAlignment(SwingConstants.RIGHT);
             p.add(lbl, "wmin 30");
         }
-        System.out.println(getTextfield().getPreferredSize());
-        System.out.println(bar.getPreferredSize());
 
-        System.out.println(p.getPreferredSize());
         updater = new Timer(50, new ActionListener() {
 
             public void actionPerformed(final ActionEvent e) {
@@ -246,6 +244,14 @@ public class ProgressDialog extends AbstractDialog<Integer> implements ProgressI
     }
 
     /**
+     * @param p
+     */
+    protected void extendLayout(JPanel p) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
      * @return
      */
     protected boolean isLabelEnabled() {
@@ -287,7 +293,9 @@ public class ProgressDialog extends AbstractDialog<Integer> implements ProgressI
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.appwork.utils.swing.dialog.ProgressInterface#getMessage()
      */
     @Override
@@ -296,7 +304,9 @@ public class ProgressDialog extends AbstractDialog<Integer> implements ProgressI
         return message;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.appwork.utils.swing.dialog.ProgressInterface#getValue()
      */
     @Override
@@ -304,7 +314,5 @@ public class ProgressDialog extends AbstractDialog<Integer> implements ProgressI
         // TODO Auto-generated method stub
         return getter.getProgress();
     }
-
- 
 
 }

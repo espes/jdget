@@ -16,7 +16,9 @@ import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 import org.appwork.utils.os.CrossSystem;
@@ -318,6 +320,63 @@ public class Files {
             handler.outro(f);
         }
 
+    }
+
+    /**
+     * @param old
+     * @param newFile
+     * @return
+     */
+    public static File getCommonParent(File a, File b) {
+        List<File> filesA = new LinkedList<File>();
+        List<File> filesB = new LinkedList<File>();
+        fill(filesA, a);
+        fill(filesB, b);
+        File last = null;
+        String nameA, nameB;
+        for (int i = 0; i < Math.min(filesA.size(), filesB.size()); i++) {
+            if (CrossSystem.isWindows()) {
+                if (i == 0) {
+                    nameA = filesA.get(i).getPath().toLowerCase(Locale.ENGLISH);
+                    nameB = filesB.get(i).getPath().toLowerCase(Locale.ENGLISH);
+                } else {
+                    nameA = filesA.get(i).getName().toLowerCase(Locale.ENGLISH);
+                    nameB = filesB.get(i).getName().toLowerCase(Locale.ENGLISH);
+                }
+
+            } else {
+                if (i == 0) {
+                    nameA = filesA.get(i).getPath();
+                    nameB = filesB.get(i).getPath();
+                } else {
+                    nameA = filesA.get(i).getName();
+                    nameB = filesB.get(i).getName();
+                }
+
+            }
+            if (!nameA.equals(nameB)) {
+                break;
+            }
+            last = filesA.get(i);
+        }
+        return last;
+    }
+
+    /**
+     * @param filesA
+     * @param a
+     */
+    private static void fill(List<File> filesA, File a) {
+        HashSet<File> dupe = new HashSet<File>();
+        while (a != null) {
+            if (!dupe.add(a)) { return; }
+            filesA.add(0, a);
+            File aTmp = a.getParentFile();
+            if (aTmp == null || aTmp.equals(a)) {
+                break;
+            }
+            a = aTmp;
+        }
     }
 
 }

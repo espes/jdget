@@ -359,7 +359,7 @@ public class PathChooser extends MigPanel {
      * @return
      */
     public String getPath() {
-        return this.txt.getText();
+        return new File(this.txt.getText()).getAbsolutePath();
     }
 
     public JPopupMenu getPopupMenu(final ExtTextField txt, final AbstractAction cutAction, final AbstractAction copyAction, final AbstractAction pasteAction, final AbstractAction deleteAction, final AbstractAction selectAction) {
