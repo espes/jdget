@@ -419,76 +419,54 @@ public abstract class Request {
         if (this.httpConnection == null) {
             return null;
         }
-        String red = this.httpConnection.getHeaderField("Location");
-        if (StringUtils.isEmpty(red)) {
+        String location = this.httpConnection.getHeaderField("Location");
+        if (StringUtils.isEmpty(location)) {
             /* check if we have an old-school refresh header */
-            red = this.httpConnection.getHeaderField("refresh");
-            if (red != null) {
+            final String refresh = this.httpConnection.getHeaderField("refresh");
+            if (refresh != null) {
                 // we need to filter the time count from the url
-                red = new Regex(red, "url=(.+);?").getMatch(0);
-            }
-            if (StringUtils.isEmpty(red)) {
-                return null;
+                location = new Regex(refresh, "url=(.+);?").getMatch(0);
             }
         }
-        final String encoding = this.httpConnection.getHeaderField("Content-Type");
-        if (encoding != null && encoding.contains("UTF-8")) {
-            red = Encoding.UTF8Decode(red, "ISO-8859-1");
+        if (StringUtils.isEmpty(location)) {
+            return null;
+        }
+        final String contentType = this.httpConnection.getHeaderField("Content-Type");
+        if (contentType != null && contentType.contains("UTF-8")) {
+            location = Encoding.UTF8Decode(location, "ISO-8859-1");
         }
         try {
-            new URL(red);
+            new URL(location);
         } catch (final Exception e) {
-            String path = this.getHttpConnection().getURL().getFile();
-            if (!path.endsWith("/")) {
-                /*
-                 * path does not end with / we have to find latest valid path
-                 * 
-                 * \/test.rar should result in empty path
-                 * 
-                 * \/test/test.rar should result in \/test/
-                 */
-                final String validPath = new Regex(path, "(/.*?/.*?)(\\?|$)").getMatch(0);
-                if (validPath != null && validPath.length() > 0) {
-                    if (!red.matches("/.+|http.+|ftp.+")) {
-                        if (red.startsWith("?")) {
-                            // rhetorically redirects could start with '?', here we should keep current path and file and replace all after '?'.
-                            final String lastFile = new Regex(validPath, "^(.+)\\?[^?]+$").getMatch(0);
-                            if (lastFile != null) {
-                                path = lastFile;
-                            }
-                        } else {
-                            /* 
-                             * for when links do no start with protocol or / we need to construct a proper URL
-                             * eg. URL: http://domain.net/path/file.php?k=123&u=&s=a and location: index_blah.php,
-                             * currently it will combine the two resulting in next request at /path/file.php/index_blah.php
-                             *   
-                            */
-                            final String lastBslash = new Regex(validPath, "^(.+)/[^/]+$").getMatch(0);
-                            if (lastBslash != null) { 
-                                path = lastBslash;
-                                }                        
-                            }
-                    } else {
-                        path = validPath;
-                    }
+            final URL url = this.getHttpConnection().getURL();
+            if (location.startsWith("//") && Browser.getHost("http:" + location, false) != null) {
+                location = url.getProtocol() + ":" + location;
+            } else if (location.startsWith("/")) {
+                location = url.getProtocol() + "://" + url.getHost() + (url.getPort() != -1 && url.getPort() != url.getDefaultPort() ? ":" + url.getPort() : "") + location;
+            } else if (location.startsWith("?")) {
+                final String path = url.getPath();
+                if (path == null) {
+                    location = url.getProtocol() + "://" + url.getHost() + (url.getPort() != -1 && url.getPort() != url.getDefaultPort() ? ":" + url.getPort() : "") + "/" + location;
+                } else if (path.endsWith("/")) {
+                    location = url.getProtocol() + "://" + url.getHost() + (url.getPort() != -1 && url.getPort() != url.getDefaultPort() ? ":" + url.getPort() : "") + path + location;
                 } else {
-                    path = "";
+                    location = url.getProtocol() + "://" + url.getHost() + (url.getPort() != -1 && url.getPort() != url.getDefaultPort() ? ":" + url.getPort() : "") + path + location;
+                }
+            } else {
+                String path = url.getPath();
+                if (path != null) {
+                    path = new Regex(path, "(/.+?(/|$))").getMatch(0);
+                }
+                if (path == null) {
+                    location = url.getProtocol() + "://" + url.getHost() + (url.getPort() != -1 && url.getPort() != url.getDefaultPort() ? ":" + url.getPort() : "") + "/" + location;
+                } else if (path.endsWith("/")) {
+                    location = url.getProtocol() + "://" + url.getHost() + (url.getPort() != -1 && url.getPort() != url.getDefaultPort() ? ":" + url.getPort() : "") + path + location;
+                } else {
+                    location = url.getProtocol() + "://" + url.getHost() + (url.getPort() != -1 && url.getPort() != url.getDefaultPort() ? ":" + url.getPort() : "") + path + location;
                 }
             }
-            final int port = this.getHttpConnection().getURL().getPort();
-            final int defaultport = this.getHttpConnection().getURL().getDefaultPort();
-            String proto = "http://";
-            if (this.getHttpConnection().getURL().toString().startsWith("https")) {
-                proto = "https://";
-            }
-            String addPort = "";
-            if (defaultport > 0 && port > 0 && defaultport != port) {
-                addPort = ":" + port;
-            }
-            red = proto + this.getHttpConnection().getURL().getHost() + addPort + (red.charAt(0) == '/' ? red : path + "/" + red);
         }
-        return Browser.correctURL(Encoding.urlEncode_light(red));
-
+        return Browser.correctURL(location);
     }
 
     public HTTPProxy getProxy() {
