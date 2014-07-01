@@ -14,6 +14,10 @@ public interface DownloadsListInterface extends Linkable {
 
     void setEnabled(boolean enabled, long[] linkIds, long[] packageIds);
 
+    void setStopMark(long linkId, long packageId);
+    
+    void removeStopMark();
+
     int packageCount();
 
     List<DownloadPackageStorable> queryPackages(DownloadPackageQuery queryParams);
@@ -21,6 +25,8 @@ public interface DownloadsListInterface extends Linkable {
     void removeLinks(final long[] linkIds, final long[] packageIds);
 
     void renamePackage(Long packageId, String newName);
+
+    void renameLink(Long linkId, String newName);
 
     void resetLinks(long[] linkIds, long[] packageIds);
 
@@ -67,5 +73,9 @@ public interface DownloadsListInterface extends Linkable {
      * @return
      */
     List<DownloadLinkStorable> queryLinks(DownloadLinkQuery queryParams);
+
+    void resumeLinks(long[] linkIds, long[] pkgIds);
+    
+    void setDownloadDirectory(String directory, long[] pkgIds);
 
 }
