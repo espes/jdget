@@ -13,8 +13,14 @@ package org.appwork.uio;
  * @author Thomas
  * 
  */
-public interface ComboBoxDialogInterface extends UserIODefinition {
+public interface ComboBoxDialogInterface extends ConfirmDialogInterface {
     @In
     public int getSelectedIndex();
+
+    @Out
+    public int getPreSelectedIndex();
+
+    @Out
+    public String[] getLabels();
 
 }
