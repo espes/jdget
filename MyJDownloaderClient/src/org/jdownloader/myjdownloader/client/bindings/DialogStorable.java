@@ -10,8 +10,8 @@ public class DialogStorable extends AbstractJsonData {
 
     }
 
-    HashMap<String, String> properties = new HashMap<String, String>();
-    private String          type;
+    protected HashMap<String, String> properties = new HashMap<String, String>();
+    private String                    type;
 
     public HashMap<String, String> getProperties() {
         return properties;
@@ -19,13 +19,6 @@ public class DialogStorable extends AbstractJsonData {
 
     public void setProperties(final HashMap<String, String> properties) {
         this.properties = properties;
-    }
-
-    public void put(final String key, final Object value) {
-        if (value == null) {
-            return;
-        }
-        properties.put(key, value.toString());
     }
 
     public void setType(final String name) {
