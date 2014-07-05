@@ -3,15 +3,20 @@ package org.jdownloader.myjdownloader.client.bindings.interfaces;
 import java.util.List;
 
 import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
-import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadLinkStorable;
-import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadPackageStorable;
+import org.jdownloader.myjdownloader.client.bindings.PriorityStorable;
 import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadLinkQuery;
+import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadLinkStorable;
 import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadPackageQuery;
+import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadPackageStorable;
 
 @ClientApiNameSpace("downloadsV2")
-public interface DownloadsListInterface extends Linkable{
+public interface DownloadsListInterface extends Linkable {
 
     void setEnabled(boolean enabled, long[] linkIds, long[] packageIds);
+
+    void setStopMark(long linkId, long packageId);
+    
+    void removeStopMark();
 
     int packageCount();
 
@@ -20,6 +25,8 @@ public interface DownloadsListInterface extends Linkable{
     void removeLinks(final long[] linkIds, final long[] packageIds);
 
     void renamePackage(Long packageId, String newName);
+
+    void renameLink(Long linkId, String newName);
 
     void resetLinks(long[] linkIds, long[] packageIds);
 
@@ -35,6 +42,15 @@ public interface DownloadsListInterface extends Linkable{
     void movePackages(long[] packageIds, long afterDestPackageId);
 
     void moveLinks(long[] linkIds, long afterLinkID, long destPackageID);
+
+    /**
+     * Set the priority for the given link or package ids
+     * 
+     * @param priority
+     * @param linkIds
+     * @param packageIds
+     */
+    void setPriority(PriorityStorable priority, long[] linkIds, long[] packageIds);
 
     /**
      * Query Packages links in downloads
@@ -57,5 +73,9 @@ public interface DownloadsListInterface extends Linkable{
      * @return
      */
     List<DownloadLinkStorable> queryLinks(DownloadLinkQuery queryParams);
+
+    void resumeLinks(long[] linkIds, long[] pkgIds);
+    
+    void setDownloadDirectory(String directory, long[] pkgIds);
 
 }

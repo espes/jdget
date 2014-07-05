@@ -21,14 +21,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 
 import jd.PluginWrapper;
 import jd.controlling.ProgressController;
@@ -49,6 +46,12 @@ import jd.plugins.PluginException;
 import jd.plugins.PluginForDecrypt;
 import jd.utils.JDUtilities;
 import jd.utils.locale.JDL;
+
+import org.appwork.storage.JSonStorage;
+import org.appwork.utils.formatter.HexFormatter;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ContextFactory;
+import org.mozilla.javascript.ScriptableObject;
 
 @DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "share-links.biz" }, urls = { "http://[\\w\\.]*?(share-links\\.biz/_[0-9a-z]+|s2l\\.biz/[a-z0-9]+)" }, flags = { 0 })
 public class ShrLnksBz extends PluginForDecrypt {
@@ -80,7 +83,7 @@ public class ShrLnksBz extends PluginForDecrypt {
         br.getHeaders().put("Accept-Language", "en-gb, en;q=0.9");
         br.getHeaders().put("Accept-Encoding", "gzip,deflate");
         br.getHeaders().put("Accept-Charset", "utf-8,*");
-        br.getHeaders().put("Connection", "close");
+        // br.getHeaders().put("Connection", "close");
 
         parameter += "?lng=en";
 
@@ -173,7 +176,9 @@ public class ShrLnksBz extends PluginForDecrypt {
                 String nexturl = null;
                 if (Integer.parseInt(JDUtilities.getRevision().replace(".", "")) < 10000 || !auto) {
                     final Point p = UserIO.getInstance().requestClickPositionDialog(file, "share-links.biz", JDL.L("plugins.decrypt.shrlnksbz.desc", "Read the combination in the background and click the corresponding combination in the overview!"));
-                    if (p == null) { throw new DecrypterException(DecrypterException.CAPTCHA); }
+                    if (p == null) {
+                        throw new DecrypterException(DecrypterException.CAPTCHA);
+                    }
                     nexturl = getNextUrl(p.x, p.y);
                 } else {
                     try {
@@ -181,11 +186,15 @@ public class ShrLnksBz extends PluginForDecrypt {
                         nexturl = getNextUrl(Integer.parseInt(code[0]), Integer.parseInt(code[1]));
                     } catch (final Exception e) {
                         final Point p = UserIO.getInstance().requestClickPositionDialog(file, "share-links.biz", JDL.L("plugins.decrypt.shrlnksbz.desc", "Read the combination in the background and click the corresponding combination in the overview!"));
-                        if (p == null) { throw new DecrypterException(DecrypterException.CAPTCHA); }
+                        if (p == null) {
+                            throw new DecrypterException(DecrypterException.CAPTCHA);
+                        }
                         nexturl = getNextUrl(p.x, p.y);
                     }
                 }
-                if (nexturl == null) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+                if (nexturl == null) {
+                    throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                }
                 br.setFollowRedirects(true);
                 br.getPage(MAINPAGE + nexturl);
                 if (br.containsHTML("> Your choice was wrong\\.<")) {
@@ -208,7 +217,9 @@ public class ShrLnksBz extends PluginForDecrypt {
                 failed = false;
                 break;
             }
-            if (failed) { throw new DecrypterException(DecrypterException.CAPTCHA); }
+            if (failed) {
+                throw new DecrypterException(DecrypterException.CAPTCHA);
+            }
         }
         /* use cnl2 button if available */
         if (br.containsHTML("/cnl2/")) {
@@ -217,27 +228,53 @@ public class ShrLnksBz extends PluginForDecrypt {
                 final Browser cnlbr = new Browser();
                 String test = cnlbr.getPage(MAINPAGE + "get/cnl2/_" + flashVars);
                 String[] encVars = null;
-                if (test != null) encVars = test.split("\\;\\;");
+                if (test != null) {
+                    encVars = test.split("\\;\\;");
+                }
                 if (encVars == null || encVars.length < 3) {
                     logger.warning("CNL code broken!");
                 } else {
-                    final String jk = new StringBuffer(Encoding.Base64Decode(encVars[1])).reverse().toString();
-                    final String crypted = new StringBuffer(Encoding.Base64Decode(encVars[2])).reverse().toString();
-                    String pkgName = br.getRegex("<title>Share.*?\\.biz - (.*?)</title>").getMatch(0);
-                    if (pkgName != null && pkgName.length() > 0) {
-                        pkgName = "package=" + Encoding.formEncoding(pkgName) + "&";
-                    }
-                    flashVars = pkgName + "passwords=&crypted=" + Encoding.formEncoding(crypted) + "&jk=" + Encoding.formEncoding(jk) + "&source=" + Encoding.formEncoding(parameter);
-                    cnlbr.setConnectTimeout(5000);
-                    cnlbr.getHeaders().put("jd.randomNumber", System.getProperty("jd.randomNumber"));
-                    try {
-                        cnlbr.postPage("http://127.0.0.1:9666/flash/addcrypted2", flashVars);
-                        if (cnlbr.containsHTML("success")) {
-                            return decryptedLinks;
-                        } else {
-                            logger.warning("Click-N-Load failed!");
+                    if (System.getProperty("jd.revision.jdownloaderrevision") != null) {
+                        final String jk = new StringBuffer(Encoding.Base64Decode(encVars[1])).reverse().toString();
+                        final String crypted = new StringBuffer(Encoding.Base64Decode(encVars[2])).reverse().toString();
+                        HashMap<String, String> infos = new HashMap<String, String>();
+                        infos.put("crypted", crypted);
+                        infos.put("jk", jk);
+                        infos.put("source", parameter.toString());
+                        String pkgName = br.getRegex("<title>Share.*?\\.biz - (.*?)</title>").getMatch(0);
+                        if (pkgName != null && pkgName.length() > 0) {
+                            infos.put("package", pkgName);
                         }
-                    } catch (final Throwable e) {
+                        String json = JSonStorage.toString(infos);
+
+                        final DownloadLink dl = createDownloadlink("http://dummycnl.jdownloader.org/" + HexFormatter.byteArrayToHex(json.getBytes("UTF-8")));
+                        try {
+                            distribute(dl);
+                        } catch (final Throwable e) {
+                            /* does not exist in 09581 */
+                        }
+                        decryptedLinks.add(dl);
+                        return decryptedLinks;
+
+                    } else {
+                        final String jk = new StringBuffer(Encoding.Base64Decode(encVars[1])).reverse().toString();
+                        final String crypted = new StringBuffer(Encoding.Base64Decode(encVars[2])).reverse().toString();
+                        String pkgName = br.getRegex("<title>Share.*?\\.biz - (.*?)</title>").getMatch(0);
+                        if (pkgName != null && pkgName.length() > 0) {
+                            pkgName = "package=" + Encoding.formEncoding(pkgName) + "&";
+                        }
+                        flashVars = pkgName + "passwords=&crypted=" + Encoding.formEncoding(crypted) + "&jk=" + Encoding.formEncoding(jk) + "&source=" + Encoding.formEncoding(parameter);
+                        cnlbr.setConnectTimeout(5000);
+                        cnlbr.getHeaders().put("jd.randomNumber", System.getProperty("jd.randomNumber"));
+                        try {
+                            cnlbr.postPage("http://127.0.0.1:9666/flash/addcrypted2", flashVars);
+                            if (cnlbr.containsHTML("success")) {
+                                return decryptedLinks;
+                            } else {
+                                logger.warning("Click-N-Load failed!");
+                            }
+                        } catch (final Throwable e) {
+                        }
                     }
                 }
             }
@@ -246,7 +283,9 @@ public class ShrLnksBz extends PluginForDecrypt {
         final String dlclink = br.getRegex("get as dlc container\".*?\"javascript:_get\\('(.*?)', 0, 'dlc'\\);\"").getMatch(0);
         if (dlclink != null) {
             decryptedLinks = loadcontainer(br, MAINPAGE + "get/dlc/" + dlclink);
-            if (decryptedLinks != null && decryptedLinks.size() > 0) { return decryptedLinks; }
+            if (decryptedLinks != null && decryptedLinks.size() > 0) {
+                return decryptedLinks;
+            }
         }
         /* File package handling */
         int pages = 1;
@@ -341,7 +380,9 @@ public class ShrLnksBz extends PluginForDecrypt {
     private ArrayList<DownloadLink> loadcontainer(final Browser br, final String dlclinks) throws IOException, PluginException {
         final Browser brc = br.cloneBrowser();
 
-        if (dlclinks == null) { return new ArrayList<DownloadLink>(); }
+        if (dlclinks == null) {
+            return new ArrayList<DownloadLink>();
+        }
         String test = Encoding.htmlDecode(dlclinks);
         File file = null;
         URLConnectionAdapter con = null;
@@ -354,7 +395,9 @@ public class ShrLnksBz extends PluginForDecrypt {
                     test = test.replaceAll("(http://share-links\\.biz/|/|\\?)", "") + ".dlc";
                 }
                 file = JDUtilities.getResourceFile("tmp/sharelinks/" + test);
-                if (file == null) { return new ArrayList<DownloadLink>(); }
+                if (file == null) {
+                    return new ArrayList<DownloadLink>();
+                }
                 file.deleteOnExit();
                 brc.downloadConnection(file, con);
             } else {
@@ -363,7 +406,9 @@ public class ShrLnksBz extends PluginForDecrypt {
 
             if (file != null && file.exists() && file.length() > 100) {
                 final ArrayList<DownloadLink> decryptedLinks = JDUtilities.getController().getContainerLinks(file);
-                if (decryptedLinks.size() > 0) { return decryptedLinks; }
+                if (decryptedLinks.size() > 0) {
+                    return decryptedLinks;
+                }
             } else {
                 throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
             }
@@ -378,25 +423,42 @@ public class ShrLnksBz extends PluginForDecrypt {
 
     private String unpackJS(final String fun, final int value) throws Exception {
         Object result = new Object();
-        final ScriptEngineManager manager = new ScriptEngineManager();
-        final ScriptEngine engine = manager.getEngineByName("javascript");
-        final Invocable inv = (Invocable) engine;
+
         try {
             logger.info(fun);
-            if (value == 1) {
-                result = engine.eval(fun);
-                result = "parent = 1;" + result.toString().replace(".frames.Main.location.href", "").replace("window", "\"window\"");
-                logger.info(result.toString());
-                result = engine.eval(result.toString());
-            } else {
-                engine.eval(fun);
-                result = inv.invokeFunction("f");
+
+            Context cx = null;
+            try {
+                cx = ContextFactory.getGlobal().enterContext();
+                ScriptableObject scope = cx.initStandardObjects();
+
+                if (value == 1) {
+
+                    /*
+                     * creating pseudo functions: document.location.protocol + document.write(value)
+                     */
+                    result = cx.evaluateString(scope, fun, "<cmd>", 1, null);
+                    result = "parent = 1;" + result.toString().replace(".frames.Main.location.href", "").replace("window", "\"window\"");
+                    logger.info(result.toString());
+
+                    result = cx.evaluateString(scope, result.toString(), "<cmd>", 1, null);
+
+                } else {
+                    cx.evaluateString(scope, fun, "<cmd>", 1, null);
+                    result = cx.evaluateString(scope, "f()", "<cmd>", 1, null);
+                }
+
+            } finally {
+                Context.exit();
             }
+
         } catch (final Exception e) {
             logger.severe(e.getMessage());
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         }
-        if (result == null) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+        if (result == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         return result.toString();
     }
 

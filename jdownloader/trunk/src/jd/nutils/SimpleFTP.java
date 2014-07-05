@@ -52,14 +52,16 @@ import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
 
-import jd.controlling.authentication.AuthenticationController;
 
 import org.appwork.utils.Regex;
 import org.appwork.utils.logging2.LogSource;
+import org.jdownloader.auth.AuthenticationController;
+import org.jdownloader.auth.Login;
 import org.jdownloader.logging.LogController;
 
 /**
- * SimpleFTP is a simple package that implements a Java FTP client. With SimpleFTP, you can connect to an FTP server and upload multiple files.
+ * SimpleFTP is a simple package that implements a Java FTP client. With SimpleFTP, you can connect to an FTP server and upload multiple
+ * files.
  * 
  * Based on Work of Paul Mutton http://www.jibble.org/
  */
@@ -79,7 +81,9 @@ public class SimpleFTP {
     }
 
     public void setLogger(Logger logger) {
-        if (logger == null) logger = LogController.CL();
+        if (logger == null) {
+            logger = LogController.CL();
+        }
         this.logger = logger;
     }
 
@@ -90,18 +94,22 @@ public class SimpleFTP {
     }
 
     /**
-     * Enter ASCII mode for sending text files. This is usually the default mode. Make sure you use binary mode if you are sending images or other binary data,
-     * as ASCII mode is likely to corrupt them.
+     * Enter ASCII mode for sending text files. This is usually the default mode. Make sure you use binary mode if you are sending images or
+     * other binary data, as ASCII mode is likely to corrupt them.
      */
     public boolean ascii() throws IOException {
         sendLine("TYPE A");
         try {
             readLines(new int[] { 200 }, "could not enter ascii mode");
-            if (binarymode) binarymode = false;
+            if (binarymode) {
+                binarymode = false;
+            }
             return true;
         } catch (IOException e) {
             LogController.CL().log(e);
-            if (e.getMessage().contains("ascii")) { return false; }
+            if (e.getMessage().contains("ascii")) {
+                return false;
+            }
             throw e;
         }
     }
@@ -113,11 +121,15 @@ public class SimpleFTP {
         sendLine("TYPE I");
         try {
             readLines(new int[] { 200 }, "could not enter binary mode");
-            if (!binarymode) binarymode = true;
+            if (!binarymode) {
+                binarymode = true;
+            }
             return true;
         } catch (IOException e) {
             LogController.CL().log(e);
-            if (e.getMessage().contains("binary")) { return false; }
+            if (e.getMessage().contains("binary")) {
+                return false;
+            }
             throw e;
         }
     }
@@ -128,10 +140,11 @@ public class SimpleFTP {
      * @since JD2
      * */
     public boolean isBinary() {
-        if (this.binarymode)
+        if (this.binarymode) {
             return true;
-        else
+        } else {
             return false;
+        }
     }
 
     /**
@@ -152,7 +165,9 @@ public class SimpleFTP {
      * Connects to an FTP server and logs in with the supplied username and password.
      */
     public void connect(String host, int port, String user, String pass) throws IOException {
-        if (socket != null) { throw new IOException("SimpleFTP is already connected. Disconnect first."); }
+        if (socket != null) {
+            throw new IOException("SimpleFTP is already connected. Disconnect first.");
+        }
         socket = new Socket(host, port);
         this.host = host;
         socket.setSoTimeout(TIMEOUT);
@@ -168,7 +183,9 @@ public class SimpleFTP {
 
         }
         //
-        if (!response.startsWith("257 ")) { throw new IOException("PWD COmmand not understood " + response); }
+        if (!response.startsWith("257 ")) {
+            throw new IOException("PWD COmmand not understood " + response);
+        }
 
         // Response: 257 "/" is the current directory
         dir = new Regex(response, "\"(.*)\"").getMatch(0);
@@ -181,11 +198,15 @@ public class SimpleFTP {
      */
     public boolean cwd(String dir) throws IOException {
         dir = dir.replaceAll("[\\\\|//]+?", "/");
-        if (dir.equals(this.dir)) return true;
+        if (dir.equals(this.dir)) {
+            return true;
+        }
         sendLine("CWD " + dir);
         try {
             readLines(new int[] { 250 }, "SimpleFTP was unable to change directory");
-            if (!dir.endsWith("/") && !dir.endsWith("\\")) dir += "/";
+            if (!dir.endsWith("/") && !dir.endsWith("\\")) {
+                dir += "/";
+            }
             if (dir.startsWith("/")) {
                 this.dir = dir;
             } else {
@@ -194,7 +215,9 @@ public class SimpleFTP {
             return true;
         } catch (IOException e) {
             LogController.CL().log(e);
-            if (e.getMessage().contains("was unable to change")) { return false; }
+            if (e.getMessage().contains("was unable to change")) {
+                return false;
+            }
             throw e;
         }
     }
@@ -207,7 +230,9 @@ public class SimpleFTP {
         try {
             /* avoid stackoverflow for io-exception during sendLine */
             socket = null;
-            if (lsocket != null) sendLine("QUIT");
+            if (lsocket != null) {
+                sendLine("QUIT");
+            }
         } finally {
             try {
                 lsocket.close();
@@ -241,7 +266,9 @@ public class SimpleFTP {
 
     public boolean wasLatestOperationNotPermitted() {
         String latest = getLastestResponseLine();
-        if (latest != null) return latest.toLowerCase(Locale.ENGLISH).contains("operation not permitted");
+        if (latest != null) {
+            return latest.toLowerCase(Locale.ENGLISH).contains("operation not permitted");
+        }
         return false;
     }
 
@@ -260,7 +287,9 @@ public class SimpleFTP {
             response = readLine();
             latestResponseLine = response;
             if (response == null) {
-                if (sb.length() == 0) throw new IOException("no response received, EOF?");
+                if (sb.length() == 0) {
+                    throw new IOException("no response received, EOF?");
+                }
                 return sb.toString();
             }
             sb.append(response + "\r\n");
@@ -286,7 +315,9 @@ public class SimpleFTP {
                     break;
                 }
             }
-            if (error && !multilineResponse) throw new IOException((errormsg != null ? errormsg : "revieved unexpected responsecode ") + sb.toString());
+            if (error && !multilineResponse) {
+                throw new IOException((errormsg != null ? errormsg : "revieved unexpected responsecode ") + sb.toString());
+            }
         }
     }
 
@@ -297,7 +328,9 @@ public class SimpleFTP {
             return true;
         } catch (IOException e) {
             LogController.CL().log(e);
-            if (e.getMessage().contains("could not remove file")) { return false; }
+            if (e.getMessage().contains("could not remove file")) {
+                return false;
+            }
             throw e;
         }
     }
@@ -308,14 +341,18 @@ public class SimpleFTP {
             readLines(new int[] { 350 }, "RNFR failed");
         } catch (IOException e) {
             LogSource.exception(logger, e);
-            if (e.getMessage().contains("RNFR")) { return false; }
+            if (e.getMessage().contains("RNFR")) {
+                return false;
+            }
         }
         sendLine("RNTO " + to);
         try {
             readLines(new int[] { 250 }, "RNTO failed");
         } catch (IOException e) {
             LogSource.exception(logger, e);
-            if (e.getMessage().contains("RNTO")) { return false; }
+            if (e.getMessage().contains("RNTO")) {
+                return false;
+            }
         }
         return true;
     }
@@ -327,7 +364,9 @@ public class SimpleFTP {
             Size = readLines(new int[] { 213 }, "SIZE failed");
         } catch (IOException e) {
             LogSource.exception(logger, e);
-            if (e.getMessage().contains("SIZE") || e.getMessage().contains("550")) { return -1; }
+            if (e.getMessage().contains("SIZE") || e.getMessage().contains("550")) {
+                return -1;
+            }
         }
         String[] split = Size.split(" ");
         return Long.parseLong(split[1].trim());
@@ -343,24 +382,28 @@ public class SimpleFTP {
             writer.flush();
         } catch (IOException e) {
             LogSource.exception(logger, e);
-            if (socket != null) disconnect();
+            if (socket != null) {
+                disconnect();
+            }
             throw e;
         }
     }
 
     /**
-     * Sends a file to be stored on the FTP server. Returns true if the file transfer was successful. The file is sent in passive mode to avoid NAT or firewall
-     * problems at the client end.
+     * Sends a file to be stored on the FTP server. Returns true if the file transfer was successful. The file is sent in passive mode to
+     * avoid NAT or firewall problems at the client end.
      */
     public boolean stor(File file) throws IOException {
-        if (file.isDirectory()) { throw new IOException("SimpleFTP cannot upload a directory."); }
+        if (file.isDirectory()) {
+            throw new IOException("SimpleFTP cannot upload a directory.");
+        }
         String filename = file.getName();
         return stor(new FileInputStream(file), filename);
     }
 
     /**
-     * Sends a file to be stored on the FTP server. Returns true if the file transfer was successful. The file is sent in passive mode to avoid NAT or firewall
-     * problems at the client end.
+     * Sends a file to be stored on the FTP server. Returns true if the file transfer was successful. The file is sent in passive mode to
+     * avoid NAT or firewall problems at the client end.
      */
     public boolean stor(InputStream input, String filename) throws IOException {
         Socket dataSocket = null;
@@ -372,7 +415,9 @@ public class SimpleFTP {
             try {
                 dataSocket = new Socket(pasv.getHostName(), pasv.getPort());
                 response = readLine();
-                if (!response.startsWith("150 ") && !response.startsWith("125 ")) { throw new IOException("SimpleFTP was not allowed to send the file: " + response); }
+                if (!response.startsWith("150 ") && !response.startsWith("125 ")) {
+                    throw new IOException("SimpleFTP was not allowed to send the file: " + response);
+                }
                 output = new BufferedOutputStream(dataSocket.getOutputStream());
                 byte[] buffer = new byte[4096];
                 int bytesRead = 0;
@@ -465,7 +510,9 @@ public class SimpleFTP {
             // cw=cw;
             cw = cw.substring(length);
             String[] dirs = cw.split("[\\\\|/]{1}");
-            if (root.length() > 0) cwd(root);
+            if (root.length() > 0) {
+                cwd(root);
+            }
             for (String d : dirs) {
                 if (d == null || d.trim().length() == 0) {
                     cwd("/");
@@ -476,7 +523,7 @@ public class SimpleFTP {
                 String response = readLine();
                 if (!response.startsWith("257 ") && !response.startsWith("550 ")) {
 
-                return false;
+                    return false;
 
                 }
 
@@ -491,7 +538,9 @@ public class SimpleFTP {
     }
 
     public boolean cwdAdd(String cw) throws IOException {
-        if (cw.startsWith("/") || cw.startsWith("\\")) cw = cw.substring(1);
+        if (cw.startsWith("/") || cw.startsWith("\\")) {
+            cw = cw.substring(1);
+        }
         return cwd(dir + cw);
 
     }
@@ -502,7 +551,9 @@ public class SimpleFTP {
 
     public void download(String filename, File file, boolean restart) throws IOException {
         long resumePosition = 0;
-        if (!binarymode) logger.info("Warning: Download in ASCII mode may fail!");
+        if (!binarymode) {
+            logger.info("Warning: Download in ASCII mode may fail!");
+        }
         InetSocketAddress pasv = pasv();
         if (restart) {
             resumePosition = file.length();
@@ -547,7 +598,9 @@ public class SimpleFTP {
                     throw new InterruptedIOException();
                 }
                 counter += bytesRead;
-                if (bytesRead > 0) fos.write(buffer, 0, bytesRead);
+                if (bytesRead > 0) {
+                    fos.write(buffer, 0, bytesRead);
+                }
             }
             /* max 10 seks wait for buggy servers */
             socket.setSoTimeout(TIMEOUT);
@@ -559,7 +612,9 @@ public class SimpleFTP {
                 LogSource.exception(logger, e);
                 response = "SocketTimeout because of buggy Server";
             }
-            if (!response.startsWith("226")) { throw new IOException("Download failed: " + response); }
+            if (!response.startsWith("226")) {
+                throw new IOException("Download failed: " + response);
+            }
         } catch (SocketTimeoutException e) {
             LogSource.exception(logger, e);
             sendLine("ABOR");
@@ -633,7 +688,9 @@ public class SimpleFTP {
             char[] buffer = new char[4096];
             int bytesRead = 0;
             while ((bytesRead = input.read(buffer)) != -1) {
-                if (bytesRead > 0) sb.append(buffer, 0, bytesRead);
+                if (bytesRead > 0) {
+                    sb.append(buffer, 0, bytesRead);
+                }
             }
         } finally {
             try {
@@ -662,10 +719,16 @@ public class SimpleFTP {
     public String[] getFileInfo(String path) throws IOException {
         String name = path.substring(path.lastIndexOf("/") + 1);
         path = path.substring(0, path.lastIndexOf("/"));
-        if (!this.cwd(path)) return null;
+        if (!this.cwd(path)) {
+            return null;
+        }
         for (String[] file : list()) {
-            if (file.length == 4 && file[3].equals(name)) return file;
-            if (file.length == 7 && file[6].equals(name)) return file;
+            if (file.length == 4 && file[3].equals(name)) {
+                return file;
+            }
+            if (file.length == 7 && file[6].equals(name)) {
+                return file;
+            }
         }
         return null;
     }
@@ -679,17 +742,19 @@ public class SimpleFTP {
     public void connect(URL url) throws IOException {
         String host = url.getHost();
         int port = url.getPort();
-        if (port <= 0) port = 21;
+        if (port <= 0) {
+            port = 21;
+        }
         boolean autoTry = false;
         try {
             if (url.getUserInfo() != null) {
                 String[] auth = url.getUserInfo().split(":");
                 connect(host, port, auth[0], auth[1]);
             } else {
-                String[] ret = AuthenticationController.getInstance().getLogins("ftp://" + url.getHost());
+                Login ret = AuthenticationController.getInstance().getBestLogin("ftp://" + url.getHost());
                 if (ret != null) {
                     autoTry = true;
-                    connect(host, port, ret[0], ret[1]);
+                    connect(host, port, ret.getUsername(), ret.getPassword());
                 } else {
                     connect(host, port);
                 }
@@ -700,11 +765,16 @@ public class SimpleFTP {
                 if (autoTry) {
                     connect(host, port);
                 } else {
-                    String[] ret = AuthenticationController.getInstance().getLogins("ftp://" + url.getHost());
-                    if (ret == null) throw e;
-                    connect(host, port, ret[0], ret[1]);
+                    Login ret = AuthenticationController.getInstance().getBestLogin("ftp://" + url.getHost());
+
+                    if (ret == null) {
+                        throw e;
+                    }
+                    connect(host, port, ret.getUsername(), ret.getPassword());
                 }
+                return;
             }
+            throw e;
         }
     }
 

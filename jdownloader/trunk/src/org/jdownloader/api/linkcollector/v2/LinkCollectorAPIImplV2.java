@@ -27,19 +27,26 @@ import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.event.queue.QueueAction;
+import org.appwork.utils.logging2.LogSource;
 import org.appwork.utils.net.Base64InputStream;
 import org.jdownloader.api.RemoteAPIController;
 import org.jdownloader.api.downloads.v2.DownloadsAPIV2Impl;
+import org.jdownloader.controlling.Priority;
 import org.jdownloader.controlling.linkcrawler.LinkVariant;
 import org.jdownloader.gui.packagehistorycontroller.DownloadPathHistoryManager;
 import org.jdownloader.gui.views.SelectionInfo;
+import org.jdownloader.logging.LogController;
+import org.jdownloader.myjdownloader.client.bindings.PriorityStorable;
 import org.jdownloader.myjdownloader.client.bindings.interfaces.LinkgrabberInterface;
 import org.jdownloader.settings.GeneralSettings;
 import org.jdownloader.settings.staticreferences.CFG_GUI;
 
 public class LinkCollectorAPIImplV2 implements LinkCollectorAPIV2 {
+    private LogSource logger;
+
     public LinkCollectorAPIImplV2() {
         RemoteAPIController.validateInterfaces(LinkCollectorAPIV2.class, LinkgrabberInterface.class);
+        logger = LogController.getInstance().getLogger(LinkCollectorAPIImplV2.class.getName());
     }
 
     @SuppressWarnings("unchecked")
@@ -107,9 +114,15 @@ public class LinkCollectorAPIImplV2 implements LinkCollectorAPIV2 {
             packages = lc.getPackagesCopy();
         }
 
-        if (startWith > lc.getPackages().size() - 1) return result;
-        if (startWith < 0) startWith = 0;
-        if (maxResults < 0) maxResults = lc.getPackages().size();
+        if (startWith > lc.getPackages().size() - 1) {
+            return result;
+        }
+        if (startWith < 0) {
+            startWith = 0;
+        }
+        if (maxResults < 0) {
+            maxResults = lc.getPackages().size();
+        }
 
         for (int i = startWith; i < startWith + maxResults; i++) {
 
@@ -233,20 +246,30 @@ public class LinkCollectorAPIImplV2 implements LinkCollectorAPIV2 {
             }
         }
 
-        if (links.isEmpty()) return result;
+        if (links.isEmpty()) {
+            return result;
+        }
 
         int startWith = queryParams.getStartAt();
         int maxResults = queryParams.getMaxResults();
 
-        if (startWith > links.size() - 1) return result;
-        if (startWith < 0) startWith = 0;
-        if (maxResults < 0) maxResults = links.size();
+        if (startWith > links.size() - 1) {
+            return result;
+        }
+        if (startWith < 0) {
+            startWith = 0;
+        }
+        if (maxResults < 0) {
+            maxResults = links.size();
+        }
 
         for (int i = startWith; i < Math.min(startWith + maxResults, links.size()); i++) {
 
             CrawledLink cl = links.get(i);
             CrawledLinkAPIStorableV2 cls = new CrawledLinkAPIStorableV2(cl);
-
+            if (queryParams.isPriority()) {
+                cls.setPriority(org.jdownloader.myjdownloader.client.bindings.PriorityStorable.valueOf(cl.getPriority().name()));
+            }
             if (queryParams.isVariants()) {
                 cls.setVariants(cl.hasVariantSupport());
             }
@@ -285,6 +308,14 @@ public class LinkCollectorAPIImplV2 implements LinkCollectorAPIV2 {
     public void addLinks(final AddLinksQueryStorable query) {
 
         LinkCollector lc = LinkCollector.getInstance();
+        Priority p = Priority.DEFAULT;
+
+        try {
+            p = Priority.valueOf(query.getPriority().name());
+        } catch (Throwable e) {
+            logger.log(e);
+        }
+        final Priority fp = p;
         LinkCollectingJob lcj = new LinkCollectingJob(new LinkOriginDetails(LinkOrigin.MYJD, null/* add useragent? */), query.getLinks());
         HashSet<String> extPws = null;
         if (StringUtils.isNotEmpty(query.getExtractPassword())) {
@@ -295,7 +326,9 @@ public class LinkCollectorAPIImplV2 implements LinkCollectorAPIV2 {
         lcj.setCrawledLinkModifier(new CrawledLinkModifier() {
             private PackageInfo getPackageInfo(CrawledLink link) {
                 PackageInfo packageInfo = link.getDesiredPackageInfo();
-                if (packageInfo != null) return packageInfo;
+                if (packageInfo != null) {
+                    return packageInfo;
+                }
                 packageInfo = new PackageInfo();
                 link.setDesiredPackageInfo(packageInfo);
                 return packageInfo;
@@ -310,13 +343,16 @@ public class LinkCollectorAPIImplV2 implements LinkCollectorAPIV2 {
                     getPackageInfo(link).setName(query.getPackageName());
                     getPackageInfo(link).setUniqueId(null);
                 }
+                link.setPriority(fp);
                 if (StringUtils.isNotEmpty(query.getDestinationFolder())) {
                     getPackageInfo(link).setDestinationFolder(query.getDestinationFolder());
                     getPackageInfo(link).setUniqueId(null);
                 }
                 DownloadLink dlLink = link.getDownloadLink();
                 if (dlLink != null) {
-                    if (StringUtils.isNotEmpty(query.getDownloadPassword())) dlLink.setDownloadPassword(query.getDownloadPassword());
+                    if (StringUtils.isNotEmpty(query.getDownloadPassword())) {
+                        dlLink.setDownloadPassword(query.getDownloadPassword());
+                    }
                 }
                 if (query.isAutostart()) {
                     link.setAutoConfirmEnabled(true);
@@ -436,13 +472,17 @@ public class LinkCollectorAPIImplV2 implements LinkCollectorAPIV2 {
 
     private static CrawledPackage getPackageByID(long afterDestPackageId) throws BadParameterException {
         CrawledPackage ret = LinkCollector.getInstance().getPackageByID(afterDestPackageId);
-        if (ret == null) throw new BadParameterException("PackageID Unknown");
+        if (ret == null) {
+            throw new BadParameterException("PackageID Unknown");
+        }
         return ret;
     }
 
     private static List<CrawledPackage> getPackagesByID(long[] packageIds) throws BadParameterException {
         List<CrawledPackage> ret = LinkCollector.getInstance().getPackagesByID(packageIds);
-        if (ret.size() != packageIds.length) { throw new BadParameterException("One or more PackageIDs Unknown"); }
+        if (ret.size() != packageIds.length) {
+            throw new BadParameterException("One or more PackageIDs Unknown");
+        }
         return ret;
     }
 
@@ -459,13 +499,17 @@ public class LinkCollectorAPIImplV2 implements LinkCollectorAPIV2 {
 
     private static CrawledLink getLinkById(long linkIds) throws BadParameterException {
         CrawledLink ret = LinkCollector.getInstance().getLinkByID(linkIds);
-        if (ret == null) { throw new BadParameterException("LinkID Unknown"); }
+        if (ret == null) {
+            throw new BadParameterException("LinkID Unknown");
+        }
         return ret;
     }
 
     private static List<CrawledLink> getLinksById(long[] linkIds) throws BadParameterException {
         List<CrawledLink> ret = LinkCollector.getInstance().getLinksByID(linkIds);
-        if (ret.size() != linkIds.length) { throw new BadParameterException("One or more LinkIDs Unknown"); }
+        if (ret.size() != linkIds.length) {
+            throw new BadParameterException("One or more LinkIDs Unknown");
+        }
         return ret;
     }
 
@@ -519,7 +563,9 @@ public class LinkCollectorAPIImplV2 implements LinkCollectorAPIV2 {
                         break;
                     }
                 }
-                if (v == null) { throw new BadParameterException("Unknown variantID"); }
+                if (v == null) {
+                    throw new BadParameterException("Unknown variantID");
+                }
 
                 // create new downloadlink
                 final DownloadLink dllink = new DownloadLink(link.getDownloadLink().getDefaultPlugin(), link.getDownloadLink().getView().getDisplayName(), link.getDownloadLink().getHost(), link.getDownloadLink().getDownloadURL(), true);
@@ -540,7 +586,9 @@ public class LinkCollectorAPIImplV2 implements LinkCollectorAPIV2 {
                 try {
 
                     for (CrawledLink cLink : link.getParentNode().getChildren()) {
-                        if (dllink.getLinkID().equals(cLink.getLinkID())) { throw new BadParameterException("Variant is already in this package"); }
+                        if (dllink.getLinkID().equals(cLink.getLinkID())) {
+                            throw new BadParameterException("Variant is already in this package");
+                        }
                     }
                 } finally {
                     link.getParentNode().getModifyLock().readUnlock(readL);
@@ -586,6 +634,20 @@ public class LinkCollectorAPIImplV2 implements LinkCollectorAPIV2 {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    @Override
+    public void setPriority(PriorityStorable priority, long[] linkIds, long[] packageIds) throws BadParameterException {
+        try {
+            org.jdownloader.controlling.Priority jdPriority = org.jdownloader.controlling.Priority.valueOf(priority.name());
+            LinkCollector.getInstance().writeLock();
+            List<CrawledLink> sdl = getSelectionInfo(linkIds, packageIds).getChildren();
+            for (CrawledLink dl : sdl) {
+                dl.setPriority(jdPriority);
+            }
+        } finally {
+            LinkCollector.getInstance().writeUnlock();
         }
     }
 }

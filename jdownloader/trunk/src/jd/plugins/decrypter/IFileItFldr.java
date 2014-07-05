@@ -40,6 +40,13 @@ public class IFileItFldr extends PluginForDecrypt {
         super(wrapper);
     }
 
+    /**
+     * JD2 CODE: DO NOIT USE OVERRIDE FÒR COMPATIBILITY REASONS!!!!!
+     */
+    public boolean isProxyRotationEnabledForLinkCrawler() {
+        return false;
+    }
+
     // TODO: Implement API: http://code.google.com/p/filecloud/wiki/FetchTagDetails
     public ArrayList<DownloadLink> decryptIt(CryptedLink param, ProgressController progress) throws Exception {
         ArrayList<DownloadLink> decryptedLinks = new ArrayList<DownloadLink>();
@@ -47,6 +54,11 @@ public class IFileItFldr extends PluginForDecrypt {
         final PluginForHost hostPlugin = JDUtilities.getPluginForHost("filecloud.io");
         final Account aa = AccountController.getInstance().getValidAccount(hostPlugin);
         String fpName = null;
+        try {
+            /* Grab extremely big folderlinks */
+            br.setLoadLimit(br.getLoadLimit() * 8);
+        } catch (final Throwable e) {
+        }
         // Id we have an account we can use the API, if not we have to do it over the site
         if (aa != null) {
             final String akey = ((jd.plugins.hoster.IFileIt) hostPlugin).getUrlEncodedAPIkey(aa, hostPlugin, br);

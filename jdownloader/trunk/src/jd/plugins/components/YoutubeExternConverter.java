@@ -26,10 +26,9 @@ public class YoutubeExternConverter implements YoutubeConverter {
 
     @Override
     public void run(DownloadLink downloadLink) {
-        PluginProgress old = null;
         PluginProgress set = null;
         try {
-            old = downloadLink.setPluginProgress(set = new PluginProgress(0, 100, null) {
+            downloadLink.addPluginProgress(set = new PluginProgress(0, 100, null) {
                 {
                     setIcon(new AbstractIcon(IconKey.ICON_RUN, 18));
 
@@ -47,13 +46,17 @@ public class YoutubeExternConverter implements YoutubeConverter {
 
                 @Override
                 public Icon getIcon(Object requestor) {
-                    if (requestor instanceof ETAColumn) return null;
+                    if (requestor instanceof ETAColumn) {
+                        return null;
+                    }
                     return super.getIcon(requestor);
                 }
 
                 @Override
                 public String getMessage(Object requestor) {
-                    if (requestor instanceof ETAColumn) return "";
+                    if (requestor instanceof ETAColumn) {
+                        return "";
+                    }
                     return "Convert";
                 }
             });
@@ -61,7 +64,7 @@ public class YoutubeExternConverter implements YoutubeConverter {
 
             // String[] commands = new String[] { "-i", "%input", "-acodec", "mp3", "-ac", "2", "-f", "mp3", "-ab", "128", "%output" };
             ArrayList<String> cmds = new ArrayList<String>();
-            File finalFile = new File(downloadLink.getFileOutput(false, true));
+            File finalFile = downloadLink.getDownloadLinkController().getFileOutput(false, true);
             for (String s : parameters) {
                 cmds.add(s.replace("%input", file.getAbsolutePath()).replace("%output", finalFile.getAbsolutePath()));
             }
@@ -71,13 +74,13 @@ public class YoutubeExternConverter implements YoutubeConverter {
             downloadLink.setDownloadSize(finalFile.length());
             downloadLink.setDownloadCurrent(finalFile.length());
             try {
-                downloadLink.setFinalFileOutput(finalFile.getAbsolutePath());
-                downloadLink.setCustomFileOutputFilenameAppend(null);
-                downloadLink.setCustomFileOutputFilename(null);
+
+                downloadLink.setInternalTmpFilenameAppend(null);
+                downloadLink.setInternalTmpFilename(null);
             } catch (final Throwable e) {
             }
         } finally {
-            downloadLink.compareAndSetPluginProgress(set, old);
+            downloadLink.removePluginProgress(set);
         }
     }
 

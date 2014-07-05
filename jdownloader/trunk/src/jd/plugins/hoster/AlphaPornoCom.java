@@ -36,6 +36,7 @@ import jd.plugins.PluginForHost;
 @HostPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "alphaporno.com" }, urls = { "http://(www\\.)?alphaporno\\.com/((de|ru)/)?videos/[\\w\\-]+/" }, flags = { 0 })
 public class AlphaPornoCom extends PluginForHost {
 
+    /* All similar: TubeWolfCom, AlphaPornoCom, BravoTubeNet, BravoTeensCom */
     private String               DLLINK               = null;
     private String               AHV                  = "YzMwZWI0YTA5MWEwNjQwNjNlYmY1MTgyMDA5YzQ1Mjc=";
     private static final boolean ENABLE_HIGH_SECURITY = false;
@@ -90,16 +91,24 @@ public class AlphaPornoCom extends PluginForHost {
         br.setFollowRedirects(true);
         br.getPage(downloadLink.getDownloadURL());
         // Video offline
-        if (br.containsHTML("(<h2>Sorry, this video is no longer available|<title></title>)")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        if (br.containsHTML("(<h2>Sorry, this video is no longer available|<title></title>)")) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
         // 404
-        if (br.containsHTML(">Not Found<|The requested URL was not found on this server|>Sorry, this video has been deleted")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        if (br.containsHTML(">Not Found<|The requested URL was not found on this server|>Sorry, this video has been deleted")) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
         String filename = br.getRegex("<title>(.*?)</title>").getMatch(0);
         if (filename == null) {
             filename = br.getRegex("<meta name=\"description\" content=\"(.*?) \\- video on Alpha Porno \\- Porn Tube\"/>").getMatch(0);
         }
         DLLINK = br.getRegex("video_url:.*?\\('(http://.*?)'\\)").getMatch(0);
-        if (DLLINK == null) DLLINK = br.getRegex("video_url:.*?'(http://.*?)'").getMatch(0);
-        if (filename == null || DLLINK == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (DLLINK == null) {
+            DLLINK = br.getRegex("video_url:.*?'(http://.*?)'").getMatch(0);
+        }
+        if (filename == null || DLLINK == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
 
         DLLINK = Encoding.htmlDecode(DLLINK);
         filename = filename.trim();

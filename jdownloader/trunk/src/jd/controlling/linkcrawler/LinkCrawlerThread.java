@@ -3,6 +3,9 @@ package jd.controlling.linkcrawler;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import jd.http.BrowserSettingsThread;
+import jd.plugins.PluginForDecrypt;
+
+import org.jdownloader.plugins.controller.PluginClassLoader;
 
 public class LinkCrawlerThread extends BrowserSettingsThread {
 
@@ -18,6 +21,11 @@ public class LinkCrawlerThread extends BrowserSettingsThread {
     }
 
     protected void setCurrentLinkCrawler(LinkCrawler crawler) {
+        if (crawler != null) {
+            PluginClassLoader.setThreadPluginClassLoaderChild(crawler.getPluginClassLoaderChild(), null);
+        } else {
+            PluginClassLoader.setThreadPluginClassLoaderChild(null, null);
+        }
         this.crawler = crawler;
     }
 
@@ -38,6 +46,9 @@ public class LinkCrawlerThread extends BrowserSettingsThread {
      */
     public void setCurrentOwner(Object owner) {
         this.owner = owner;
+    }
+
+    public void setActivePlugin(PluginForDecrypt wplg) {
     }
 
 }

@@ -28,7 +28,7 @@ import jd.plugins.DownloadLink;
 import jd.plugins.FilePackage;
 import jd.plugins.PluginForDecrypt;
 
-@DecrypterPlugin(revision = "$Revision: 24860 $", interfaceVersion = 2, names = { "tv.adobe.com" }, urls = { "http://(www\\.)?tv\\.adobe\\.com/watch/[a-z0-9\\-]+/[a-z0-9\\-]+/?" }, flags = { 0 })
+@DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "tv.adobe.com" }, urls = { "http://(www\\.)?tv\\.adobe\\.com/watch/[a-z0-9\\-]+/[a-z0-9\\-]+/?" }, flags = { 0 })
 public class TvAdbCm extends PluginForDecrypt {
 
     // dev notes
@@ -52,7 +52,14 @@ public class TvAdbCm extends PluginForDecrypt {
         br.setFollowRedirects(true);
         br.getPage(parameter);
         if (br.getHttpConnection().getResponseCode() == 404) {
-            logger.info("Link offline (404): " + parameter);
+            // No need to randomise URL when exporting offline links!
+            // Please always use directhttp && property OFFLINE from decrypters! Using 'OFFLINE' property, ensures when the user checks
+            // online status again it will _always_ return offline status.
+            final DownloadLink offline = createDownloadlink("directhttp://" + parameter);
+            offline.setFinalFileName(new Regex(parameter, "([a-z0-9\\-]+)/?$").getMatch(0) + ".mp4");
+            offline.setProperty("OFFLINE", true);
+            offline.setAvailable(false);
+            decryptedLinks.add(offline);
             return decryptedLinks;
         }
         final String html5player = br.getRegex(",html5player:[^\r\n]+").getMatch(-1);
@@ -65,7 +72,7 @@ public class TvAdbCm extends PluginForDecrypt {
             final String q = getJson(qual, "quality");
             final String u = getJson(qual, "src");
             if (q == null || u == null) continue;
-            final DownloadLink dl = createDownloadlink(u);
+            final DownloadLink dl = createDownloadlink("directhttp://" + u);
             dl.setFinalFileName(name + " - " + q + u.substring(u.lastIndexOf(".")));
             decryptedLinks.add(dl);
         }
@@ -82,7 +89,7 @@ public class TvAdbCm extends PluginForDecrypt {
      * @author raztoki
      * */
     private String getJson(final String source, final String key) {
-        String result = new Regex(source, "\"" + key + "\":(-?\\d+(\\.\\d+)?|true|false)").getMatch(0);
+        String result = new Regex(source, "\"" + key + "\":(-?\\d+(\\.\\d+)?|true|false|null)").getMatch(0);
         if (result == null) result = new Regex(source, "\"" + key + "\":\"([^\"]+)\"").getMatch(0);
         if (result != null) result = result.replaceAll("\\\\/", "/");
         return result;

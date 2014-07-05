@@ -36,11 +36,11 @@ import jd.utils.JDUtilities;
 
 @DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "xhamster.com" }, urls = { "http://(www\\.)?xhamster\\.com/photos/gallery/[0-9]+/.*?\\.html" }, flags = { 0 })
 public class XHamsterGallery extends PluginForDecrypt {
-    
+
     public XHamsterGallery(PluginWrapper wrapper) {
         super(wrapper);
     }
-    
+
     public ArrayList<DownloadLink> decryptIt(CryptedLink param, ProgressController progress) throws Exception {
         ArrayList<DownloadLink> decryptedLinks = new ArrayList<DownloadLink>();
         ArrayList<String> allPages = new ArrayList<String>();
@@ -52,7 +52,7 @@ public class XHamsterGallery extends PluginForDecrypt {
         br.setFollowRedirects(true);
         br.getPage(parameter);
         /* Error handling */
-        if (br.containsHTML("Sorry, no photos found|>Gallery not found<")) {
+        if (br.containsHTML("Sorry, no photos found|error\">Gallery not found<")) {
             logger.info("Link offline: " + parameter);
             return decryptedLinks;
         }
@@ -60,22 +60,29 @@ public class XHamsterGallery extends PluginForDecrypt {
             logger.info("This gallery is only visible for specified users, account needed: " + parameter);
             return decryptedLinks;
         }
-        
+
         if (br.containsHTML(">This gallery needs password<")) {
             for (int i = 1; i <= 3; i++) {
                 String passCode = getUserInput("Password?", param);
                 br.postPage(br.getURL(), "password=" + Encoding.urlEncode(passCode));
-                if (br.containsHTML(">This gallery needs password<")) continue;
+                if (br.containsHTML(">This gallery needs password<")) {
+                    continue;
+                }
                 break;
             }
-            if (br.containsHTML(">This gallery needs password<")) throw new DecrypterException(DecrypterException.PASSWORD);
+            if (br.containsHTML(">This gallery needs password<")) {
+                throw new DecrypterException(DecrypterException.PASSWORD);
+            }
         }
-        
+
         String fpname = br.getRegex("<title>(.*?) \\- \\d+ (Pics|Bilder) \\- xHamster\\.com</title>").getMatch(0);
         String[] pagesTemp = br.getRegex("\\'" + parameterWihoutHtml + "-\\d+\\.html\\'>(\\d+)</a>").getColumn(0);
         if (pagesTemp != null && pagesTemp.length != 0) {
-            for (String aPage : pagesTemp)
-                if (!allPages.contains(aPage)) allPages.add(aPage);
+            for (String aPage : pagesTemp) {
+                if (!allPages.contains(aPage)) {
+                    allPages.add(aPage);
+                }
+            }
         }
         for (String currentPage : allPages) {
             final String thePage = parameterWihoutHtml + "-" + currentPage + ".html";
@@ -85,13 +92,14 @@ public class XHamsterGallery extends PluginForDecrypt {
                 logger.warning("Decrypter failed on page " + currentPage + " for link: " + thePage);
                 return null;
             }
-            final String[] thumbNails = new Regex(allLinks, "(\"|\\')(http://p\\d+\\.xhamster\\.com/\\d+/\\d+/\\d+/\\d+_160\\.jpg)(\"|\\')").getColumn(1);
+            // 'http://ept.xhcdn.com/000/027/563/101_160.jpg'
+            final String[] thumbNails = new Regex(allLinks, "(\"|\\')(http://(e|u)pt\\.xhcdn\\.com/\\d+/\\d+/\\d+/\\d+_160\\.jpg)(\"|\\')").getColumn(1);
             if (thumbNails == null || thumbNails.length == 0) {
                 logger.warning("Decrypter failed on page " + currentPage + " for link: " + thePage);
                 return null;
             }
             for (String thumbNail : thumbNails) {
-                DownloadLink dl = createDownloadlink("directhttp://http://up.xhamster.com/" + new Regex(thumbNail, "http://p\\d+\\.xhamster\\.com/(\\d+/\\d+/\\d+/\\d+_)160\\.jpg").getMatch(0) + "1000.jpg");
+                DownloadLink dl = createDownloadlink("directhttp://http://ep.xhamster.com/" + new Regex(thumbNail, ".+\\.xhcdn\\.com/(\\d+/\\d+/\\d+/\\d+_)160\\.jpg").getMatch(0) + "1000.jpg");
                 dl.setAvailable(true);
                 decryptedLinks.add(dl);
             }
@@ -101,10 +109,17 @@ public class XHamsterGallery extends PluginForDecrypt {
             fp.setName(fpname.trim());
             fp.addLinks(decryptedLinks);
         }
-        
+
         return decryptedLinks;
     }
-    
+
+    /**
+     * JD2 CODE: DO NOIT USE OVERRIDE FÒR COMPATIBILITY REASONS!!!!!
+     */
+    public boolean isProxyRotationEnabledForLinkCrawler() {
+        return false;
+    }
+
     private boolean getUserLogin(final boolean force) throws Exception {
         final PluginForHost hostPlugin = JDUtilities.getPluginForHost("xhamster.com");
         final Account aa = AccountController.getInstance().getValidAccount(hostPlugin);
@@ -115,16 +130,16 @@ public class XHamsterGallery extends PluginForDecrypt {
         try {
             ((jd.plugins.hoster.XHamsterCom) hostPlugin).login(this.br, aa, force);
         } catch (final PluginException e) {
-            
+
             aa.setValid(false);
             return false;
         }
         return true;
     }
-    
+
     /* NO OVERRIDE!! */
     public boolean hasCaptcha(CryptedLink link, jd.plugins.Account acc) {
         return false;
     }
-    
+
 }

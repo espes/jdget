@@ -14,12 +14,16 @@ import jd.controlling.packagecontroller.AbstractNode;
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.event.queue.QueueAction;
+import org.jdownloader.controlling.contextmenu.ActionContext;
 import org.jdownloader.controlling.contextmenu.CustomizableTableContextAppAction;
+import org.jdownloader.controlling.contextmenu.Customizer;
 import org.jdownloader.gui.translate._GUI;
+import org.jdownloader.gui.views.components.LocationInList;
 import org.jdownloader.gui.views.linkgrabber.addlinksdialog.LinkgrabberSettings;
+import org.jdownloader.settings.staticreferences.CFG_LINKCOLLECTOR;
 import org.jdownloader.translate._JDT;
 
-public class SplitPackagesByHost extends CustomizableTableContextAppAction<CrawledPackage, CrawledLink> {
+public class SplitPackagesByHost extends CustomizableTableContextAppAction<CrawledPackage, CrawledLink> implements ActionContext {
 
     /**
      * 
@@ -27,9 +31,20 @@ public class SplitPackagesByHost extends CustomizableTableContextAppAction<Crawl
     private static final long serialVersionUID = 2636706677433058054L;
 
     public SplitPackagesByHost() {
-
+        super();
         setName(_GUI._.SplitPackagesByHost_SplitPackagesByHost_object_());
         setIconKey("split_packages");
+    }
+
+    private LocationInList location = LocationInList.AFTER_SELECTION;
+
+    @Customizer(name = "Add package at")
+    public LocationInList getLocation() {
+        return location;
+    }
+
+    public void setLocation(LocationInList location) {
+        this.location = location;
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -37,53 +52,91 @@ public class SplitPackagesByHost extends CustomizableTableContextAppAction<Crawl
 
             @Override
             protected Void run() throws RuntimeException {
-                HashMap<String, java.util.List<CrawledLink>> splitMap = new HashMap<String, java.util.List<CrawledLink>>();
-
-                CrawledPackage samePkg = null;
-                boolean samePackage = true;
+                final HashMap<CrawledPackage, HashMap<String, ArrayList<CrawledLink>>> splitMap = new HashMap<CrawledPackage, HashMap<String, ArrayList<CrawledLink>>>();
+                int insertAt = -1;
+                switch (getLocation()) {
+                case BEFORE_SELECTION:
+                    insertAt = Integer.MAX_VALUE;
+                }
                 for (AbstractNode child : getSelection().getChildren()) {
                     if (child instanceof CrawledLink) {
-                        CrawledLink cL = (CrawledLink) child;
-                        if (samePkg == null) {
-                            samePkg = cL.getParentNode();
-                        } else if (cL.getParentNode() != samePkg) {
-                            samePackage = false;
+                        final CrawledLink cL = (CrawledLink) child;
+                        final CrawledPackage parent = cL.getParentNode();
+                        HashMap<String, ArrayList<CrawledLink>> parentMap = splitMap.get(parent);
+                        if (parentMap == null) {
+                            parentMap = new HashMap<String, ArrayList<CrawledLink>>();
+                            splitMap.put(parent, parentMap);
                         }
-                        java.util.List<CrawledLink> map = splitMap.get(cL.getHost());
-                        if (map == null) {
-                            map = new ArrayList<CrawledLink>();
-                            splitMap.put(cL.getHost(), map);
+                        final String host = cL.getDomainInfo().getTld();
+                        ArrayList<CrawledLink> hostList = parentMap.get(host);
+                        if (hostList == null) {
+                            hostList = new ArrayList<CrawledLink>();
+                            parentMap.put(host, hostList);
                         }
-                        map.add(cL);
+                        hostList.add(cL);
+                        switch (getLocation()) {
+                        case AFTER_SELECTION:
+                            insertAt = Math.max(insertAt, LinkCollector.getInstance().indexOf(((CrawledLink) child).getParentNode()) + 1);
+                            break;
+                        case BEFORE_SELECTION:
+                            insertAt = Math.min(insertAt, LinkCollector.getInstance().indexOf(((CrawledLink) child).getParentNode()));
+                            break;
+                        case END_OF_LIST:
+                            insertAt = -1;
+                            break;
+                        case TOP_OF_LIST:
+                            insertAt = 0;
+                            break;
+                        }
                     }
                 }
-                if (!samePackage) {
-                    samePkg = null;
+                if (insertAt == Integer.MAX_VALUE) {
+                    insertAt = 0;
                 }
-                Iterator<Entry<String, java.util.List<CrawledLink>>> it = splitMap.entrySet().iterator();
+                final String nameFactory = JsonConfig.create(LinkgrabberSettings.class).getSplitPackageNameFactoryPattern();
+                final boolean merge = JsonConfig.create(LinkgrabberSettings.class).isSplitPackageMergeEnabled();
+                final HashMap<String, CrawledPackage> mergedPackages = new HashMap<String, CrawledPackage>();
+                final Iterator<Entry<CrawledPackage, HashMap<String, ArrayList<CrawledLink>>>> it = splitMap.entrySet().iterator();
                 while (it.hasNext()) {
-                    Entry<String, java.util.List<CrawledLink>> next = it.next();
-                    String host = next.getKey();
-                    final java.util.List<CrawledLink> links = next.getValue();
-                    final CrawledPackage newPkg = new CrawledPackage();
-                    newPkg.setExpanded(true);
-                    if (samePkg != null) {
-                        samePkg.copyPropertiesTo(newPkg);
-                        newPkg.setName(getNewPackageName(samePkg.getName(), host));
-                    } else {
-                        newPkg.setName(getNewPackageName(null, host));
+                    final Entry<CrawledPackage, HashMap<String, ArrayList<CrawledLink>>> next = it.next();
+                    final CrawledPackage sourcePackage = next.getKey();
+                    final HashMap<String, ArrayList<CrawledLink>> items = next.getValue();
+                    final Iterator<Entry<String, ArrayList<CrawledLink>>> it2 = items.entrySet().iterator();
+                    while (it2.hasNext()) {
+                        final Entry<String, ArrayList<CrawledLink>> next2 = it2.next();
+                        final String host = next2.getKey();
+                        final String newPackageName = getNewPackageName(nameFactory, sourcePackage.getName(), host);
+                        final CrawledPackage newPkg;
+                        if (merge) {
+                            CrawledPackage destPackage = mergedPackages.get(newPackageName);
+                            if (destPackage == null) {
+                                destPackage = new CrawledPackage();
+                                destPackage.setExpanded(CFG_LINKCOLLECTOR.CFG.isPackageAutoExpanded());
+                                sourcePackage.copyPropertiesTo(destPackage);
+                                destPackage.setName(newPackageName);
+                                mergedPackages.put(newPackageName, destPackage);
+                            }
+                            newPkg = destPackage;
+                        } else {
+                            newPkg = new CrawledPackage();
+                            newPkg.setExpanded(CFG_LINKCOLLECTOR.CFG.isPackageAutoExpanded());
+                            sourcePackage.copyPropertiesTo(newPkg);
+                            newPkg.setName(newPackageName);
+                        }
+                        LinkCollector.getInstance().moveOrAddAt(newPkg, next2.getValue(), 0, insertAt);
+                        insertAt++;
                     }
-                    LinkCollector.getInstance().moveOrAddAt(newPkg, links, -1);
                 }
                 return null;
             }
         });
     }
 
-    public String getNewPackageName(String oldPackageName, String host) {
-        String nameFactory = JsonConfig.create(LinkgrabberSettings.class).getSplitPackageNameFactoryPattern();
+    public String getNewPackageName(String nameFactory, String oldPackageName, String host) {
         if (StringUtils.isEmpty(nameFactory)) {
-            if (!StringUtils.isEmpty(oldPackageName)) return oldPackageName;
+            if (!StringUtils.isEmpty(oldPackageName)) {
+                return oldPackageName;
+            }
             return host;
         }
         if (!StringUtils.isEmpty(oldPackageName)) {

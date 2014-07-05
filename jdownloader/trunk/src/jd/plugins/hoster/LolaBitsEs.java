@@ -39,7 +39,7 @@ import jd.utils.JDUtilities;
 import org.appwork.utils.formatter.SizeFormatter;
 
 /*Same script for AbelhasPt, LolaBitsEs*/
-@HostPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "lolabits.es" }, urls = { "http://(www\\.)?lolabits\\.es/[^<>\"/]+/[^<>\"/]+/[^<>\"/]+" }, flags = { 2 })
+@HostPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "lolabits.es" }, urls = { "http://(www\\.)?lolabits\\.es/[^<>\"/]+/[^<>\"/]+/[^<>\"]+" }, flags = { 2 })
 public class LolaBitsEs extends PluginForHost {
 
     public LolaBitsEs(PluginWrapper wrapper) {
@@ -98,8 +98,8 @@ public class LolaBitsEs extends PluginForHost {
             /* Whatever happens here, always show server error... */
             throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error", 30 * 60 * 1000l);
         }
-        /* Low quality stream = always .mp4 -> (Might) need to change filename */
-        fixFilename(downloadLink);
+        String contentDisposition = dl.getConnection().getHeaderField("Content-Disposition");
+        if (contentDisposition == null || !contentDisposition.contains("filename")) fixFilename(downloadLink);
         dl.startDownload();
     }
 
@@ -181,6 +181,8 @@ public class LolaBitsEs extends PluginForHost {
             br.followConnection();
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         }
+        String contentDisposition = dl.getConnection().getHeaderField("Content-Disposition");
+        if (contentDisposition == null || !contentDisposition.contains("filename")) fixFilename(link);
         dl.startDownload();
     }
 

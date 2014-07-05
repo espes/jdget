@@ -28,7 +28,7 @@ import jd.plugins.DownloadLink;
 import jd.plugins.PluginForDecrypt;
 
 //When adding new domains here also add them to the hosterplugin (TurboBitNet)
-@DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "turbobit.net" }, urls = { "http://(www\\.)?(maxisoc\\.ru|turo\\-bit\\.net|depositfiles\\.com\\.ua|dlbit\\.net|sharephile\\.com|filesmail\\.ru|hotshare\\.biz|bluetooths\\.pp\\.ru|speed-file\\.ru|sharezoid\\.com|turbobit\\.pl|dz-files\\.ru|file\\.alexforum\\.ws|file\\.grad\\.by|file\\.krut-warez\\.ru|filebit\\.org|files\\.best-trainings\\.org\\.ua|files\\.wzor\\.ws|gdefile\\.ru|letitshare\\.ru|mnogofiles\\.com|share\\.uz|sibit\\.net|turbo-bit\\.ru|turbobit\\.net|upload\\.mskvn\\.by|vipbit\\.ru|files\\.prime-speed\\.ru|filestore\\.net\\.ru|turbobit\\.ru|upload\\.dwmedia\\.ru|upload\\.uz|xrfiles\\.ru|unextfiles\\.com|e-flash\\.com\\.ua|turbobax\\.net|zharabit\\.net|download\\.uzhgorod\\.name|trium-club\\.ru|alfa-files\\.com|turbabit\\.net|filedeluxe\\.com|turbobit\\.name|files\\.uz\\-translations\\.uz|turboblt\\.ru|fo\\.letitbook\\.ru|freefo\\.ru|bayrakweb\\.com|savebit\\.net|filemaster\\.ru|файлообменник\\.рф|vipgfx\\.net|turbovit\\.com\\.ua|turboot\\.ru)/download/folder/\\d+" }, flags = { 0 })
+@DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "turbobit.net" }, urls = { "http://(www\\.)?(maxisoc\\.ru|turo\\-bit\\.net|depositfiles\\.com\\.ua|dlbit\\.net|sharephile\\.com|filesmail\\.ru|hotshare\\.biz|bluetooths\\.pp\\.ru|speed-file\\.ru|turbobit\\.pl|dz-files\\.ru|file\\.alexforum\\.ws|file\\.grad\\.by|file\\.krut-warez\\.ru|filebit\\.org|files\\.best-trainings\\.org\\.ua|files\\.wzor\\.ws|gdefile\\.ru|letitshare\\.ru|mnogofiles\\.com|share\\.uz|sibit\\.net|turbo-bit\\.ru|turbobit\\.net|upload\\.mskvn\\.by|vipbit\\.ru|files\\.prime-speed\\.ru|filestore\\.net\\.ru|turbobit\\.ru|upload\\.dwmedia\\.ru|upload\\.uz|xrfiles\\.ru|unextfiles\\.com|e-flash\\.com\\.ua|turbobax\\.net|zharabit\\.net|download\\.uzhgorod\\.name|trium-club\\.ru|alfa-files\\.com|turbabit\\.net|filedeluxe\\.com|turbobit\\.name|files\\.uz\\-translations\\.uz|turboblt\\.ru|fo\\.letitbook\\.ru|freefo\\.ru|bayrakweb\\.com|savebit\\.net|filemaster\\.ru|файлообменник\\.рф|vipgfx\\.net|turbovit\\.com\\.ua|turboot\\.ru)/download/folder/\\d+" }, flags = { 0 })
 public class TurboBitNetFolder extends PluginForDecrypt {
 
     public TurboBitNetFolder(PluginWrapper wrapper) {
@@ -46,7 +46,8 @@ public class TurboBitNetFolder extends PluginForDecrypt {
         }
         // rows = 100 000 makes sure that we only get one page with all links
         try {
-            br.getPage("http://turbobit.net/downloadfolder/gridFile?id_folder=" + id + "&_search=false&nd=&rows=100000&page=1");
+            // br.getPage("http://turbobit.net/downloadfolder/gridFile?id_folder=" + id + "&_search=false&nd=&rows=100000&page=1");
+            br.getPage("http://turbobit.net/downloadfolder/gridFile?rootId=" + id + "?currentId=" + id + "&_search=false&nd=&rows=100000&page=1");
         } catch (final BrowserException e) {
             logger.info("Link offline (server error): " + parameter);
             return decryptedLinks;
@@ -60,8 +61,11 @@ public class TurboBitNetFolder extends PluginForDecrypt {
             logger.warning("Decrypter broken for link: " + parameter);
             return null;
         }
-        for (String singleID : ids)
-            decryptedLinks.add(createDownloadlink("http://turbobit.net/" + singleID + ".html"));
+        for (String singleID : ids) {
+            if (!singleID.equals(id)) {
+                decryptedLinks.add(createDownloadlink("http://turbobit.net/" + singleID + ".html"));
+            }
+        }
 
         return decryptedLinks;
     }

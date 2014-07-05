@@ -16,6 +16,7 @@
 
 package jd.plugins.hoster;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +36,7 @@ import jd.plugins.HostPlugin;
 import jd.plugins.LinkStatus;
 import jd.plugins.PluginException;
 import jd.plugins.PluginForHost;
+import jd.utils.JDUtilities;
 
 @HostPlugin(revision = "$Revision$", interfaceVersion = 3, names = { "debrid-link.fr" }, urls = { "REGEX_NOT_POSSIBLE_RANDOM-asdfasdfsadfsdgfd32423" }, flags = { 2 })
 public class DebridLinkFr extends PluginForHost {
@@ -75,7 +77,9 @@ public class DebridLinkFr extends PluginForHost {
     public AccountInfo fetchAccountInfo(final Account account) throws Exception {
         final AccountInfo ac = new AccountInfo();
         // dump(account);
-        if (!isAccPresent(account)) login(account);
+        if (!isAccPresent(account)) {
+            login(account);
+        }
 
         // account stats
         getPage(account, null, "infoMember", true, null);
@@ -89,7 +93,9 @@ public class DebridLinkFr extends PluginForHost {
         } else if ("1".equals(accountType)) {
             // premium account
             ac.setStatus("Premium Account");
-            if (premiumLeft != null) ac.setValidUntil(System.currentTimeMillis() + (Long.parseLong(premiumLeft) * 1000));
+            if (premiumLeft != null) {
+                ac.setValidUntil(System.currentTimeMillis() + (Long.parseLong(premiumLeft) * 1000));
+            }
             account.setProperty("free", false);
         } else if ("2".equals(accountType)) {
             // life account
@@ -101,21 +107,21 @@ public class DebridLinkFr extends PluginForHost {
 
         // multihoster array
         getPage(account, null, "statusDownloader", true, null);
-        String[] status = br.getRegex("\\{\"status\":[\\d\\-]+.*?\\]\\}").getColumn(-1);
+        String[] status = br.getRegex("\\{\"status\":[\\d\\-]+.*?\\].*?\\}").getColumn(-1);
         ArrayList<String> supportedHosts = new ArrayList<String>();
         for (String stat : status) {
             final String s = getJson(stat, "status");
             // don't add host if they are down! or disabled
-            if ("-1".equals(s) || "0".equals(s))
+            if ("-1".equals(s) || "0".equals(s)) {
                 continue;
-            else {
+            } else {
                 String[] hosts = new Regex(stat, "\"(([^\",]+\\.){1,}[a-z]+)\"").getColumn(0);
-                for (String host : hosts) {
+                for (final String host : hosts) {
                     supportedHosts.add(host);
                 }
             }
         }
-        ac.setProperty("multiHostSupport", supportedHosts);
+        ac.setMultiHostSupport(supportedHosts);
         // end of multihoster array
         return ac;
     }
@@ -130,11 +136,36 @@ public class DebridLinkFr extends PluginForHost {
                 br2.setFollowRedirects(true);
                 final String validateToken = getJson("validTokenUrl");
                 if (validateToken == null) {
-                    logger.warning("problemo!");
+                    logger.warning("Can't find validateToken!");
                     dump(account);
                     throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
                 }
                 br2.getPage(validateToken);
+                // recaptcha can be here
+                if (br2.containsHTML(">Too many errors occurred\\.<") && br2.containsHTML(">Enter the captcha</label>")) {
+                    final Form recap = br2.getForm(0);
+                    final String apiKey = br2.getRegex("Recaptcha\\.create\\(\"([^\"]+)\"").getMatch(0);
+                    if (apiKey == null || recap == null) {
+                        logger.warning("can't find captcha regex!");
+                        dump(account);
+                        throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                    }
+                    DownloadLink dummyLink = new DownloadLink(this, "Account", "http://" + this.getHost(), "http://" + this.getHost(), true);
+                    final PluginForHost recplug = JDUtilities.getPluginForHost("DirectHTTP");
+                    final jd.plugins.hoster.DirectHTTP.Recaptcha rc = ((DirectHTTP) recplug).getReCaptcha(br2);
+                    rc.setId(apiKey);
+                    rc.load();
+                    final File cf = rc.downloadCaptcha(getLocalCaptchaFile());
+                    final String c = getCaptchaCode(cf, dummyLink);
+                    recap.put("recaptcha_challenge_field", rc.getChallenge());
+                    recap.put("recaptcha_response_field", Encoding.urlEncode(c));
+                    recap.put("validHuman", "Submit");
+                    br2.submitForm(recap);
+                    if (br2.containsHTML(">Too many errors occurred\\.<") && br2.containsHTML(">Enter the captcha</label>")) {
+                        throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nInvalid captcha!", PluginException.VALUE_ID_PREMIUM_DISABLE);
+                    }
+                }
+
                 // validate token externally.. this is good idea in principle but in practice not so, as it will drive users/customers
                 // NUTTS!
                 // Your better off doing 2 factor to email, as it can't be bypassed like this!
@@ -143,17 +174,22 @@ public class DebridLinkFr extends PluginForHost {
                     dump(account);
                     throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
                 }
-                vT.put("sessidTime", "24");
-                vT.put("user", Encoding.urlEncode(account.getUser()));
-                vT.put("password", Encoding.urlEncode(account.getPass()));
-                vT.put("authorizedToken", "1");
-                br2.submitForm(vT);
-                if (br2.containsHTML("La session à bien été activé. Vous pouvez utiliser l'application Jdownloader|The session has been activated\\. You can use the application Jdownloader")) {
-                    logger.info("success!!");
-                } else {
-                    logger.warning("problemo!");
-                    dump(account);
-                    throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                if (vT.containsHTML("name='user'>") && vT.containsHTML("name='password'>")) {
+                    vT.put("sessidTime", "24");
+                    vT.put("user", Encoding.urlEncode(account.getUser()));
+                    vT.put("password", Encoding.urlEncode(account.getPass()));
+                    vT.put("authorizedToken", "1");
+                    br2.submitForm(vT);
+                    if (br2.containsHTML("La session à bien été activé. Vous pouvez utiliser l'application Jdownloader|The session has been activated\\. You can use the application Jdownloader")) {
+                        logger.info("success!!");
+                    } else if (br2.containsHTML(">Password or username not valid<")) {
+                        dump(account);
+                        throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nInvalid username/password!", PluginException.VALUE_ID_PREMIUM_DISABLE);
+                    } else {
+                        logger.warning("Problemo, submitting login form!");
+                        dump(account);
+                        throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                    }
                 }
             } catch (Exception e) {
                 throw e;
@@ -163,10 +199,11 @@ public class DebridLinkFr extends PluginForHost {
 
     private boolean isAccPresent(final Account account) {
         synchronized (accountInfo) {
-            if (accountInfo.containsKey(account))
+            if (accountInfo.containsKey(account)) {
                 return true;
-            else
+            } else {
                 return false;
+            }
         }
     }
 
@@ -174,9 +211,13 @@ public class DebridLinkFr extends PluginForHost {
         synchronized (accountInfo) {
             HashMap<String, String> accInfo = new HashMap<String, String>();
             final String token = getJson("token");
-            if (token != null) accInfo.put("token", token);
+            if (token != null) {
+                accInfo.put("token", token);
+            }
             final String key = getJson("key");
-            if (key != null) accInfo.put("key", key);
+            if (key != null) {
+                accInfo.put("key", key);
+            }
             final String loginTime = String.valueOf(System.currentTimeMillis());
             accInfo.put("loginTime", loginTime);
             final String timestamp = getJson("ts");
@@ -211,86 +252,112 @@ public class DebridLinkFr extends PluginForHost {
         if (account != null && r != null) {
             br.getPage(apiHost + "?r=" + r + (sign ? "&token=" + getValue(account, "token") + "&sign=" + getSign(account, r) : "") + (other != null ? (!other.startsWith("&") ? "&" : "") + other : ""));
             if (errChk()) {
-                errHandling(account, downloadLink);
+                errHandling(account, downloadLink, false);
             }
-        } else
+        } else {
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
     }
 
-    private void errHandling(final Account account, final DownloadLink downloadLink) throws PluginException {
-        final String error = getJson("ERR");
-        if (error != null) {
-
-            // generic errors not specific to download routine!
-
-            if ("unknowR".equals(error)) {
-                // Bad r argument
-                // changes with the API? this shouldn't happen
-                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
-            } else if ("badSign".equals(error)) {
-                // Check the sign parameter
-                dump(account);
+    private void errHandling(final Account account, final DownloadLink downloadLink, final boolean postDl) throws PluginException {
+        if (postDl) {
+            // <p>
+            // Download error
+            // </p>
+            // <p>
+            // Unable to retrieve the file from the host.<br/>
+            // Code erreur: #DEB-536e7081927b8<br>
+            // </p>
+            // </div>
+            // <div class='clearfix'></div><div class='alert alert-info'>
+            // <p> - The download server may be offline.<br/>
+            // - Our server was banned by the host.<br/>
+            // - A script problem due to a change in the host.</p>
+            // </div><div class='col-sm-8'><p>Renew your request.<br/>
+            // If the problem continues, please contact us.</div>
+            if (br.containsHTML("Unable to retrieve the file from the host\\.<")) {
+                tempUnavailableHoster(account, downloadLink, 1 * 60 * 60 * 1000l);
                 throw new PluginException(LinkStatus.ERROR_RETRY);
-            } else if ("badRequest".equals(error)) {
-                // not in error table yet..........
-                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
-            } else if ("hidedToken".equals(error)) {
-                // The token is not enabled. Redirect the user to validTokenUrl
-                // this is done automatic at this stage, as users will hate dialog/popups!
-                dump(account);
-                throw new PluginException(LinkStatus.ERROR_RETRY);
-            } else if ("badToken".equals(error)) {
-                // Token expired or not valid
-                dump(account);
-                throw new PluginException(LinkStatus.ERROR_RETRY);
-            } else if ("notToken".equals(error)) {
-                // The request need token argument
-                // should never happen, unless API changes!
-                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
             }
+        } else {
+            final String error = getJson("ERR");
 
-            // handling for download routines!
+            if (error != null) {
 
-            else if (downloadLink != null) {
+                // generic errors not specific to download routine!
 
-                if ("notDebrid".equals(error)) {
-                    // Maybe the filehoster is down or the link is not online
-                    tempUnavailableHoster(account, downloadLink, 1 * 60 * 60 * 1000l);
-                } else if ("fileNotFound".equals(error)) {
-                    // The filehoster return a 'file not found' error.
-                    // let another download method kick in? **
-                    // NOTE: ** = jiaz new handling behaviour
-                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE);
-                } else if ("badFileUrl".equals(error)) {
-                    // The link format is not valid
-                    // link generation?? lets go into another plugin **
-                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE);
-                } else if ("hostNotValid".equals(error)) {
-                    // The filehoster is not supported
-                    // shouldn't happen as we check supported array and remove hosts that are disabled/down etc.
-                    tempUnavailableHoster(account, downloadLink, 6 * 60 * 60 * 1000l);
-                } else if ("disabledHost".equals(error)) {
-                    // The filehoster are disabled
-                    // remove from array!
-                    tempUnavailableHoster(account, downloadLink, 1 * 60 * 60 * 1000l);
-                } else if ("noGetFilename".equals(error)) {
-                    // Unable to retrieve the file name
-                    // what todo here? revert to another plugin **
-                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE);
+                if ("unknowR".equals(error)) {
+                    // Bad r argument
+                    // changes with the API? this shouldn't happen
+                    throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                } else if ("badSign".equals(error)) {
+                    // Check the sign parameter
+                    dump(account);
+                    throw new PluginException(LinkStatus.ERROR_RETRY);
+                } else if ("badRequest".equals(error)) {
+                    // not in error table yet..........
+                    throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                } else if ("hidedToken".equals(error)) {
+                    // The token is not enabled. Redirect the user to validTokenUrl
+                    // this is done automatic at this stage, as users will hate dialog/popups!
+                    dump(account);
+                    throw new PluginException(LinkStatus.ERROR_RETRY);
+                } else if ("badToken".equals(error)) {
+                    // Token expired or not valid
+                    dump(account);
+                    throw new PluginException(LinkStatus.ERROR_RETRY);
+                } else if ("notToken".equals(error)) {
+                    // The request need token argument
+                    // should never happen, unless API changes!
+                    throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                }
+
+                // handling for download routines!
+
+                else if (downloadLink != null) {
+
+                    if ("notDebrid".equals(error)) {
+                        // Maybe the filehoster is down or the link is not online
+                        tempUnavailableHoster(account, downloadLink, 1 * 60 * 60 * 1000l);
+                    } else if ("fileNotFound".equals(error)) {
+                        // The filehoster return a 'file not found' error.
+                        // let another download method kick in? **
+                        // NOTE: ** = jiaz new handling behaviour
+                        throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE);
+                    } else if ("badFileUrl".equals(error)) {
+                        // The link format is not valid
+                        // link generation?? lets go into another plugin **
+                        throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE);
+                    } else if ("hostNotValid".equals(error)) {
+                        // The filehoster is not supported
+                        // shouldn't happen as we check supported array and remove hosts that are disabled/down etc.
+                        tempUnavailableHoster(account, downloadLink, 6 * 60 * 60 * 1000l);
+                    } else if ("disabledHost".equals(error)) {
+                        // The filehoster are disabled
+                        // remove from array!
+                        tempUnavailableHoster(account, downloadLink, 1 * 60 * 60 * 1000l);
+                    } else if ("noGetFilename".equals(error)) {
+                        // Unable to retrieve the file name
+                        // what todo here? revert to another plugin **
+                        throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE);
+                    }
                 }
             }
         }
     }
 
     private boolean errChk() {
-        if (br.containsHTML("\"result\":\"KO\""))
+        if (br.containsHTML("\"result\":\"KO\"")) {
             return true;
-        else
+        } else {
             return false;
+        }
     }
 
     private String getSign(final Account account, final String r) throws Exception {
-        if (r == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (r == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
 
         final String to = getValue(account, "timeOffset");
         final String key = getValue(account, "key");
@@ -320,13 +387,17 @@ public class DebridLinkFr extends PluginForHost {
             for (int i = 0; i != 2; i++) {
                 if (!isAccPresent(account)) {
                     login(account);
-                    if (isAccPresent(account)) break;
-                    if (!isAccPresent(account) && i + 1 == 2)
+                    if (isAccPresent(account)) {
+                        break;
+                    }
+                    if (!isAccPresent(account) && i + 1 == 2) {
                         throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_TEMP_DISABLE);
-                    else
+                    } else {
                         continue;
-                } else
+                    }
+                } else {
                     break;
+                }
             }
             Map<String, String> accInfo = accountInfo.get(account);
             String value = accInfo.get(key);
@@ -340,9 +411,13 @@ public class DebridLinkFr extends PluginForHost {
      * @author raztoki
      * */
     private String getJson(final String source, final String key) {
-        String result = new Regex(source, "\"" + key + "\":(-?\\d+(\\.\\d+)?|true|false)").getMatch(0);
-        if (result == null) result = new Regex(source, "\"" + key + "\":\"([^\"]+)\"").getMatch(0);
-        if (result != null) result = result.replaceAll("\\\\/", "/");
+        String result = new Regex(source, "\"" + key + "\":(-?\\d+(\\.\\d+)?|true|false|null)").getMatch(0);
+        if (result == null) {
+            result = new Regex(source, "\"" + key + "\":\"([^\"]+)\"").getMatch(0);
+        }
+        if (result != null) {
+            result = result.replaceAll("\\\\/", "/");
+        }
         return result;
     }
 
@@ -384,8 +459,12 @@ public class DebridLinkFr extends PluginForHost {
 
         final String chunk = getJson("chunk");
         final String resume = getJson("resume");
-        if (chunk != null && !"0".equals(chunk)) chunks = -Integer.parseInt(chunk);
-        if (resume != null) resumes = Boolean.parseBoolean(resume);
+        if (chunk != null && !"0".equals(chunk)) {
+            chunks = -Integer.parseInt(chunk);
+        }
+        if (resume != null) {
+            resumes = Boolean.parseBoolean(resume);
+        }
 
         String dllink = getJson("downloadLink");
         if (dllink == null) {
@@ -397,7 +476,10 @@ public class DebridLinkFr extends PluginForHost {
         dl = jd.plugins.BrowserAdapter.openDownload(br, downloadLink, dllink, resumes, chunks);
         if (dl.getConnection().getContentType().contains("html")) {
             br.followConnection();
-            if (br.containsHTML("<img src='http://debrid-link\\.fr/images/logo\\.png")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error", 30 * 60 * 1000l);
+            errHandling(account, downloadLink, true);
+            if (br.containsHTML("<img src='http://debrid-link\\.fr/images/logo\\.png")) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error", 30 * 60 * 1000l);
+            }
             logger.warning("Unhandled download error on debrid-link.fr:");
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
 
@@ -411,7 +493,9 @@ public class DebridLinkFr extends PluginForHost {
     }
 
     private void tempUnavailableHoster(Account account, DownloadLink downloadLink, long timeout) throws PluginException {
-        if (downloadLink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        if (downloadLink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap == null) {
@@ -434,7 +518,9 @@ public class DebridLinkFr extends PluginForHost {
                     return false;
                 } else if (lastUnavailable != null) {
                     unavailableMap.remove(downloadLink.getHost());
-                    if (unavailableMap.size() == 0) hostUnavailableMap.remove(account);
+                    if (unavailableMap.size() == 0) {
+                        hostUnavailableMap.remove(account);
+                    }
                 }
             }
         }

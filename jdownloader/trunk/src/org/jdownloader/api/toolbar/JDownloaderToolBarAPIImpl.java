@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import jd.controlling.downloadcontroller.DownloadController;
+import jd.controlling.downloadcontroller.DownloadSession;
+import jd.controlling.downloadcontroller.DownloadSession.STOPMARK;
 import jd.controlling.downloadcontroller.DownloadWatchDog;
 import jd.controlling.linkchecker.LinkChecker;
 import jd.controlling.linkchecker.LinkCheckerHandler;
@@ -27,8 +29,6 @@ import jd.controlling.packagecontroller.AbstractPackageChildrenNodeFilter;
 import jd.plugins.DownloadLink;
 import jd.plugins.PluginForHost;
 
-import org.appwork.controlling.StateEvent;
-import org.appwork.controlling.StateEventListener;
 import org.appwork.exceptions.WTFException;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.storage.JSonStorage;
@@ -143,7 +143,7 @@ import org.jdownloader.updatev2.UpdateController;
 //-nothing in case we do not have special LinkCheck features available for given URL (default for now)
 //-js code we want to inject, we do LinkCheck ourselves
 
-public class JDownloaderToolBarAPIImpl implements JDownloaderToolBarAPI, StateEventListener {
+public class JDownloaderToolBarAPIImpl implements JDownloaderToolBarAPI {
 
     private class ChunkedDom {
         protected HashMap<Integer, String> domChunks   = new HashMap<Integer, String>();
@@ -170,12 +170,12 @@ public class JDownloaderToolBarAPIImpl implements JDownloaderToolBarAPI, StateEv
     private HashMap<String, CheckedDom>                       checkSessions = new HashMap<String, CheckedDom>();
 
     public JDownloaderToolBarAPIImpl() {
-        DownloadWatchDog.getInstance().getStateMachine().addListener(this);
     }
 
     public synchronized Object getStatus() {
         org.jdownloader.myjdownloader.client.json.JsonMap ret = new org.jdownloader.myjdownloader.client.json.JsonMap();
         int running = DownloadWatchDog.getInstance().getActiveDownloads();
+        ret.put("state", DownloadWatchDog.getInstance().getStateMachine().getState().getLabel());
         ret.put("running", running > 0);
         ret.put("limit", org.jdownloader.settings.staticreferences.CFG_GENERAL.DOWNLOAD_SPEED_LIMIT_ENABLED.isEnabled());
         if (org.jdownloader.settings.staticreferences.CFG_GENERAL.DOWNLOAD_SPEED_LIMIT_ENABLED.isEnabled()) {
@@ -201,8 +201,12 @@ public class JDownloaderToolBarAPIImpl implements JDownloaderToolBarAPI, StateEv
             }
 
             public boolean acceptNode(DownloadLink node) {
-                if (!node.isEnabled()) return false;
-                if (FinalLinkState.CheckFailed(node.getFinalLinkState())) return false;
+                if (!node.isEnabled()) {
+                    return false;
+                }
+                if (FinalLinkState.CheckFailed(node.getFinalLinkState())) {
+                    return false;
+                }
                 return true;
             }
         });
@@ -249,13 +253,9 @@ public class JDownloaderToolBarAPIImpl implements JDownloaderToolBarAPI, StateEv
     }
 
     public boolean toggleStopAfterCurrentDownload() {
-        // final ToolBarAction stopMark =
-        // ActionController.getToolBarAction("toolbar.control.stopmark");
-        // if (stopMark != null) {
-        // stopMark.actionPerformed(null);
-        // }
-        // return DownloadWatchDog.getInstance().isStopMarkSet();
-        return false;
+        DownloadSession session = DownloadWatchDog.getInstance().getSession();
+        session.toggleStopMark(STOPMARK.RANDOM);
+        return session.isStopMarkSet();
     }
 
     public boolean togglePremium() {
@@ -297,7 +297,7 @@ public class JDownloaderToolBarAPIImpl implements JDownloaderToolBarAPI, StateEv
                 });
                 java.util.List<CrawledLink> links = new ArrayList<CrawledLink>();
                 links.add(link);
-                LinkCollector.getInstance().addCrawlerJob(links);
+                LinkCollector.getInstance().addCrawlerJob(links, null);
             }
             ret.put("status", true);
             ret.put("msg", (Object) null);
@@ -316,10 +316,18 @@ public class JDownloaderToolBarAPIImpl implements JDownloaderToolBarAPI, StateEv
         final String url = request.getParameterbyKey("url");
         boolean lastChunk = "true".equalsIgnoreCase(request.getParameterbyKey("lastchunk"));
         boolean debug = "true".equalsIgnoreCase(request.getParameterbyKey("debug"));
-        if (url == null) { throw new WTFException("No url?!"); }
-        if (sessionID == null) { throw new WTFException("No sessionID?!"); }
-        if (index == null) { throw new WTFException("No index?!"); }
-        if (data == null) { throw new WTFException("No data?!"); }
+        if (url == null) {
+            throw new WTFException("No url?!");
+        }
+        if (sessionID == null) {
+            throw new WTFException("No sessionID?!");
+        }
+        if (index == null) {
+            throw new WTFException("No index?!");
+        }
+        if (data == null) {
+            throw new WTFException("No data?!");
+        }
         if (debug) {
             System.out.println("Session: " + sessionID + "|Chunk: " + index + "|URL: " + url + "|Data: " + data.length() + "|LastChunk: " + lastChunk);
         }
@@ -330,10 +338,14 @@ public class JDownloaderToolBarAPIImpl implements JDownloaderToolBarAPI, StateEv
             while (it.hasNext()) {
                 String sID = it.next();
                 MinTimeWeakReference<ChunkedDom> tmp = domSessions.get(sID);
-                if (tmp != null && tmp.superget() == null) it.remove();
+                if (tmp != null && tmp.superget() == null) {
+                    it.remove();
+                }
             }
             MinTimeWeakReference<ChunkedDom> tmp = domSessions.get(sessionID);
-            if (tmp != null) chunkedDom = tmp.get();
+            if (tmp != null) {
+                chunkedDom = tmp.get();
+            }
             if (chunkedDom == null) {
                 /* create new domSession */
                 chunkedDom = new ChunkedDom();
@@ -429,8 +441,12 @@ public class JDownloaderToolBarAPIImpl implements JDownloaderToolBarAPI, StateEv
                         /* ignore crawler/ftp/http links */
                         public boolean dropByUrl(CrawledLink link) {
                             PluginForHost plugin = link.gethPlugin();
-                            if (plugin == null) return true;
-                            if (("ftp".equalsIgnoreCase(plugin.getHost()) || "http links".equalsIgnoreCase(plugin.getHost()))) return true;
+                            if (plugin == null) {
+                                return true;
+                            }
+                            if (("ftp".equalsIgnoreCase(plugin.getHost()) || "http links".equalsIgnoreCase(plugin.getHost()))) {
+                                return true;
+                            }
                             return false;
                         }
 
@@ -529,12 +545,6 @@ public class JDownloaderToolBarAPIImpl implements JDownloaderToolBarAPI, StateEv
             }
         }
         return result;
-    }
-
-    public void onStateChange(StateEvent event) {
-    }
-
-    public void onStateUpdate(StateEvent event) {
     }
 
     public String specialURLHandling(String url) {

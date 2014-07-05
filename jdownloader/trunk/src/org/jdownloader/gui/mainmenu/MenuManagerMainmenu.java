@@ -24,6 +24,7 @@ import org.jdownloader.gui.mainmenu.action.AddLinksMenuAction;
 import org.jdownloader.gui.mainmenu.action.LogSendAction;
 import org.jdownloader.gui.mainmenu.action.ReportADownloadErrorAction;
 import org.jdownloader.gui.mainmenu.container.AboutMenuContainer;
+import org.jdownloader.gui.mainmenu.container.BackupMenuContainer;
 import org.jdownloader.gui.mainmenu.container.CaptchaQuickSettingsContainer;
 import org.jdownloader.gui.mainmenu.container.ExtensionsMenuContainer;
 import org.jdownloader.gui.mainmenu.container.ExtensionsMenuWindowContainer;
@@ -33,6 +34,7 @@ import org.jdownloader.gui.mainmenu.container.ReportErrorContainer;
 import org.jdownloader.gui.mainmenu.container.SettingsMenuContainer;
 import org.jdownloader.gui.toolbar.action.CaptchaDialogsToogleAction;
 import org.jdownloader.gui.toolbar.action.CaptchaExchangeToogleAction;
+import org.jdownloader.gui.toolbar.action.CaptchaModeChangeAction;
 import org.jdownloader.gui.toolbar.action.JAntiCaptchaToogleAction;
 import org.jdownloader.gui.toolbar.action.RemoteCaptchaToogleAction;
 import org.jdownloader.gui.translate._GUI;
@@ -98,6 +100,7 @@ public class MenuManagerMainmenu extends ContextMenuManager<FilePackage, Downloa
 
         CaptchaQuickSettingsContainer ocr;
         opt.add(ocr = new CaptchaQuickSettingsContainer());
+        ocr.add(CaptchaModeChangeAction.class);
         ocr.add(CaptchaExchangeToogleAction.class);
         ocr.add(JAntiCaptchaToogleAction.class);
         ocr.add(RemoteCaptchaToogleAction.class);
@@ -171,6 +174,11 @@ public class MenuManagerMainmenu extends ContextMenuManager<FilePackage, Downloa
         ret.add(AddLinksMenuAction.class);
         ret.add(AddContainerAction.class);
         ret.add(new SeperatorData());
+        BackupMenuContainer backup = new BackupMenuContainer();
+
+        backup.add(BackupCreateAction.class);
+        backup.add(BackupRestoreAction.class);
+        ret.add(backup);
         ret.add(RestartAction.class);
         ret.add(new ActionData(ExitAction.class).putSetup(ExitAction.HIDE_ON_MAC, true));
 

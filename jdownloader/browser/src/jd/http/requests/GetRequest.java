@@ -60,7 +60,9 @@ public class GetRequest extends Request {
     /** {@inheritDoc} */
     @Override
     public void preRequest() throws IOException {
-        this.httpConnection.setRequestMethod(RequestMethod.GET);
+        httpConnection.setRequestMethod(RequestMethod.GET);
     }
+
+   
 
 }

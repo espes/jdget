@@ -71,100 +71,98 @@ public class MediafireCom extends PluginForHost {
     public static String stringUserAgent() {
         final Random rand = new Random();
         synchronized (stringAgent) {
+
             if (stringAgent.size() == 0) {
                 // Internet Explorer
                 // release:
-                // ie9: "Stable release     9.0.24 (February 11, 2014; 10 days ago)" http://en.wikipedia.org/wiki/Internet_Explorer_9
+                // ie9: "Stable release     9.0.26 (April 8, 2014; 34 days ago)" http://en.wikipedia.org/wiki/Internet_Explorer_9
                 // ie10: "Stable release    10.0.11 (12 November 2013; 34 days ago)" http://en.wikipedia.org/wiki/Internet_Explorer_10
                 // notes: only version 9 and 10
                 // notes: chromeframe http://en.wikipedia.org/wiki/Google_Chrome_Frame 32.0.1700.76 (January 14, 2014; 31 days ago)
                 stringAgent.add("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.0; Trident/5.0)");
                 stringAgent.add("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0; MATP; MATP)");
+                stringAgent.add("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/7.0)");
                 stringAgent.add("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
                 stringAgent.add("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.3; WOW64; Trident/7.0)");
 
                 stringAgent.add("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)");
-                stringAgent.add("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0; EIE10;ENAUMSN)");
                 stringAgent.add("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)");
                 stringAgent.add("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0; BOIE9;ENUS)");
-                stringAgent.add("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0; MANM)");
-                stringAgent.add("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0; MASP)");
-                stringAgent.add("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0; MATP)");
                 stringAgent.add("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0; MDDRJS)");
                 stringAgent.add("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; WOW64; Trident/6.0)");
-                stringAgent.add("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; WOW64; Trident/6.0; MATPJS)");
-                stringAgent.add("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; WOW64; Trident/6.0; MDDSJS)"); // 15
+                stringAgent.add("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; WOW64; Trident/6.0; MATPJS)"); // 11
 
                 // chrome
-                // release: "Stable release             33.0.1750.117 (February 20, 2014; 4 days ago)"
+                // release: "Stable release             34.0.1847.131 (April 24, 2014; 18 days ago)"
                 // http://en.wikipedia.org/wiki/Google_Chrome
                 // notes: google changes version like it's going out of fashion! try and give balance in array. (33+)
-                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.29 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.112 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.29 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.46 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.58 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.70 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.91 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.132 Safari/537.36");
 
-                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1794.2 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1800.3 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1804.2 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1807.0 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1809.0 Safari/537.36");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1825.4 Safari/537.36"); // 19
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.69 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.86 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.99 Safari/537.36");
+
+                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1964.2 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1965.0 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1975.0 Safari/537.36");
+                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1978.0 Safari/537.36"); // 17
 
                 // firefox
-                // release: "Stable release         Stable release 27.0.1 (February 13, 2014; 12 days ago)"
+                // release: "Stable release         Stable release 29.0.1 (May 9, 2014; 4 days ago"
                 // http://en.wikipedia.org/wiki/Firefox
                 // notes: version 27+
-                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (Windows NT 5.1; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (Windows NT 5.2; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.0; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.0; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.2; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.3; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (X11; Linux x86_64; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:27.0) Gecko/20100101 Firefox/27.0");
-                stringAgent.add("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:27.0) Gecko/20100101 Firefox/27.0");
+                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:29.0) Gecko/20100101 Firefox/29.0 ");
+                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:29.0) Gecko/20100101 Firefox/29.0 ");
+                stringAgent.add("Mozilla/5.0 (Windows NT 5.1; rv:29.0) Gecko/20100101 Firefox/29.0");
+                stringAgent.add("Mozilla/5.0 (Windows NT 5.2; rv:29.0) Gecko/20100101 Firefox/29.0");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.0; rv:29.0) Gecko/20100101 Firefox/29.0");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.0; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; rv:29.0) Gecko/20100101 Firefox/29.0");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.2; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.3; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
+                stringAgent.add("Mozilla/5.0 (X11; Linux i686; rv:29.0) Gecko/20100101 Firefox/29.0");
+                stringAgent.add("Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:29.0) Gecko/20100101 Firefox/29.0");
+                stringAgent.add("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:29.0) Gecko/20100101 Firefox/29.0");
 
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:28.0) Gecko/20100101 Firefox/28.0");
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.2; WOW64; rv:28.0) Gecko/20100101 Firefox/28.0");
-
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:29.0) Gecko/20100101 Firefox/29.0");
-
-                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:30.0) Gecko/20100101 Firefox/30.0"); // 18
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; rv:30.0) Gecko/20100101 Firefox/30.0");
+                stringAgent.add("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:30.0) Gecko/20100101 Firefox/30.0"); // 16
 
                 // safari
                 // release:
-                // "Stable release      7.0.1 (December 16, 2013; 2 months ago)" http://en.wikipedia.org/wiki/Safari_(web_browser)
+                // "Stable release      7.0.3 (April 1, 2014; 42 days ago)" http://en.wikipedia.org/wiki/Safari_(web_browser)
                 // notes: version 7
-                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.73.11 (KHTML, like Gecko) Version/7.0.1 Safari/537.73.11"); // 1
+                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.73.11 (KHTML, like Gecko) Version/7.0.1 Safari/537.73.11");
+                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.74.9 (KHTML, like Gecko) Version/7.0.2 Safari/537.74.9");
+                stringAgent.add("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/537.75.14"); // 3
 
                 // opera
-                // release: Presto "Stable release      12.16 (July 4, 2013;)" http://en.wikipedia.org/wiki/Opera_(web_browser)
-                // release: Blink (chrome) "Stable release      19.0.1326.63 (February 13, 2014; 12 days ago)"
+                // release: Presto "Stable release      12.17 (April 23, 2014; 19 days ago)"
+                // http://en.wikipedia.org/wiki/Opera_(web_browser)
+                // release: Blink (chrome) "Stable release      22.0.1471.16 (May 9, 2014; 3 days ago)"
                 // notes: 12.16+
                 stringAgent.add("Opera/9.80 (Windows NT 5.1) Presto/2.12.388 Version/12.16");
-                stringAgent.add("Opera/9.80 (Windows NT 6.0; WOW64) Presto/2.12.388 Version/12.16");
+                stringAgent.add("Opera/9.80 (Windows NT 5.1) Presto/2.12.388 Version/12.17");
                 stringAgent.add("Opera/9.80 (Windows NT 6.1; Win64; x64) Presto/2.12.388 Version/12.16");
-                stringAgent.add("Opera/9.80 (Windows NT 6.1; WOW64) Presto/2.12.388 Version/12.16"); // 4
+                stringAgent.add("Opera/9.80 (Windows NT 6.1; Win64; x64) Presto/2.12.388 Version/12.17");
+                stringAgent.add("Opera/9.80 (Windows NT 6.1; WOW64) Presto/2.12.388 Version/12.16");
+                stringAgent.add("Opera/9.80 (Windows NT 6.1; WOW64) Presto/2.12.388 Version/12.17");
+                stringAgent.add("Opera/9.80 (X11; Linux x86_64) Presto/2.12.388 Version/12.16"); // 7
 
             }
             final int i = rand.nextInt(stringAgent.size());
             final String out = stringAgent.get(i);
             return out;
+
         }
     }
 
@@ -184,32 +182,40 @@ public class MediafireCom extends PluginForHost {
         final Random rand = new Random();
         synchronized (portableAgent) {
             if (portableAgent.size() == 0) {
-                // firefox 26+
-                portableAgent.add("Mozilla/5.0 (Android; Mobile; rv:26.0) Gecko/26.0 Firefox/26.0"); // 1
+                // firefox 28+
+                portableAgent.add("Mozilla/5.0 (Android; Mobile; rv:28.0) Gecko/28.0 Firefox/28.0");
+                portableAgent.add("Mozilla/5.0 (Android; Mobile; rv:29.0) Gecko/29.0 Firefox/29.0");
+                portableAgent.add("Mozilla/5.0 (Android; Tablet; rv:28.0) Gecko/28.0 Firefox/28.0"); // 3
 
-                // chrome 32(andriod) 33(ios)
-                portableAgent.add("Mozilla/5.0 (iPad; CPU OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/32.0.1700.20 Mobile/11B554a Safari/9537.53");
-                portableAgent.add("Mozilla/5.0 (iPad; CPU OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/32.0.1700.21 Mobile/11B554a Safari/9537.53");
+                // chrome 34(andriod) 33(ios)
+                portableAgent.add("Mozilla/5.0 (iPad; CPU OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/33.0.1750.14 Mobile/11B554a Safari/9537.53");
+                portableAgent.add("Mozilla/5.0 (iPad; CPU OS 7_0_6 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/33.0.1750.14 Mobile/11B651 Safari/9537.53");
+                portableAgent.add("Mozilla/5.0 (iPad; CPU OS 7_0_6 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/33.0.1750.15 Mobile/11B651 Safari/9537.53");
                 portableAgent.add("Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/32.0.1700.21 Mobile/11A501 Safari/9537.53");
-                portableAgent.add("Mozilla/5.0 (Linux; Android 4.1.2; GT-I9100 Build/JZO54K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Mobile Safari/537.36");
-                portableAgent.add("Mozilla/5.0 (Linux; Android 4.1.2; GT-I9300T Build/JZO54K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Mobile Safari/537.36");
-                portableAgent.add("Mozilla/5.0 (Linux; Android 4.1.2; GT-N7105T Build/JZO54K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Mobile Safari/537.36");
-                portableAgent.add("Mozilla/5.0 (Linux; Android 4.1.2; GT-N8010 Build/JZO54K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Safari/537.36");
-                portableAgent.add("Mozilla/5.0 (Linux; Android 4.2.2; C6603 Build/10.3.A.0.423) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Mobile Safari/537.36");
-                portableAgent.add("Mozilla/5.0 (Linux; Android 4.3; GT-I9505 Build/JSS15J) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Mobile Safari/537.36");
-                portableAgent.add("Mozilla/5.0 (Linux; Android 4.3; HTC_PN071 Build/JSS15J) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Mobile Safari/537.36");
-                portableAgent.add("Mozilla/5.0 (Linux; Android 4.4.2; Nexus 10 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Safari/537.36");
+                portableAgent.add("Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/33.0.1750.21 Mobile/11A501 Safari/9537.53");
+                portableAgent.add("Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_6 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/33.0.1750.14 Mobile/11B651 Safari/9537.53");
 
-                portableAgent.add("Mozilla/5.0 (iPad; CPU OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/33.0.1750.14 Mobile/11B554a Safari/9537.53"); // 12
+                portableAgent.add("Mozilla/5.0 (Linux; Android 4.1.2; GT-I9100 Build/JZO54K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36");
+                portableAgent.add("Mozilla/5.0 (Linux; Android 4.3; C6603 Build/10.4.1.B.0.101) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36");
+                portableAgent.add("Mozilla/5.0 (Linux; Android 4.3; GT-I9300 Build/JSS15J) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36");
+                portableAgent.add("Mozilla/5.0 (Linux; Android 4.3; GT-I9505 Build/JSS15J) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36");
+                portableAgent.add("Mozilla/5.0 (Linux; Android 4.4.2; C6903 Build/14.3.A.0.757) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36");
+                portableAgent.add("Mozilla/5.0 (Linux; Android 4.4.2; D5503 Build/14.3.A.0.681) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36");
+                portableAgent.add("Mozilla/5.0 (Linux; Android 4.4.2; HTC_PN071 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36");
+                portableAgent.add("Mozilla/5.0 (Linux; Android 4.4.2; Nexus 10 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Safari/537.36");
+                portableAgent.add("Mozilla/5.0 (Linux; Android 4.4.2; Nexus 5 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36");
+                portableAgent.add("Mozilla/5.0 (Linux; Android 4.4.2; Nexus 7 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Safari/537.36");
+                portableAgent.add("Mozilla/5.0 (Linux; Android 4.4.2; SM-G900I Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36");
+                portableAgent.add("Mozilla/5.0 (Linux; Android 4.4.2; SM-N9005 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36"); // 18
 
                 // safari
-                portableAgent.add("Mozilla/5.0 (iPad; CPU OS 6_0_1 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Mercury/7.4.2 Mobile/10A523 Safari/8536.25");
-                portableAgent.add("Mozilla/5.0 (iPad; CPU OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A501 Safari/9537.53");
-                portableAgent.add("Mozilla/5.0 (iPad; CPU OS 7_0_3 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B511 Safari/9537.53");
                 portableAgent.add("Mozilla/5.0 (iPad; CPU OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53");
                 portableAgent.add("Mozilla/5.0 (iPad; CPU OS 7_0_6 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B651 Safari/9537.53");
+                portableAgent.add("Mozilla/5.0 (iPad; CPU OS 7_1_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0 Mobile/11D201 Safari/9537.53");
+                portableAgent.add("Mozilla/5.0 (iPad; CPU OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0 Mobile/11D167 Safari/9537.53");
                 portableAgent.add("Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53");
-                portableAgent.add("Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_6 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B651 Safari/9537.53"); // 7
+                portableAgent.add("Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_6 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B651 Safari/9537.53");
+                portableAgent.add("Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0 Mobile/11D167 Safari/9537.53"); // 7
 
                 // opera
                 portableAgent.add("Opera/9.80 (Android 2.3.3; Linux; Opera Mobi/ADR-1212030829) Presto/2.11.355 Version/12.10");
@@ -276,7 +282,9 @@ public class MediafireCom extends PluginForHost {
                 } else {
                     password = Plugin.getUserInput(JDL.LF("PasswordSolver.askdialog", "Downloadpassword for %s/%s", this.plg.getHost(), this.dlink.getName()), this.dlink);
                 }
-                if (password == null) { throw new PluginException(LinkStatus.ERROR_FATAL, JDL.L("plugins.errors.wrongpassword", "Password wrong")); }
+                if (password == null) {
+                    throw new PluginException(LinkStatus.ERROR_FATAL, JDL.L("plugins.errors.wrongpassword", "Password wrong"));
+                }
                 this.handlePassword(password);
                 if (!this.isCorrect()) {
                     this.dlink.setProperty("pass", Property.NULL);
@@ -403,20 +411,26 @@ public class MediafireCom extends PluginForHost {
     @Override
     public void handleFree(final DownloadLink downloadLink) throws Exception {
         requestFileInformation(downloadLink);
-        if (downloadLink.getBooleanProperty("privatefolder")) throw new PluginException(LinkStatus.ERROR_FATAL, PRIVATEFOLDERUSERTEXT);
+        if (downloadLink.getBooleanProperty("privatefolder")) {
+            throw new PluginException(LinkStatus.ERROR_FATAL, PRIVATEFOLDERUSERTEXT);
+        }
         doFree(downloadLink, null);
     }
 
     public void doFree(final DownloadLink downloadLink, final Account account) throws Exception {
         String url = null;
         boolean captchaCorrect = false;
-        if (account == null) this.br.getHeaders().put("User-Agent", MediafireCom.agent.toString());
+        if (account == null) {
+            this.br.getHeaders().put("User-Agent", MediafireCom.agent.toString());
+        }
         for (int i = 0; i < NUMBER_OF_RETRIES; i++) {
             if (url != null) {
                 break;
             }
             this.requestFileInformation(downloadLink);
-            if (downloadLink.getBooleanProperty("privatefile") && account == null) throw new PluginException(LinkStatus.ERROR_FATAL, PRIVATEFILE);
+            if (downloadLink.getBooleanProperty("privatefile") && account == null) {
+                throw new PluginException(LinkStatus.ERROR_FATAL, PRIVATEFILE);
+            }
             // Check for direct link
             try {
                 br.setFollowRedirects(true);
@@ -480,7 +494,9 @@ public class MediafireCom extends PluginForHost {
                                     }
                                 }
                             } catch (final PluginException e) {
-                                if (defect) throw e;
+                                if (defect) {
+                                    throw e;
+                                }
                                 /**
                                  * captcha input timeout run out.. try to reconnect
                                  */
@@ -497,12 +513,16 @@ public class MediafireCom extends PluginForHost {
                         form.put("adcopy_challenge", chid);
                         form.put("adcopy_response", code.replace(" ", "+"));
                         br.submitForm(form);
-                        if (br.getFormbyProperty("name", "form_captcha") != null) continue;
+                        if (br.getFormbyProperty("name", "form_captcha") != null) {
+                            continue;
+                        }
                     }
                 }
             } catch (final Exception e) {
                 logger.log(Level.SEVERE, e.getMessage(), e);
-                if (e instanceof PluginException) throw (PluginException) e;
+                if (e instanceof PluginException) {
+                    throw (PluginException) e;
+                }
             }
             captchaCorrect = true;
             if (url == null) {
@@ -550,7 +570,9 @@ public class MediafireCom extends PluginForHost {
             }
         }
         if (url == null) {
-            if (captchaCorrect) throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+            if (captchaCorrect) {
+                throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+            }
             logger.info("PluginError 721");
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         }
@@ -558,11 +580,15 @@ public class MediafireCom extends PluginForHost {
         this.br.setDebug(true);
         this.dl = jd.plugins.BrowserAdapter.openDownload(this.br, downloadLink, url, true, 0);
         if (!this.dl.getConnection().isContentDisposition()) {
-            if (dl.getConnection().getResponseCode() == 404) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error (404), ", 30 * 60 * 1000l);
+            if (dl.getConnection().getResponseCode() == 404) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error (404), ", 30 * 60 * 1000l);
+            }
             logger.info("Error (3)");
             logger.info(dl.getConnection() + "");
             this.br.followConnection();
-            if (br.containsHTML("We apologize, but we are having difficulties processing your download request")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Please be patient while we try to repair your download request", 2 * 60 * 1000l);
+            if (br.containsHTML("We apologize, but we are having difficulties processing your download request")) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Please be patient while we try to repair your download request", 2 * 60 * 1000l);
+            }
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         }
         this.dl.startDownload();
@@ -579,7 +605,9 @@ public class MediafireCom extends PluginForHost {
     @Override
     public void handlePremium(final DownloadLink downloadLink, final Account account) throws Exception {
         requestFileInformation(downloadLink);
-        if (downloadLink.getBooleanProperty("privatefolder")) throw new PluginException(LinkStatus.ERROR_FATAL, PRIVATEFOLDERUSERTEXT);
+        if (downloadLink.getBooleanProperty("privatefolder")) {
+            throw new PluginException(LinkStatus.ERROR_FATAL, PRIVATEFOLDERUSERTEXT);
+        }
         login(br, account, false);
         if (account.getBooleanProperty("free", false)) {
             doFree(downloadLink, account);
@@ -607,7 +635,9 @@ public class MediafireCom extends PluginForHost {
                         this.handlePW(downloadLink);
                         url = br.getRedirectLocation();
                     }
-                    if (url == null) throw new PluginException(LinkStatus.ERROR_FATAL, "Private file. No Download possible");
+                    if (url == null) {
+                        throw new PluginException(LinkStatus.ERROR_FATAL, "Private file. No Download possible");
+                    }
                 }
                 if ("-204".equals(this.br.getRegex("<flags>(.*?)</").getMatch(0))) {
                     passwordprotected = true;
@@ -647,7 +677,9 @@ public class MediafireCom extends PluginForHost {
                     }
                 }
             }
-            if (url == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (url == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
 
             URLConnectionAdapter con = null;
             try {
@@ -695,10 +727,14 @@ public class MediafireCom extends PluginForHost {
     private void handlePremiumPassword(final DownloadLink downloadLink, final Account account) throws Exception {
         this.br.getPage(downloadLink.getDownloadURL());
         String url = br.getRedirectLocation();
-        if (url != null) br.getPage(url);
+        if (url != null) {
+            br.getPage(url);
+        }
         this.handlePW(downloadLink);
         url = getURL(br);
-        if (url == null) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+        if (url == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         this.br.setFollowRedirects(true);
         this.dl = jd.plugins.BrowserAdapter.openDownload(this.br, downloadLink, url, true, 0);
 
@@ -744,10 +780,11 @@ public class MediafireCom extends PluginForHost {
                 @Override
                 protected boolean isCorrect() {
                     Form form = this.br.getFormbyProperty("name", "form_password");
-                    if (form != null)
+                    if (form != null) {
                         return false;
-                    else
+                    } else {
                         return true;
+                    }
                 }
 
             }.run();
@@ -842,6 +879,12 @@ public class MediafireCom extends PluginForHost {
     // if (configurationKey == null) configurationKey = this.br.getRegex("Configuration Key.*? value=\"(.*?)\"").getMatch(0);
     // return configurationKey;
     // }
+    /**
+     * JD2 CODE. DO NOT USE OVERRIDE FOR JD=) COMPATIBILITY REASONS!
+     */
+    public boolean isProxyRotationEnabledForLinkChecker() {
+        return false;
+    }
 
     @Override
     public AvailableStatus requestFileInformation(final DownloadLink downloadLink) throws IOException, PluginException, InterruptedException {
@@ -849,7 +892,9 @@ public class MediafireCom extends PluginForHost {
         br.setCustomCharset("utf-8");
 
         downloadLink.setProperty("type", Property.NULL);
-        if (downloadLink.getBooleanProperty("offline")) return AvailableStatus.FALSE;
+        if (downloadLink.getBooleanProperty("offline")) {
+            return AvailableStatus.FALSE;
+        }
         final String fid = getFID(downloadLink);
         if (downloadLink.getBooleanProperty("privatefolder")) {
             downloadLink.getLinkStatus().setStatusText(PRIVATEFOLDERUSERTEXT);
@@ -883,10 +928,11 @@ public class MediafireCom extends PluginForHost {
     }
 
     private void apiRequest(final Browser br, final String url, final String data) throws IOException {
-        if (SESSIONTOKEN == null)
+        if (SESSIONTOKEN == null) {
             br.getPage(url + data);
-        else
+        } else {
             br.getPage(url + data + "&session_token=" + SESSIONTOKEN);
+        }
         errorCode = getXML("error", br.toString());
     }
 
@@ -916,7 +962,9 @@ public class MediafireCom extends PluginForHost {
     private String getFID(final DownloadLink downloadLink) {
         // http://www.mediafire.com/file/dyvzdsdsasdg1y4d/myfile format
         String id = new Regex(downloadLink.getDownloadURL(), "file/([a-z0-9]+)/").getMatch(0);
-        if (id != null) return id;
+        if (id != null) {
+            return id;
+        }
         return new Regex(downloadLink.getDownloadURL(), "([a-z0-9]+)$").getMatch(0);
     }
 
@@ -961,7 +1009,9 @@ public class MediafireCom extends PluginForHost {
             dl.getLinkStatus().setStatusText("File Belongs to Suspended Account.");
             throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
         }
-        if (eBr.containsHTML("class=\"error\\-title\">Temporarily Unavailable</p>")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "This file is temporarily unavailable!", 30 * 60 * 1000l);
+        if (eBr.containsHTML("class=\"error\\-title\">Temporarily Unavailable</p>")) {
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "This file is temporarily unavailable!", 30 * 60 * 1000l);
+        }
     }
 
     private boolean isValidMailAdress(final String value) {

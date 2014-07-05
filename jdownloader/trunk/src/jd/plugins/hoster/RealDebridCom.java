@@ -46,12 +46,12 @@ import jd.plugins.LinkStatus;
 import jd.plugins.PluginException;
 import jd.plugins.PluginForHost;
 import jd.plugins.download.DownloadLinkDownloadable;
+import jd.plugins.download.HashInfo;
 import jd.utils.JDUtilities;
 
 import org.appwork.utils.Hash;
 import org.appwork.utils.logging2.LogSource;
 import org.appwork.utils.os.CrossSystem;
-import org.jdownloader.downloadcore.v15.HashInfo;
 
 @HostPlugin(revision = "$Revision$", interfaceVersion = 3, names = { "real-debrid.com" }, urls = { "https?://\\w+\\.real\\-debrid\\.com/dl/\\w+/.+" }, flags = { 2 })
 public class RealDebridCom extends PluginForHost {
@@ -101,13 +101,13 @@ public class RealDebridCom extends PluginForHost {
         try {
             con = br.openGetConnection(dl.getDownloadURL());
             if (con.isContentDisposition()) {
-                dl.setProperty("directRD", true);
-                if (dl.getFinalFileName() == null) dl.setFinalFileName(getFileNameFromHeader(con));
+                if (dl.getFinalFileName() == null) {
+                    dl.setFinalFileName(getFileNameFromHeader(con));
+                }
                 dl.setVerifiedFileSize(con.getLongContentLength());
                 dl.setAvailable(true);
                 return AvailableStatus.TRUE;
             } else {
-                dl.setProperty("directRD", false);
                 dl.setAvailable(false);
                 throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
             }
@@ -137,7 +137,9 @@ public class RealDebridCom extends PluginForHost {
                         return false;
                     } else if (lastUnavailable != null) {
                         unavailableMap.remove(downloadLink.getHost());
-                        if (unavailableMap.size() == 0) hostUnavailableMap.remove(account);
+                        if (unavailableMap.size() == 0) {
+                            hostUnavailableMap.remove(account);
+                        }
                     }
                 }
             }
@@ -177,7 +179,9 @@ public class RealDebridCom extends PluginForHost {
             DownloadLinkDownloadable downloadLinkDownloadable = new DownloadLinkDownloadable(link) {
                 @Override
                 public HashInfo getHashInfo() {
-                    if (swapped) return null;
+                    if (swapped) {
+                        return null;
+                    }
                     return super.getHashInfo();
                 }
             };
@@ -202,58 +206,54 @@ public class RealDebridCom extends PluginForHost {
                 } else if (dl.getConnection().getResponseCode() == 404) {
                     br2.followConnection();
                     // $.msgbox("You can not download this file because you have exceeded your traffic on this hoster !", {type: "error"});
-                    final String msg = br2.getRegex("msgbox\\(\"([^\"]+)").getMatch(0);
+                    String msg = br2.getRegex("msgbox\\(\"([^\"]+)").getMatch(0);
+                    if (msg == null) {
+                        msg = br2.getRegex("<div class=\"alert alert-danger\">(.*?)</div>").getMatch(0);
+                    }
                     if (msg != null) {
                         link.getLinkStatus().setErrorMessage(msg);
                         logger.info(msg);
-                        if (msg.contains("You can not download this file because you already have download(s) currently downloading and this hoster is limited")) {
+                        if (new Regex(msg, "You can not download this file because you already have download\\(s\\) currently downloading and this hoster is limited").matches()) {
                             // You can not download this file because you already have download(s) currently downloading and this hoster is
                             // limited.
                             tempUnavailableHoster(acc, link, 5 * 60 * 60 * 1000l);
                             throw new PluginException(LinkStatus.ERROR_RETRY);
-                        } else if (msg.contains("You can not download this file because you have too many download(s) currently downloading")) {
-                            // You can not download this file because you have too many download(s) currently downloading
-                            // set upper max sim dl ?
-                            /* You have too many simultaneous downloads */
+                        } else if (new Regex(msg, "You can not download this file because you have too many download\\(s\\) currently downloading").matches()) {
+                            // You can not download this file because you have too many download(s) currently downloading set upper max sim
+                            // dl ?
                             errTooManySimCon(acc, link);
-                        } else if (msg.contains("You can not download this file because you have exceeded your traffic on this hoster")) {
+                        } else if (new Regex(msg, "You can not download this file because you have exceeded your traffic on this hoster").matches()) {
                             errNoHosterTrafficLeft(acc, link);
-                        } else if (msg.contains("A Premium account for the hoster is missing or inactive")) {
+                        } else if (new Regex(msg, "A Premium account for the hoster is missing or inactive").matches()) {
                             // short retry?
                             tempUnavailableHoster(acc, link, 5 * 60 * 1000l);
                             throw new PluginException(LinkStatus.ERROR_RETRY);
-                        } else if (msg.contains("The traffic of the Premium account for the hoster is exceeded")) {
+                        } else if (new Regex(msg, "The traffic of the Premium account for the hoster is exceeded").matches()) {
                             tempUnavailableHoster(acc, link, 1 * 60 * 60 * 1000l);
                             throw new PluginException(LinkStatus.ERROR_RETRY);
-                        } else if (msg.contains("An error occured while generating a premium link")) {
+                        } else if (new Regex(msg, "An error occurr?ed while generating a premium link").matches()) {
                             // An error occured while generating a premium link, please contact an Administrator with these following
-                            // informations
-                            // :<br/><br/>Link: h<br/>Server: 31<br/>Code:
-                            // 64i4u284w2v293333033", {type: "error"});
+                            // informations :<br/><br/>Link: h<br/>Server: 31<br/>Code: 64i4u284w2v293333033", {type: "error"});
                             // An error occured while generating a premium link, please contact an Administrator with these following
-                            // informations
-                            // :<br/><br/>Link:<br/>Server: 31<br/>Code:
-                            // 64i4u284w23383634237", {type: "error"});
+                            // informations :<br/><br/>Link:<br/>Server: 31<br/>Code: 64i4u284w23383634237", {type: "error"});
                             tempUnavailableHoster(acc, link, 15 * 60 * 1000l);
                             throw new PluginException(LinkStatus.ERROR_RETRY);
-                        } else if (msg.contains("An error occured while attempting to download the file")) {
+                        } else if (new Regex(msg, "An error occurr?ed while attempting to download the file").matches()) {
                             // An error occured while attempting to download the file. Too many attempts, please contact an Administrator
-                            // with these following
-                            // informations :
+                            // with these following informations :
                             // An error occured while attempting to download the file. Multiple "Location:" headers, please contact an
-                            // Administrator with these
-                            // following informations :
-                            // issue with THIS downloadlink, throw instantly to next download routine. ** Using Jiaz new handling..
+                            // Administrator with these following informations : issue with THIS downloadlink, throw instantly to next
+                            // download routine. ** Using Jiaz new handling..
                             throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE);
-                        } else if (msg.contains("An error occured while read your file on the remote host")) {
+                        } else if (new Regex(msg, "An error occurr?ed while read your file on the remote host").matches()) {
                             // An error occured while read your file on the remote host ! Timeout of 90s exceeded !<br/>The download server
-                            // is down or ban from
-                            // our server, please contact an Administrator with these following informations :<br/><br/>Link:*****)
+                            // is down or ban from our server, please contact an Administrator with these following informations
+                            // :<br/><br/>Link:*****)
                             // An error occured while read your file on the remote host ! Timeout of 15s exceeded (Passive FTP Mode) !
                             // An error occured while read your file on the remote host ! Timeout of 15s exceeded (FTP Mode) !
                             tempUnavailableHoster(acc, link, 15 * 60 * 60 * 1000l);
                             throw new PluginException(LinkStatus.ERROR_RETRY);
-                        } else if (msg.contains("You are not allowed to download this file !<br/>Your current IP adress is")) {
+                        } else if (new Regex(msg, "You are not allowed to download this file !<br/>Your current IP adress is").matches()) {
                             // You are not allowed to download this file !<br/>Your current IP adress is:
                             String l = "Dedicated server detected!";
                             if (acc != null) {
@@ -264,7 +264,7 @@ public class RealDebridCom extends PluginForHost {
                                 // free dl, without an account (generated by the user)
                                 throw new PluginException(LinkStatus.ERROR_FATAL, l);
                             }
-                        } else if (msg.contains("You are not allowed to download this file !<br/>Your account is not Premium or your account is suspended.")) {
+                        } else if (new Regex(msg, "You are not allowed to download this file !<br/>Your account is not Premium or your account is suspended\\.").matches()) {
                             // You are not allowed to download this file !<br/>Your account is not Premium or your account is suspended.
                             // so free account or suspended account...
                             if (acc != null) {
@@ -272,11 +272,10 @@ public class RealDebridCom extends PluginForHost {
                                 throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
                             } else {
                                 // handleFree :: no account in jd account manager.. could be copy paste someone else' generated link, or
-                                // manually import links,
-                                // without an account
+                                // manually import links, without an account
                                 throw new PluginException(LinkStatus.ERROR_FATAL, "Premium required, or Account has been disabled");
                             }
-                        } else if (msg.contains("You can not change your server manually on this hoster")) {
+                        } else if (new Regex(msg, "You can not change your server manually on this hoster").matches()) {
                             // as title says user changed the premium link server... would only happen if a user manually imports final
                             // links!
                             if (new Regex(link.getDownloadURL(), this.getLazyP().getPattern()).matches()) {
@@ -288,12 +287,12 @@ public class RealDebridCom extends PluginForHost {
                             }
                         } else {
                             // unhandled error msg type!
-                            logger.warning("Please report this issue to JDownloader Development Team!");
+                            logger.warning("Please report this issue to JDownloader Development Team! 'msg doesn't match regex', unknown error type...");
                             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
                         }
                     } else {
                         // unhandled error!
-                        logger.warning("Please report this issue to JDownloader Development Team!");
+                        logger.warning("Please report this issue to JDownloader Development Team! 'msg == null', heeeeeeeeeeeello");
                         throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
                     }
                 } else {
@@ -313,8 +312,12 @@ public class RealDebridCom extends PluginForHost {
                     }
                 }
             } catch (final Throwable e) {
-                if (e instanceof PluginException) throw (PluginException) e;
-                if (e instanceof InterruptedException) throw (InterruptedException) e;
+                if (e instanceof PluginException) {
+                    throw (PluginException) e;
+                }
+                if (e instanceof InterruptedException) {
+                    throw (InterruptedException) e;
+                }
                 logger.info("Download failed " + i + " of " + repeat);
                 sleep(3000, link);
                 LogSource.exception(logger, e);
@@ -332,7 +335,9 @@ public class RealDebridCom extends PluginForHost {
     }
 
     private void tempUnavailableHoster(Account account, DownloadLink downloadLink, long timeout) throws PluginException {
-        if (downloadLink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        if (downloadLink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap == null) {
@@ -363,7 +368,9 @@ public class RealDebridCom extends PluginForHost {
         String dllink = link.getDownloadURL();
         for (int retry = 0; retry < 3; retry++) {
             try {
-                if (retry != 0) sleep(3000l, link);
+                if (retry != 0) {
+                    sleep(3000l, link);
+                }
                 br.getPage(mProt + mName + "/ajax/unrestrict.php?link=" + Encoding.urlEncode(dllink) + ((link.getStringProperty("pass", null) != null ? "&password=" + Encoding.urlEncode(link.getStringProperty("pass", null)) : "")));
                 if (br.containsHTML("\"error\":4,")) {
                     if (retry != 2) {
@@ -386,25 +393,30 @@ public class RealDebridCom extends PluginForHost {
                 }
                 break;
             } catch (SocketException e) {
-                if (retry == 2) throw e;
+                if (retry == 2) {
+                    throw e;
+                }
             }
         }
         // we only ever generate one link at a time, we don't need String[]
         String genLnk = getJson("main_link");
         final String chunks = getJson("max_chunks");
         if (chunks != null) {
-            if ("-1".equals(chunks))
+            if ("-1".equals(chunks)) {
                 maxChunks = 0;
-            else if ("1".equals(chunks))
+            } else if ("1".equals(chunks)) {
                 resumes = false;
-            else
+            } else {
                 maxChunks = -Integer.parseInt(chunks);
+            }
         }
         // switcheroonie
         final String switcheroonie = getJson("swap");
         if (switcheroonie != null) {
             final boolean swap = Boolean.parseBoolean(switcheroonie);
-            if (swap) swapped = swap;
+            if (swap) {
+                swapped = swap;
+            }
         }
         if (genLnk == null) {
             if (br.containsHTML("\"error\":1,")) {
@@ -502,7 +514,9 @@ public class RealDebridCom extends PluginForHost {
                 }
             }
         }
-        if (!genLnk.startsWith("http")) throw new PluginException(LinkStatus.ERROR_FATAL, "Unsupported protocol");
+        if (!genLnk.startsWith("http")) {
+            throw new PluginException(LinkStatus.ERROR_FATAL, "Unsupported protocol");
+        }
         // no longer have issues, with above error handling. Next time download starts, error count starts from 0.
         link.setProperty("retry_913", Property.NULL);
         showMessage(link, "Task 2: Download begins!");
@@ -514,11 +528,13 @@ public class RealDebridCom extends PluginForHost {
                 dl.getConnection().disconnect();
             } catch (final Throwable e) {
             }
-            if (br.containsHTML("An error occured while generating a premium link, please contact an Administrator")) {
+            if (br.containsHTML("An error occurr?ed while generating a premium link, please contact an Administrator")) {
                 logger.info("Error while generating premium link, removing host from supported list");
                 tempUnavailableHoster(acc, link, 60 * 60 * 1000l);
             }
-            if (br.containsHTML("An error occured while attempting to download the file.")) { throw new PluginException(LinkStatus.ERROR_RETRY); }
+            if (br.containsHTML("An error occurr?ed while attempting to download the file.")) {
+                throw new PluginException(LinkStatus.ERROR_RETRY);
+            }
 
             throw e1;
         }
@@ -562,7 +578,9 @@ public class RealDebridCom extends PluginForHost {
                 }
                 break;
             } catch (SocketException e) {
-                if (retry == 2) throw e;
+                if (retry == 2) {
+                    throw e;
+                }
                 Thread.sleep(1000);
             }
         }
@@ -574,17 +592,12 @@ public class RealDebridCom extends PluginForHost {
         if (acctype.equals("premium")) {
             ai.setStatus("Premium User");
             account.setProperty("free", false);
-        } else {
-            // non supported account type here.
-            logger.warning("Sorry we do not support this account type at this stage.");
-            account.setValid(false);
+        } else if (!acctype.equalsIgnoreCase("premium")) {
+            // free accounts only usable during happy hour!
+            account.setProperty("free", true);
+            // account.setValid(false);
             ai.setProperty("multiHostSupport", Property.NULL);
             return ai;
-        }
-        if ("01/01/1970 01:00:00".equals(expire)) {
-            ai.setValidUntil(-1);
-            ai.setStatus("Free User");
-            account.setProperty("free", true);
         }
         try {
             String hostsSup = null;
@@ -593,45 +606,16 @@ public class RealDebridCom extends PluginForHost {
                     hostsSup = br.cloneBrowser().getPage(mProt + mName + "/api/hosters.php");
                     break;
                 } catch (SocketException e) {
-                    if (retry == 2) throw e;
+                    if (retry == 2) {
+                        throw e;
+                    }
                     Thread.sleep(1000);
                 }
             }
             String[] hosts = new Regex(hostsSup, "\"([^\"]+)\"").getColumn(0);
             ArrayList<String> supportedHosts = new ArrayList<String>(Arrays.asList(hosts));
-            if (supportedHosts.contains("freakshare.net")) {
-                supportedHosts.add("freakshare.com");
-            }
-            // workaround for uploaded.to
-            if (supportedHosts.contains("uploaded.net") || supportedHosts.contains("ul.to") || supportedHosts.contains("uploaded.to")) {
-                if (!supportedHosts.contains("uploaded.net")) {
-                    supportedHosts.add("uploaded.net");
-                }
-                if (!supportedHosts.contains("ul.to")) {
-                    supportedHosts.add("ul.to");
-                }
-                if (!supportedHosts.contains("uploaded.to")) {
-                    supportedHosts.add("uploaded.to");
-                }
-            }
-            // workaround for keep2share.cc, as they keep changing hosts..
-            if (supportedHosts.contains("keep2share.cc") || supportedHosts.contains("k2s.cc") || supportedHosts.contains("keep2s.cc") || supportedHosts.contains("keep2.cc")) {
-                if (!supportedHosts.contains("keep2share.cc")) {
-                    supportedHosts.add("keep2share.cc");
-                }
-                if (!supportedHosts.contains("k2s.cc")) {
-                    supportedHosts.add("k2s.cc");
-                }
-                if (!supportedHosts.contains("keep2s.cc")) {
-                    supportedHosts.add("keep2s.cc");
-                }
-                if (!supportedHosts.contains("keep2.cc")) {
-                    supportedHosts.add("keep2.cc");
-                }
-            }
-            ai.setProperty("multiHostSupport", supportedHosts);
+            ai.setMultiHostSupport(supportedHosts);
         } catch (Throwable e) {
-            account.setProperty("multiHostSupport", Property.NULL);
             logger.info("Could not fetch ServerList: " + e.toString());
         }
         return ai;
@@ -645,7 +629,9 @@ public class RealDebridCom extends PluginForHost {
                 prepBrowser(br);
                 final Object ret = account.getProperty("cookies", null);
                 boolean acmatch = Encoding.urlEncode(account.getUser()).equals(account.getStringProperty("name", Encoding.urlEncode(account.getUser())));
-                if (acmatch) acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                if (acmatch) {
+                    acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                }
                 if (acmatch && ret != null && ret instanceof HashMap<?, ?> && !force) {
                     final HashMap<String, String> cookies = (HashMap<String, String>) ret;
                     if (account.isValid()) {
@@ -666,12 +652,16 @@ public class RealDebridCom extends PluginForHost {
                             final jd.plugins.hoster.DirectHTTP.Recaptcha rc = ((DirectHTTP) recplug).getReCaptcha(br);
                             final String challenge = getJson("captcha_challenge");
                             final String image = getJson("captcha_url");
-                            if (challenge == null || image == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                            if (challenge == null || image == null) {
+                                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                            }
                             rc.setChallenge(challenge);
                             final File cf = rc.downloadCaptcha(getLocalCaptchaFile());
                             final String c = getCaptchaCode(cf, dummyLink);
                             br.getPage(mProt + mName + "/ajax/login.php?user=" + Encoding.urlEncode(account.getUser()) + "&pass=" + Hash.getMD5(account.getPass()) + "&captcha_challenge=" + rc.getChallenge() + "&captcha_answer=" + Encoding.urlEncode(c) + "&time=" + System.currentTimeMillis() + "&pin_challenge=&pin_answer=");
-                            if (br.containsHTML("\"captcha\":1")) { throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nError either captcha is incorrect or your user:password is incorrect", PluginException.VALUE_ID_PREMIUM_DISABLE); }
+                            if (br.containsHTML("\"captcha\":1")) {
+                                throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nError either captcha is incorrect or your user:password is incorrect", PluginException.VALUE_ID_PREMIUM_DISABLE);
+                            }
                         }
                         if (br.containsHTML("\"message\":\"PIN Code required\"")) {
                             try {
@@ -692,10 +682,11 @@ public class RealDebridCom extends PluginForHost {
                                                 message += " - Melde Dich neu an. \r\n";
                                                 message += " - Vervollstaendige die Zwei-Faktor-Authentifizierung.\r\n";
                                                 message += "Nach dem erfolgreichen Login im Browser kannst du deinen Account wieder im JD hinzufuegen.\r\n\r\n";
-                                                if (xSystem)
+                                                if (xSystem) {
                                                     message += "Klicke -OK- (Oeffnet " + mName + " in deinem Webbrowser)\r\n";
-                                                else
+                                                } else {
                                                     message += new URL(mProt + mName);
+                                                }
                                             } else {
                                                 title = mName + " Two Factor Authentication Required";
                                                 message = "Please goto your Browser:\r\n";
@@ -703,13 +694,16 @@ public class RealDebridCom extends PluginForHost {
                                                 message += " - Re-Login. \r\n";
                                                 message += " - Complete Two Factor Authentication.\r\n";
                                                 message += "Once completed, you will be able to relogin within JDownloader.\r\n\r\n";
-                                                if (xSystem)
+                                                if (xSystem) {
                                                     message += "Click -OK- (Opens " + mName + " in your Browser)\r\n";
-                                                else
+                                                } else {
                                                     message += new URL(mProt + mName);
+                                                }
                                             }
                                             int result = JOptionPane.showConfirmDialog(jd.gui.swing.jdgui.JDGui.getInstance().getMainFrame(), message, title, JOptionPane.CLOSED_OPTION, JOptionPane.CLOSED_OPTION);
-                                            if (xSystem && JOptionPane.OK_OPTION == result) CrossSystem.openURL(new URL(mProt + mName));
+                                            if (xSystem && JOptionPane.OK_OPTION == result) {
+                                                CrossSystem.openURL(new URL(mProt + mName));
+                                            }
                                             throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
                                         } catch (Throwable e) {
                                         }
@@ -721,12 +715,16 @@ public class RealDebridCom extends PluginForHost {
                         }
                         break;
                     } catch (SocketException e) {
-                        if (retry == 2) throw e;
+                        if (retry == 2) {
+                            throw e;
+                        }
                         Thread.sleep(1000);
                     }
                 }
 
-                if (br.getCookie(mProt + mName, "auth") == null) throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+                if (br.getCookie(mProt + mName, "auth") == null) {
+                    throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+                }
                 /** Save cookies */
                 final HashMap<String, String> cookies = new HashMap<String, String>();
                 final Cookies add = this.br.getCookies(mProt + mName);
@@ -773,19 +771,23 @@ public class RealDebridCom extends PluginForHost {
 
     /**
      * Tries to return value of key from JSon response, from String source.
-     * 
+     *
      * @author raztoki
      * */
     private String getJson(final String source, final String key) {
-        String result = new Regex(source, "\"" + key + "\":(-?\\d+(\\.\\d+)?|true|false)").getMatch(0);
-        if (result == null) result = new Regex(source, "\"" + key + "\":\"([^\"]+)\"").getMatch(0);
-        if (result != null) result = result.replaceAll("\\\\/", "/");
+        String result = new Regex(source, "\"" + key + "\":(-?\\d+(\\.\\d+)?|true|false|null)").getMatch(0);
+        if (result == null) {
+            result = new Regex(source, "\"" + key + "\":\"([^\"]+)\"").getMatch(0);
+        }
+        if (result != null) {
+            result = result.replaceAll("\\\\/", "/");
+        }
         return result;
     }
 
     /**
      * Tries to return value of key from JSon response, from default 'br' Browser.
-     * 
+     *
      * @author raztoki
      * */
     private String getJson(final String key) {
@@ -794,7 +796,7 @@ public class RealDebridCom extends PluginForHost {
 
     /**
      * Tries to return value of key from JSon response, from provided Browser.
-     * 
+     *
      * @author raztoki
      * */
     private String getJson(final Browser ibr, final String key) {

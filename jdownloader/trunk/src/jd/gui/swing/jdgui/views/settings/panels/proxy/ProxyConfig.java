@@ -1,89 +1,58 @@
 package jd.gui.swing.jdgui.views.settings.panels.proxy;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.List;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JScrollPane;
 import javax.swing.event.ListSelectionEvent;
 
-import jd.controlling.TaskQueue;
+import jd.controlling.proxy.AbstractProxySelectorImpl;
+import jd.controlling.proxy.AbstractProxySelectorImpl.Type;
 import jd.controlling.proxy.ProxyController;
 import jd.controlling.proxy.ProxyEvent;
-import jd.controlling.proxy.ProxyInfo;
 import jd.gui.swing.jdgui.views.settings.ConfigPanel;
-import jd.gui.swing.jdgui.views.settings.components.ComboBox;
 
+import org.appwork.scheduler.DelayedRunnable;
 import org.appwork.swing.MigPanel;
 import org.appwork.swing.components.ExtButton;
 import org.appwork.swing.exttable.utils.MinimumSelectionObserver;
-import org.appwork.utils.StringUtils;
 import org.appwork.utils.event.DefaultEventListener;
-import org.appwork.utils.event.queue.QueueAction;
-import org.appwork.utils.swing.EDTRunner;
 import org.jdownloader.gui.settings.AbstractConfigPanel;
-import org.jdownloader.gui.translate._GUI;
 import org.jdownloader.images.NewTheme;
 import org.jdownloader.translate._JDT;
 
-public class ProxyConfig extends AbstractConfigPanel implements DefaultEventListener<ProxyEvent<ProxyInfo>> {
+public class ProxyConfig extends AbstractConfigPanel implements DefaultEventListener<ProxyEvent<AbstractProxySelectorImpl>> {
 
     public String getTitle() {
         return _JDT._.gui_settings_proxy_title();
     }
 
-    private static final long   serialVersionUID = -521958649780869375L;
+    private static final long serialVersionUID = -521958649780869375L;
 
-    private ProxyTable          table;
+    private ProxyTable        table;
 
-    private ExtButton           btnAdd;
+    private ExtButton         btnAdd;
 
-    private ExtButton           btnRemove;
-    private ExtButton           btnAuto;
+    private ExtButton         btnRemove;
+    private ExtButton         btnAuto;
 
-    private ScheduledFuture<?>  timer            = null;
+    private ExtButton         btImport;
 
-    private ExtButton           btImport;
+    private ExtButton         btExport;
 
-    private ExtButton           btExport;
+    private ExtButton         expPopup;
 
-    private ComboBox<ProxyInfo> cb;
+    private ExtButton         impPopup;
 
-    private ExtButton           im;
-
-    private ExtButton           expPopup;
-
-    private ExtButton           impPopup;
+    private DelayedRunnable   delayer;
 
     public ProxyConfig() {
         super();
 
         this.addHeader(getTitle(), NewTheme.I().getIcon("proxy_rotate", 32));
         this.addDescriptionPlain(_JDT._.gui_settings_proxy_description());
-
+        this.addDescriptionPlain(_JDT._.gui_settings_proxy_description_new());
         table = new ProxyTable();
-        cb = new ComboBox<ProxyInfo>() {
-            protected String valueToString(ProxyInfo value) {
-                if (value == null) return null;
-                if (StringUtils.isNotEmpty(value.getUser())) {
 
-                return value.getUser() + "@" + value.toString(); }
-                return value.toString();
-            }
-        };
-
-        cb.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                ProxyController.getInstance().setDefaultProxy(cb.getValue());
-            }
-        });
-        addPair(_GUI._.ProxyConfig_ProxyConfig_defaultproxy_(), null, cb);
         JScrollPane sp = new JScrollPane(table);
         this.add(sp, "gapleft 37,growx, pushx,spanx,pushy,growy");
         MigPanel toolbar = new MigPanel("ins 0", "[][][][grow,fill][]0[][]0[]", "[]");
@@ -122,13 +91,15 @@ public class ProxyConfig extends AbstractConfigPanel implements DefaultEventList
             @Override
             public void valueChanged(final ListSelectionEvent e) {
                 boolean canremove = false;
-                java.util.List<ProxyInfo> selected = ProxyConfig.this.table.getModel().getSelectedObjects();
+                java.util.List<AbstractProxySelectorImpl> selected = ProxyConfig.this.table.getModel().getSelectedObjects();
                 if (selected != null) {
-                    for (ProxyInfo pi : selected) {
-                        if (pi.isRemote()) {
-                            canremove = true;
-                            break;
+                    for (AbstractProxySelectorImpl pi : selected) {
+                        if (pi.getType() == Type.NONE) {
+                            continue;
                         }
+                        canremove = true;
+                        break;
+
                     }
                 }
                 action.setEnabled(canremove);
@@ -147,7 +118,13 @@ public class ProxyConfig extends AbstractConfigPanel implements DefaultEventList
         toolbar.add(expPopup, "height 26!,width 12!,aligny top");
 
         add(toolbar, "gapleft 37,growx,spanx");
+        delayer = new DelayedRunnable(50, 150) {
 
+            @Override
+            public void delayedrun() {
+                table.getModel()._fireTableStructureChanged(ProxyController.getInstance().getList(), false);
+            }
+        };
     }
 
     @Override
@@ -161,23 +138,7 @@ public class ProxyConfig extends AbstractConfigPanel implements DefaultEventList
 
     @Override
     public void updateContents() {
-        TaskQueue.getQueue().add(new QueueAction<Void, RuntimeException>() {
-
-            @Override
-            protected Void run() throws RuntimeException {
-                final List<ProxyInfo> list = ProxyController.getInstance().getList();
-                new EDTRunner() {
-                    @Override
-                    protected void runInEDT() {
-                        table.getModel()._fireTableStructureChanged(list, false);
-                        cb.setModel(list.toArray(new ProxyInfo[] {}));
-                        cb.setValue(ProxyController.getInstance().getDefaultProxy());
-                        table.repaint();
-                    }
-                };
-                return null;
-            }
-        });
+        delayer.resetAndStart();
 
     }
 
@@ -189,18 +150,6 @@ public class ProxyConfig extends AbstractConfigPanel implements DefaultEventList
     @Override
     protected void onShow() {
         super.onShow();
-        ScheduledFuture<?> ltimer = timer;
-        if (ltimer != null) {
-            ltimer.cancel(false);
-        }
-        ltimer = TaskQueue.TIMINGQUEUE.scheduleWithFixedDelay(new Runnable() {
-
-            public void run() {
-                table.repaint();
-            }
-
-        }, 250, 1000, TimeUnit.MILLISECONDS);
-        timer = ltimer;
         ProxyController.getInstance().getEventSender().addListener(this);
     }
 
@@ -212,40 +161,11 @@ public class ProxyConfig extends AbstractConfigPanel implements DefaultEventList
     @Override
     protected void onHide() {
         super.onHide();
-        ScheduledFuture<?> ltimer = timer;
-        timer = null;
-        if (ltimer != null) {
-            ltimer.cancel(false);
-        }
         ProxyController.getInstance().getEventSender().removeListener(this);
     }
 
-    public void onEvent(ProxyEvent<ProxyInfo> event) {
-        final List<ProxyInfo> list = ProxyController.getInstance().getList();
-        switch (event.getType()) {
-        case REFRESH:
-            new EDTRunner() {
-                @Override
-                protected void runInEDT() {
-                    table.getModel()._fireTableStructureChanged(list, false);
-                    cb.setModel(list.toArray(new ProxyInfo[] {}));
-                    cb.setValue(ProxyController.getInstance().getDefaultProxy());
-                    table.repaint();
-                };
-            };
-            break;
-        default:
-            new EDTRunner() {
-                @Override
-                protected void runInEDT() {
-                    table.getModel()._fireTableStructureChanged(list, false);
-                    cb.setModel(list.toArray(new ProxyInfo[] {}));
-                    cb.setValue(ProxyController.getInstance().getDefaultProxy());
-                    table.repaint();
-                };
-            };
-            break;
-        }
+    public void onEvent(ProxyEvent<AbstractProxySelectorImpl> event) {
+        delayer.resetAndStart();
     }
 
 }

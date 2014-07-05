@@ -45,11 +45,23 @@ public class MyMailRu extends PluginForDecrypt {
             parameter = parameter.replace("my.mail.rudecrypted/", "my.mail.ru/");
         }
 
+        br.setFollowRedirects(true);
         br.getPage(parameter);
-        final String username = new Regex(parameter, "http://(www\\.)?my.mail.ru/[^<>/\"]+/([^<>/\"]+)/.+").getMatch(1);
-        final String dirname = new Regex(parameter, "http://(www\\.)?my.mail.ru/([^<>/\"]+)/[^<>/\"]+/.+").getMatch(1);
+        if (br.containsHTML("class=\"l\\-button l\\-button_password\"")) {
+            logger.info("Password protected my.mail.ry links are not (yet) supported: " + parameter);
+            return decryptedLinks;
+        } else if (br.containsHTML("class=\"photo\\-catalog_nofound\"")) {
+            final DownloadLink offline = createDownloadlink("directhttp://" + parameter);
+            offline.setAvailable(false);
+            offline.setProperty("offline", true);
+            offline.setFinalFileName(new Regex(parameter, "my\\.mail\\.ru/(.+)").getMatch(0));
+            decryptedLinks.add(offline);
+            return decryptedLinks;
+        }
+        final String username = new Regex(parameter, "http://(www\\.)?my\\.mail\\.ru/[^<>/\"]+/([^<>/\"]+)/.+").getMatch(1);
+        final String dirname = new Regex(parameter, "http://(www\\.)?my\\.mail\\.ru/([^<>/\"]+)/[^<>/\"]+/.+").getMatch(1);
         if (parameter.matches("http://(www\\.)?my\\.mail\\.ru/[^<>/\"]+/[^<>/\"]+/photo\\?album_id=[a-z0-9\\-_]+")) {
-            // Decrypt an album
+            /* Decrypt an album */
             if (br.containsHTML("class=oranzhe><b>Ошибка</b>")) {
                 logger.info("Link offline: " + parameter);
                 return decryptedLinks;
@@ -70,22 +82,27 @@ public class MyMailRu extends PluginForDecrypt {
                     br.getPage("http://my.mail.ru/" + dirname + "/" + username + "/ajax?ajax_call=1&func_name=photo.photostream&mna=false&mnb=false&encoding=windows-1251&arg_offset=" + offset + "&arg_marker=" + new Random().nextInt(1000) + "&arg_album_id=" + albumID);
                     br.getRequest().setHtmlCode(br.toString().replace("\\", ""));
                 }
-                final String[][] links = br.getRegex("\\(http://content\\.[^<>\"/]*?\\.mail\\.ru/mail/[^<>\"/]*?/[^<>\"/]*?/p\\-\\d+(\\.[a-z]{1,5})\\);\".*?<a class=\"l\\-catalog_link\" href=\"(http://foto\\.mail\\.ru/[^<>\"/]+/[^<>\"/]+/[^<>\"/]+/\\d+\\.html)\"").getMatches();
-                if (links == null || links.length == 0) {
-                    logger.warning("Decrypter broken for link: " + parameter);
-                    return null;
+                final String[] items = br.getRegex("(<div class=\"l\\-catalog_item\" data\\-bubble\\-config=.*?</div>)").getColumn(0);
+                if (items != null && items.length != 0) {
+                    for (final String item : items) {
+                        final String url = new Regex(item, "style=\"background\\-image:url\\((http://content[a-z0-9\\-_\\.]+\\.my\\.mail\\.ru/[^<>\"]+p\\-\\d+\\.jpg)\\);").getMatch(0);
+                        final String mainlink = new Regex(item, "\"(http://my\\.mail\\.ru/[^<>\"]+/photo/\\d+/\\d+\\.html)\"").getMatch(0);
+                        if (url != null && mainlink != null) {
+                            final String ending = url.substring(url.lastIndexOf("."));
+                            final DownloadLink dl = createDownloadlink("http://my.mail.ru/jdeatme" + System.currentTimeMillis() + new Random().nextInt(100000));
+                            dl.setProperty("mainlink", mainlink);
+                            dl.setProperty("ext", ending);
+                            dl.setFinalFileName(new Regex(mainlink, "(\\d+)\\.html").getMatch(0) + ending);
+                            dl.setAvailable(true);
+                            decryptedLinks.add(dl);
+                        }
+                    }
+                    offset += maxPicsPerSegment;
+                    segment++;
+                } else {
+                    logger.info("Nothing to decrypt here, stopping");
+                    break;
                 }
-                for (final String singleLink[] : links) {
-                    final String ending = singleLink[0];
-                    final DownloadLink dl = createDownloadlink("http://my.mail.ru/jdeatme" + System.currentTimeMillis() + new Random().nextInt(100000));
-                    dl.setProperty("mainlink", singleLink[1]);
-                    dl.setProperty("ext", ending);
-                    dl.setFinalFileName(new Regex(singleLink[1], "(\\d+)\\.html").getMatch(0) + ending);
-                    dl.setAvailable(true);
-                    decryptedLinks.add(dl);
-                }
-                offset += maxPicsPerSegment;
-                segment++;
             }
             if (fpName != null && setPackagename) {
                 final FilePackage fp = FilePackage.getInstance();
@@ -96,8 +113,13 @@ public class MyMailRu extends PluginForDecrypt {
         } else {
             final String albumsAllText = br.getRegex("\"albumsAll\": \\[(.*?)\\]").getMatch(0);
             if (albumsAllText == null) {
-                logger.warning("Decrypter broken for link: " + parameter);
-                return null;
+                /* Probably offline */
+                final DownloadLink offline = createDownloadlink("directhttp://" + parameter);
+                offline.setAvailable(false);
+                offline.setProperty("offline", true);
+                offline.setFinalFileName(new Regex(parameter, "my\\.mail\\.ru/(.+)").getMatch(0));
+                decryptedLinks.add(offline);
+                return decryptedLinks;
             }
             final String[] albumsAll = new Regex(albumsAllText, "\"([^<>\"]*?)\"").getColumn(0);
             if (albumsAll == null || albumsAll.length == 0) {

@@ -61,32 +61,48 @@ public class FilesMailRu extends PluginForHost {
 
     @Override
     public AvailableStatus requestFileInformation(final DownloadLink downloadLink) throws Exception {
-        if (!keepCookies) this.setBrowserExclusive();
+        /* Check for offline from decrypter */
+        if (downloadLink.getBooleanProperty("offline", false)) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
+        if (!keepCookies) {
+            this.setBrowserExclusive();
+        }
         br.setDebug(true);
         br.getHeaders().put("User-Agent", UA);
         br.setFollowRedirects(true);
-        if (downloadLink.getDownloadURL().matches(TYPE_VIDEO)) throw new PluginException(LinkStatus.ERROR_FATAL, "Please re-add this link!");
+        if (downloadLink.getDownloadURL().matches(TYPE_VIDEO)) {
+            throw new PluginException(LinkStatus.ERROR_FATAL, "Please re-add this link!");
+        }
         if (downloadLink.getName() == null && downloadLink.getStringProperty("folderID", null) == null) {
             logger.warning("final filename and folderID are bot null for unknown reasons!");
             throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
         }
         br.getPage(downloadLink.getStringProperty("folderID"));
         if (br.containsHTML(DLMANAGERPAGE)) {
-            if (br.containsHTML(LINKOFFLINE)) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            if (br.containsHTML(LINKOFFLINE)) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             String filesize = br.getRegex("</div>[\t\n\r ]+</div>[\t\n\r ]+</td>[\t\n\r ]+<td title=\"(\\d+(\\.\\d+)? [^<>\"]*?)\">").getMatch(0);
             final String filename = br.getRegex("<title>([^<>\"]*?)  скачать [^<>\"]*?@Mail\\.Ru</title>").getMatch(0);
-            if (filesize == null || filename == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (filesize == null || filename == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             return AvailableStatus.TRUE;
         } else {
             // At the moment jd gets the russian version of the site.
             // Errorhandling
             // also works for English but filesize handling doesn't so if this
             // plugin get's broken that's on of the first things to check
-            if (br.containsHTML(LINKOFFLINE)) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            if (br.containsHTML(LINKOFFLINE)) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             // This part is to find the filename in case the downloadurl
             // redirects to the folder it comes from
             String finalfilename = downloadLink.getStringProperty("realfilename");
-            if (finalfilename == null) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            if (finalfilename == null) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             String[] linkinformation = br.getRegex(INFOREGEX).getColumn(0);
             if (linkinformation == null || linkinformation.length == 0) {
                 logger.warning("Critical error : Couldn't get the linkinformation");
@@ -109,7 +125,9 @@ public class FilesMailRu extends PluginForHost {
                     logger.info("Set new UrlDownload, link = " + downloadLink.getDownloadURL());
                     String filesize = new Regex(info, "<td>(.*?{1,15})</td>").getMatch(0);
                     String filename = new Regex(info, "href=\".*?onclick=\"return.*?\">(.*?)<").getMatch(0);
-                    if (filename == null) filename = new Regex(info, "class=\"str\">(.*?)</div>").getMatch(0);
+                    if (filename == null) {
+                        filename = new Regex(info, "class=\"str\">(.*?)</div>").getMatch(0);
+                    }
                     if (filesize == null || filename == null) {
                         logger.warning("filename and filesize regex of linkinformation seem to be broken!");
                         throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
@@ -127,7 +145,9 @@ public class FilesMailRu extends PluginForHost {
 
     @Override
     public void handleFree(final DownloadLink downloadLink) throws Exception, PluginException {
-        if (downloadLink.getDownloadURL().matches(TYPE_VIDEO)) requestFileInformation(downloadLink);
+        if (downloadLink.getDownloadURL().matches(TYPE_VIDEO)) {
+            requestFileInformation(downloadLink);
+        }
         doFree(downloadLink, false);
     }
 
@@ -152,14 +172,22 @@ public class FilesMailRu extends PluginForHost {
             logger.warning("Critical error occured: The final downloadlink couldn't be found in handleFree!");
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         }
-        if (!(premium || dlManagerReady)) goToSleep(downloadLink);
+        if (!(premium || dlManagerReady)) {
+            goToSleep(downloadLink);
+        }
         // Errorhandling, sometimes the link which is usually renewed by the
         // linkgrabber doesn't work and needs to be refreshed again!
         int chunks = 1;
-        if (premium) chunks = 0;
-        if (dlManagerReady) prepareBrowserForDlManager(br);
+        if (premium) {
+            chunks = 0;
+        }
+        if (dlManagerReady) {
+            prepareBrowserForDlManager(br);
+        }
         dl = jd.plugins.BrowserAdapter.openDownload(br, downloadLink, downloadLink.getDownloadURL(), true, chunks);
-        if (dl.getConnection().getResponseCode() == 503) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Too many simultan downloads!");
+        if (dl.getConnection().getResponseCode() == 503) {
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Too many simultan downloads!");
+        }
         dl.startDownload();
     }
 
@@ -203,9 +231,13 @@ public class FilesMailRu extends PluginForHost {
 
     public void goToSleep(DownloadLink downloadLink) throws PluginException {
         String ttt = br.getRegex("файлы через.*?(\\d+).*?сек").getMatch(0);
-        if (ttt == null) ttt = br.getRegex("download files in.*?(\\d+).*?sec").getMatch(0);
+        if (ttt == null) {
+            ttt = br.getRegex("download files in.*?(\\d+).*?sec").getMatch(0);
+        }
         int tt = 10;
-        if (ttt != null) tt = Integer.parseInt(ttt);
+        if (ttt != null) {
+            tt = Integer.parseInt(ttt);
+        }
         logger.info("Waiting " + tt + " seconds...");
         sleep((tt + 1) * 1001, downloadLink);
     }
@@ -224,14 +256,16 @@ public class FilesMailRu extends PluginForHost {
         br.setFollowRedirects(true);
         br.postPage("http://swa.mail.ru/cgi-bin/auth", "Page=http%3A%2F%2Ffiles.mail.ru%2F&Login=" + Encoding.urlEncode(account.getUser()) + "&Domain=mail.ru&Password=" + Encoding.urlEncode(account.getPass()));
         br.getPage("http://files.mail.ru/eng?back=%2Fsms-services");
-        if (!br.containsHTML(">You have a VIP status<")) throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nInvalid username/password!\r\nUngültiger Benutzername oder ungültiges Passwort!", PluginException.VALUE_ID_PREMIUM_DISABLE);
+        if (!br.containsHTML(">You have a VIP status<")) {
+            throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nInvalid username/password!\r\nUngültiger Benutzername oder ungültiges Passwort!", PluginException.VALUE_ID_PREMIUM_DISABLE);
+        }
     }
 
     private void prepareBrowser() {
         br.getHeaders().put("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; de; rv:1.9.2.18) Gecko/20110614 Firefox/3.6.18");
         br.getHeaders().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
         br.getHeaders().put("Accept-Language", "de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
-        br.getHeaders().put("Accept-Encoding", "");
+        br.getHeaders().put("Accept-Encoding", "identity");
         br.getHeaders().put("Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.7");
     }
 
@@ -259,7 +293,9 @@ public class FilesMailRu extends PluginForHost {
     public String fixLink(String dllink, final Browser br) {
         logger.info("Correcting link...");
         String replaceThis = new Regex(dllink, "http://(content\\d+-n)\\.files\\.mail\\.ru.*?").getMatch(0);
-        if (replaceThis != null) dllink = dllink.replace(replaceThis, replaceThis.replace("-n", ""));
+        if (replaceThis != null) {
+            dllink = dllink.replace(replaceThis, replaceThis.replace("-n", ""));
+        }
         return dllink;
     }
 

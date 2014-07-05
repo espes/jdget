@@ -30,7 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.Icon;
 import javax.swing.JLabel;
@@ -66,13 +65,14 @@ import org.appwork.utils.swing.dialog.MessageDialogImpl;
 import org.jdownloader.DomainInfo;
 import org.jdownloader.gui.notify.BasicNotify;
 import org.jdownloader.gui.notify.BubbleNotify;
+import org.jdownloader.gui.notify.BubbleNotify.AbstractNotifyWindowFactory;
+import org.jdownloader.gui.notify.gui.AbstractNotifyWindow;
 import org.jdownloader.images.NewTheme;
 
 @HostPlugin(revision = "$Revision$", interfaceVersion = 3, names = { "free-way.me" }, urls = { "REGEX_NOT_POSSIBLE_RANDOM-asdfasdfsadfsdgfd32423" }, flags = { 2 })
 public class FreeWayMe extends PluginForHost {
 
     private static HashMap<Account, HashMap<String, Long>> hostUnavailableMap                  = new HashMap<Account, HashMap<String, Long>>();
-    private static AtomicInteger                           maxPrem                             = new AtomicInteger(1);
     private final String                                   ALLOWRESUME                         = "ALLOWRESUME";
     private final String                                   BETAUSER                            = "FREEWAYBETAUSER";
 
@@ -89,6 +89,9 @@ public class FreeWayMe extends PluginForHost {
     public final String                                    ACC_PROPERTY_UNKOWN_FAILS           = "timesfailedfreewayme_unknown";
     public final String                                    ACC_PROPERTY_CURL_FAIL_RESOLVE_HOST = "timesfailedfreewayme_curl_resolve_host";
 
+    /**
+     * @author flubshi
+     * */
     public FreeWayMe(PluginWrapper wrapper) {
         super(wrapper);
         setStartIntervall(1 * 1000l);
@@ -106,9 +109,7 @@ public class FreeWayMe extends PluginForHost {
                                                       put("ERROR_UNKNOWN", "Unknown error");
                                                       put("ERROR_UNKNOWN_FULL", "Unknown account status (deactivated)!");
                                                       put("ERROR_NO_STABLE_ACCOUNTS", "Found no stable accounts");
-                                                      put("CHECK_ZERO_HOSTERS", "Account valid: 0 Hosts via free-way.me available");
-                                                      put("SUPPORTED_HOSTS_1", "Account valid: ");
-                                                      put("SUPPORTED_HOSTS_2", " Hosts via free-way.me available");
+                                                      put("SUPPORTED_HOSTS_1", "Account valid");
                                                       put("ERROR_INVALID_URL", "Invalid URL");
                                                       put("ERROR_RETRY_SECONDS", "Error: Retry in few secs");
                                                       put("ERROR_SERVER", "Server error");
@@ -148,9 +149,7 @@ public class FreeWayMe extends PluginForHost {
                                                       put("ERROR_UNKNOWN", "Unbekannter Fehler");
                                                       put("ERROR_UNKNOWN_FULL", "Unbekannter Accountstatus (deaktiviert)!");
                                                       put("ERROR_NO_STABLE_ACCOUNTS", "Keine stabilen Accounts verfügbar");
-                                                      put("CHECK_ZERO_HOSTERS", "Account gültig: 0 Hosts via free-way.me verfügbar");
-                                                      put("SUPPORTED_HOSTS_1", "Account gültig: ");
-                                                      put("SUPPORTED_HOSTS_2", " Hoster über free-way.me verfügbar");
+                                                      put("SUPPORTED_HOSTS_1", "Account gültig");
                                                       put("ERROR_INVALID_URL", "Ungültige URL");
                                                       put("ERROR_RETRY_SECONDS", "Fehler: Erneuter Versuch in wenigen sek.");
                                                       put("ERROR_SERVER", "Server Fehler");
@@ -181,8 +180,8 @@ public class FreeWayMe extends PluginForHost {
                                               };
 
     /**
-     * Returns a germen/english translation of a phrase - we don't use the JDownloader translation framework since we need only germen and
-     * english (provider is german)
+     * Returns a German/English translation of a phrase. We don't use the JDownloader translation framework since we need only German and
+     * English.
      * 
      * @param key
      * @return
@@ -190,7 +189,9 @@ public class FreeWayMe extends PluginForHost {
     private String getPhrase(String key) {
         if ("de".equals(System.getProperty("user.language")) && phrasesDE.containsKey(key)) {
             return phrasesDE.get(key);
-        } else if (phrasesEN.containsKey(key)) { return phrasesEN.get(key); }
+        } else if (phrasesEN.containsKey(key)) {
+            return phrasesEN.get(key);
+        }
         return "Translation not found!";
     }
 
@@ -211,24 +212,31 @@ public class FreeWayMe extends PluginForHost {
 
     @Override
     public int getMaxSimultanDownload(final DownloadLink link, final Account account) {
-        boolean drosselActive = account.getBooleanProperty(ACC_PROPERTY_DROSSEL_ACTIVE, false);
-        int connections = account.getIntegerProperty(ACC_PROPERTY_CONNECTIONS, 1);
+        if (account != null) {
+            boolean drosselActive = account.getBooleanProperty(ACC_PROPERTY_DROSSEL_ACTIVE, false);
+            int connections = account.getIntegerProperty(ACC_PROPERTY_CONNECTIONS, 1);
 
-        if (!drosselActive) return connections;
-        // else it is limited
-        List<String> limitedHosts = Arrays.asList("uploaded.to", "ul.to", "uploaded.net", "share-online.biz", "freakshare.com", "datei.to", "uploading.com", "rapidgator.net", "filemonkey.in", "oboom.com");
+            if (!drosselActive) {
+                return connections;
+            }
+            // else it is limited
+            if (link != null) {
+                List<String> limitedHosts = Arrays.asList("uploaded.to", "ul.to", "uploaded.net", "share-online.biz", "freakshare.com", "datei.to", "uploading.com", "rapidgator.net", "filemonkey.in", "oboom.com");
 
-        if (limitedHosts.contains(link.getHost().toLowerCase(Locale.ENGLISH))) return Math.min(connections, 2);
-        // or not a limited host
-        return connections;
+                if (limitedHosts.contains(link.getHost().toLowerCase(Locale.ENGLISH))) {
+                    return Math.min(connections, 2);
+                }
+            }
+            // or not a limited host
+            return connections;
+        }
+        return 0;
     }
 
     @Override
     public AccountInfo fetchAccountInfo(final Account account) throws Exception {
         logger.info("{fetchAccInfo} Update free-way account: " + account.getUser());
         AccountInfo ac = new AccountInfo();
-        /* reset maxPrem workaround on every fetchaccount info */
-        maxPrem.set(1);
         br.setConnectTimeout(70 * 1000);
         br.setReadTimeout(65 * 1000);
         String username = Encoding.urlTotalEncode(account.getUser().trim());
@@ -267,7 +275,6 @@ public class FreeWayMe extends PluginForHost {
             maxPremi = Integer.parseInt(maxPremApi);
         }
         account.setProperty(ACC_PROPERTY_CONNECTIONS, maxPremi);
-        maxPrem.set(maxPremi);
 
         // get available fullspeed traffic
         account.setProperty(ACC_PROPERTY_REST_FULLSPEED_TRAFFIC, getJson("restgb", accInfoAPIResp));
@@ -300,8 +307,13 @@ public class FreeWayMe extends PluginForHost {
                              * But it shouldn't matter, because no one should enable dialog- and bubblenotify...
                              */
                             final String msg = br.getPage("https://www.free-way.me/ajax/jd.php?id=8");
-                            BasicNotify no = new BasicNotify(getPhrase("FULLSPEED_TRAFFIC_NOTIFICATION_CAPTION"), msg, NewTheme.I().getIcon("info", 32));
-                            BubbleNotify.getInstance().show(no);
+                            BubbleNotify.getInstance().show(new AbstractNotifyWindowFactory() {
+
+                                @Override
+                                public AbstractNotifyWindow<?> buildAbstractNotifyWindow() {
+                                    return new BasicNotify(getPhrase("FULLSPEED_TRAFFIC_NOTIFICATION_CAPTION"), msg, NewTheme.I().getIcon("info", 32));
+                                }
+                            });
                         }
 
                         if (dialogNotify) {
@@ -334,11 +346,8 @@ public class FreeWayMe extends PluginForHost {
             logger.info("{fetchAccInfo} Unlimited traffic, api response: " + accInfoAPIResp);
             ac.setUnlimitedTraffic(); // workaround
         }
-        try {
-            account.setConcurrentUsePossible(true);
-        } catch (final Throwable e) {
-            // not available in old Stable 0.9.581
-        }
+        account.setConcurrentUsePossible(true);
+
         String accountType = getRegexTag(accInfoAPIResp, "premium").getMatch(0);
         ac.setValidUntil(-1);
         if (accountType != null) {
@@ -364,25 +373,23 @@ public class FreeWayMe extends PluginForHost {
         // now let's get a list of all supported hosts:
         br.getPage(hostsUrl);
         hosts = br.getRegex("\"([^\"]*)\"").getColumn(0);
-        final ArrayList<String> supportedHosts = new ArrayList<String>();
+        ArrayList<String> supportedHosts = new ArrayList<String>();
         for (String host : hosts) {
             if (!host.isEmpty()) {
                 supportedHosts.add(host.trim());
             }
         }
-
-        if (supportedHosts.size() == 0) {
-            ac.setStatus(getPhrase("CHECK_ZERO_HOSTERS"));
-        } else {
-            ac.setStatus(getPhrase("SUPPORTED_HOSTS_1") + supportedHosts.size() + getPhrase("SUPPORTED_HOSTS_2"));
-            ac.setProperty("multiHostSupport", supportedHosts);
-        }
+        // set
+        ac.setMultiHostSupport(supportedHosts);
+        ac.setStatus(accountType + " Account");
         return ac;
     }
 
     private String getJson(final String parameter, final String source) {
         String result = new Regex(source, "\"" + parameter + "\":([0-9\\.]+)").getMatch(0);
-        if (result == null) result = new Regex(source, "\"" + parameter + "\":\"([^<>\"]*?)\"").getMatch(0);
+        if (result == null) {
+            result = new Regex(source, "\"" + parameter + "\":\"([^<>\"]*?)\"").getMatch(0);
+        }
         return result;
     }
 
@@ -421,6 +428,10 @@ public class FreeWayMe extends PluginForHost {
         logger.info("{handleMultiHost} Try download with account " + acc.getUser() + " file: " + link.getDownloadURL());
 
         String dllink = "https://www.free-way.me/load.php?multiget=2&user=" + user + "&pw=" + pw + "&url=" + url + "&encodedJD";
+
+        if (this.getPluginConfig().getBooleanProperty(BETAUSER, false)) {
+            dllink += "&beta=1";
+        }
 
         // set timeout
         br.setConnectTimeout(100 * 1000);
@@ -468,7 +479,9 @@ public class FreeWayMe extends PluginForHost {
             } else if (error.contains("nnen nicht mehr parallele Downloads durchf")) { // Sie kö... ...ühren
                 int attempts = link.getIntegerProperty("CONNECTIONS_RETRY_COUNT_PARALLEL", 0);
                 // first attempt -> update acc information
-                if (attempts == 0) acc.setUpdateTime(-1); // force update acc next try (to get new information about simultan connections)
+                if (attempts == 0) {
+                    acc.setUpdateTime(-1); // force update acc next try (to get new information about simultan connections)
+                }
                 link.setProperty("CONNECTIONS_RETRY_COUNT_PARALLEL", attempts + 1);
                 throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, getPhrase("ERROR_CONNECTIONS"), (12 + 20 * attempts) * 1000l);
             } else if (error.contains("ltiger Hoster")) { // Ungü...
@@ -560,7 +573,7 @@ public class FreeWayMe extends PluginForHost {
                 final String accType = account.getStringProperty("acctype", null);
                 final Integer maxSimultanDls = account.getIntegerProperty(ACC_PROPERTY_CONNECTIONS, 1);
                 final String notifications = account.getStringProperty("notifications", "0");
-                final float trafficUsage = ((float) account.getIntegerProperty(ACC_PROPERTY_TRAFFIC_REDUCTION, -1)) / 100f;
+                final float trafficUsage = account.getIntegerProperty(ACC_PROPERTY_TRAFFIC_REDUCTION, -1) / 100f;
                 final String restFullspeedTraffic = account.getStringProperty(ACC_PROPERTY_REST_FULLSPEED_TRAFFIC, "?");
 
                 Set<MultihostContainer> hostList = new HashSet<MultihostContainer>();
@@ -570,7 +583,9 @@ public class FreeWayMe extends PluginForHost {
                         host = "uploaded.to";
                     }
                     MultihostContainer container = new MultihostContainer(host, account);
-                    if (unavailableHosts != null && unavailableHosts.contains(host)) container.setIsWorking(false);
+                    if (unavailableHosts != null && unavailableHosts.contains(host)) {
+                        container.setIsWorking(false);
+                    }
                     hostList.add(container);
                 }
 
@@ -718,7 +733,9 @@ public class FreeWayMe extends PluginForHost {
     }
 
     private void tempUnavailableHoster(final Account account, final DownloadLink downloadLink, long timeout, String msg) throws PluginException {
-        if (downloadLink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, getPhrase("ERROR_UNKNWON_CODE"));
+        if (downloadLink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, getPhrase("ERROR_UNKNWON_CODE"));
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap == null) {
@@ -735,7 +752,9 @@ public class FreeWayMe extends PluginForHost {
     @Override
     public boolean canHandle(final DownloadLink downloadLink, final Account account) {
         // we stop if the user won't lose sprit
-        if (prevetSpritUsage(account)) return false;
+        if (prevetSpritUsage(account)) {
+            return false;
+        }
 
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
@@ -745,7 +764,9 @@ public class FreeWayMe extends PluginForHost {
                     return false;
                 } else if (lastUnavailable != null) {
                     unavailableMap.remove(downloadLink.getHost());
-                    if (unavailableMap.size() == 0) hostUnavailableMap.remove(account);
+                    if (unavailableMap.size() == 0) {
+                        hostUnavailableMap.remove(account);
+                    }
                 }
             }
         }
@@ -897,14 +918,26 @@ public class FreeWayMe extends PluginForHost {
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (getClass() != obj.getClass()) return false;
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
             MultihostContainer other = (MultihostContainer) obj;
-            if (!getOuterType().equals(other.getOuterType())) return false;
+            if (!getOuterType().equals(other.getOuterType())) {
+                return false;
+            }
             if (host == null) {
-                if (other.host != null) return false;
-            } else if (!host.equals(other.host)) return false;
+                if (other.host != null) {
+                    return false;
+                }
+            } else if (!host.equals(other.host)) {
+                return false;
+            }
             return true;
         }
 

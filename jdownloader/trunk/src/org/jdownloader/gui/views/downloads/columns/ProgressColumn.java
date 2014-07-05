@@ -18,6 +18,7 @@ import javax.swing.Timer;
 import jd.controlling.packagecontroller.AbstractNode;
 import jd.plugins.DownloadLink;
 import jd.plugins.FilePackage;
+import jd.plugins.FilePackageView;
 import jd.plugins.PluginForHost;
 import jd.plugins.PluginProgress;
 
@@ -176,11 +177,15 @@ public class ProgressColumn extends ExtProgressColumn<AbstractNode> {
                 return _GUI._.gui_treetable_error_plugin();
             } else if ((progress = dLink.getPluginProgress()) != null && !(progress.getProgressSource() instanceof PluginForHost)) {
                 double prgs = progress.getPercent();
-                if (prgs < 0) { return ""; }
+                if (prgs < 0) {
+                    return "";
+                }
                 return format(prgs);
             }
         }
-        if (total < 0) return "~";
+        if (total < 0) {
+            return "~";
+        }
         return format(getPercentString(current, total));
     }
 
@@ -202,19 +207,23 @@ public class ProgressColumn extends ExtProgressColumn<AbstractNode> {
     @Override
     protected long getMax(AbstractNode value) {
         if (value instanceof FilePackage) {
-            FilePackage fp = (FilePackage) value;
-            if (fp.getView().isFinished()) {
+            final FilePackage fp = (FilePackage) value;
+            final FilePackageView view = fp.getView();
+            if (view.isFinished()) {
                 return 100;
             } else {
-                return (Math.max(1, fp.getView().getSize()));
+                if (view.getUnknownFileSizes() > 0) {
+                    return view.getChildren();
+                }
+                return Math.max(0, view.getSize());
             }
         } else {
-            DownloadLink dLink = (DownloadLink) value;
+            final DownloadLink dLink = (DownloadLink) value;
             PluginProgress progress = null;
             long size = -1;
             if (dLink.getDefaultPlugin() == null) {
                 return 100;
-            } else if ((progress = dLink.getPluginProgress()) != null && !(progress.getProgressSource() instanceof PluginForHost)) {
+            } else if ((progress = dLink.getPluginProgress()) != null && (progress.isDisplayInProgressColumnEnabled())) {
                 return (progress.getTotal());
             } else if (FinalLinkState.CheckFinished(dLink.getFinalLinkState())) {
                 return 100;
@@ -238,18 +247,23 @@ public class ProgressColumn extends ExtProgressColumn<AbstractNode> {
     @Override
     protected long getValue(AbstractNode value) {
         if (value instanceof FilePackage) {
-            FilePackage fp = (FilePackage) value;
-            if (fp.getView().isFinished()) {
+            final FilePackage fp = (FilePackage) value;
+            final FilePackageView view = fp.getView();
+            if (view.isFinished()) {
                 return 100;
             } else {
-                return (fp.getView().getDone());
+                if (view.getUnknownFileSizes() > 0) {
+                    return view.getFinalCount();
+                }
+                return Math.max(0, view.getDone());
             }
         } else {
-            DownloadLink dLink = (DownloadLink) value;
+            final DownloadLink dLink = (DownloadLink) value;
             PluginProgress progress = null;
             if (dLink.getDefaultPlugin() == null) {
                 return -1;
-            } else if ((progress = dLink.getPluginProgress()) != null && !(progress.getProgressSource() instanceof PluginForHost)) {
+            } else if ((progress = dLink.getPluginProgress()) != null && (progress.isDisplayInProgressColumnEnabled())) {
+
                 return (progress.getCurrent());
             } else if (FinalLinkState.CheckFinished(dLink.getFinalLinkState())) {
                 return 100;

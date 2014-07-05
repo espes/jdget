@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -63,11 +65,10 @@ import org.appwork.utils.net.httpconnection.HTTPProxyStorable;
 import org.jdownloader.gui.translate._GUI;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.plugins.config.PluginJsonConfig;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ContextFactory;
-import org.mozilla.javascript.Scriptable;
 
 public class YoutubeHelper {
+
+    public static final String    PAID_VIDEO        = "Paid Video:";
 
     protected static final String YT_CHANNEL_ID     = "YT_CHANNEL_ID";
 
@@ -151,8 +152,12 @@ public class YoutubeHelper {
 
         public boolean matches(String checkName) {
             for (String tag : tags) {
-                if (checkName.contains("*" + tag + "*")) return true;
-                if (Pattern.compile("\\*" + tag + "\\[(.+?)\\]\\*", Pattern.CASE_INSENSITIVE).matcher(checkName).find()) return true;
+                if (checkName.contains("*" + tag + "*")) {
+                    return true;
+                }
+                if (Pattern.compile("\\*" + tag + "\\[(.+?)\\]\\*", Pattern.CASE_INSENSITIVE).matcher(checkName).find()) {
+                    return true;
+                }
 
             }
             return false;
@@ -303,7 +308,9 @@ public class YoutubeHelper {
             @Override
             protected String getValue(DownloadLink link, YoutubeHelper helper, String mod) {
                 int ms = link.getIntegerProperty(YoutubeHelper.YT_DURATION, -1);
-                if (ms <= 0) return "";
+                if (ms <= 0) {
+                    return "";
+                }
                 if (StringUtils.isEmpty(mod)) {
 
                     return TimeFormatter.formatMilliSeconds(ms, 0);
@@ -447,7 +454,9 @@ public class YoutubeHelper {
 
                 try {
 
-                    if (variant instanceof YoutubeVariant) { return ((YoutubeVariant) variant).getVideoCodec(); }
+                    if (variant instanceof YoutubeVariant) {
+                        return ((YoutubeVariant) variant).getVideoCodec();
+                    }
                     return "";
                 } catch (Throwable e) {
                     // old variant
@@ -475,7 +484,9 @@ public class YoutubeHelper {
 
                 try {
 
-                    if (variant instanceof YoutubeVariant) { return ((YoutubeVariant) variant).getResolution(); }
+                    if (variant instanceof YoutubeVariant) {
+                        return ((YoutubeVariant) variant).getResolution();
+                    }
                     return "";
                 } catch (Throwable e) {
                     // old variant
@@ -529,7 +540,9 @@ public class YoutubeHelper {
 
                 try {
 
-                    if (variant instanceof YoutubeVariant) { return ((YoutubeVariant) variant).getAudioCodec(); }
+                    if (variant instanceof YoutubeVariant) {
+                        return ((YoutubeVariant) variant).getAudioCodec();
+                    }
                     return "";
                 } catch (Throwable e) {
                     // old variant
@@ -558,7 +571,9 @@ public class YoutubeHelper {
 
                 try {
 
-                    if (variant instanceof YoutubeVariant) { return ((YoutubeVariant) variant).getAudioQuality(); }
+                    if (variant instanceof YoutubeVariant) {
+                        return ((YoutubeVariant) variant).getAudioQuality();
+                    }
                     return "";
                 } catch (Throwable e) {
                     // old variant
@@ -580,7 +595,9 @@ public class YoutubeHelper {
 
                 // playlistnumber
 
-                if (StringUtils.isEmpty(mod)) mod = "0000";
+                if (StringUtils.isEmpty(mod)) {
+                    mod = "0000";
+                }
                 DecimalFormat df;
                 try {
                     df = new DecimalFormat(mod);
@@ -634,8 +651,12 @@ public class YoutubeHelper {
 
         }
 
-        if (new Regex(line, "\\.split\\(\"\"\\)").matches()) { return s; }
-        if (new Regex(line, "\\.join\\(\"\"\\)").matches()) { return s; }
+        if (new Regex(line, "\\.split\\(\"\"\\)").matches()) {
+            return s;
+        }
+        if (new Regex(line, "\\.join\\(\"\"\\)").matches()) {
+            return s;
+        }
         throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unknown Signature Rule: " + line);
 
     }
@@ -689,46 +710,46 @@ public class YoutubeHelper {
     /**
      * *
      * 
+     * @param html5PlayerJs
+     *            TODO
      * @param br
-     * 
      * @param s
+     * 
      * @return
      * @throws IOException
      * @throws PluginException
      */
-    String descrambleSignature(final String sig) throws IOException, PluginException {
-        if (sig == null) { return null; }
-        String jsUrl = this.br.getMatch("\"js\"\\: \"(.+?)\"");
-        jsUrl = jsUrl.replace("\\/", "/");
-        jsUrl = "http:" + jsUrl;
+    String descrambleSignature(final String sig, String jsUrl) throws IOException, PluginException {
+        if (sig == null) {
+            return null;
+        }
+
         String des = null;
 
         Browser clone = br.cloneBrowser();
 
         String jsContent = getAbsolute(jsUrl, jsUrl, clone);
-        final String descrambler = new Regex(jsContent, "\\w+\\.signature\\=([\\w\\d]+)\\([\\w\\d]+\\)").getMatch(0);
-        final String func = "function " + descrambler + "\\(([^)]+)\\)\\{(.+?return.*?)\\}";
+        final String descrambler = new Regex(jsContent, "\\w+\\.signature\\=([\\$\\w\\d]+)\\([\\w\\d]+\\)").getMatch(0);
+        if (descrambler == null) {
+            return sig;
+        }
+        final String func = "function " + Pattern.quote(descrambler) + "\\(([^)]+)\\)\\{(.+?return.*?)\\}";
         des = new Regex(jsContent, Pattern.compile(func)).getMatch(1);
         try {
-            Context cx = null;
-            try {
-                cx = ContextFactory.getGlobal().enterContext();
-            } catch (java.lang.SecurityException e) {
-                /* in case classshutter already set */
+
+            final ScriptEngineManager manager = jd.plugins.hoster.DummyScriptEnginePlugin.getScriptEngineManager(this);
+            final ScriptEngine engine = manager.getEngineByName("javascript");
+
+            String all = new Regex(jsContent, Pattern.compile("function " + Pattern.quote(descrambler) + "\\(([^)]+)\\)\\{(.+?return.*?)\\}.*?\\{.*?\\}")).getMatch(-1);
+            Object result = engine.eval(all + " " + descrambler + "(\"" + sig + "\")");
+            if (result != null) {
+                return result.toString();
             }
-            if (cx != null) {
-                Scriptable scope = cx.initStandardObjects();
-                String all = new Regex(jsContent, Pattern.compile("function " + descrambler + "\\(([^)]+)\\)\\{(.+?return.*?)\\}.*?\\{.*?\\}")).getMatch(-1);
-                Object result = cx.evaluateString(scope, all + " " + descrambler + "(\"" + sig + "\")", "<cmd>", 1, null);
-                if (result != null) return result.toString();
-            }
+
         } catch (final Throwable e) {
             logger.log(e);
         } finally {
-            try {
-                Context.exit();
-            } catch (final Throwable e) {
-            }
+
         }
         String s = sig;
         try {
@@ -846,10 +867,14 @@ public class YoutubeHelper {
     }
 
     public String getAbsolute(final String absolute, String id, Browser clone) throws IOException {
-        if (clone == null) clone = br;
-        if (id == null) id = absolute;
+        if (clone == null) {
+            clone = br;
+        }
+        if (id == null) {
+            id = absolute;
+        }
         PluginCache pluginCache = Plugin.getCache("youtube.com-" + br.getProxy());
-        Object page = pluginCache.getCache(id, null);
+        Object page = pluginCache.get(id, null);
         if (page != null && page instanceof MinTimeWeakReference) {
             String content = ((MinTimeWeakReference<String>) page).get();
             if (StringUtils.isNotEmpty(content)) {
@@ -861,7 +886,7 @@ public class YoutubeHelper {
 
         clone.getPage(absolute);
         if (clone.getRequest().getHttpConnection().getResponseCode() == 200) {
-            pluginCache.setCache(id, new MinTimeWeakReference<String>(clone.getRequest().getHtmlCode(), 30000, id));
+            pluginCache.set(id, new MinTimeWeakReference<String>(clone.getRequest().getHtmlCode(), 30000, id));
         }
         return clone.getRequest().getHtmlCode();
 
@@ -935,6 +960,7 @@ public class YoutubeHelper {
         final YoutubeConfig cfg = PluginJsonConfig.get(YoutubeConfig.class);
 
         this.br.setFollowRedirects(true);
+
         /* this cookie makes html5 available and skip controversy check */
 
         this.br.setCookie("youtube.com", "PREF", "f2=40100000&hl=en-GB");
@@ -943,8 +969,15 @@ public class YoutubeHelper {
         getAbsolute(base + "/watch?v=" + vid.videoID, null, br);
 
         handleRentalVideos(vid);
-
+        String html5PlayerJs = this.br.getMatch("\"js\"\\: \"(.+?)\"");
+        if (html5PlayerJs != null) {
+            html5PlayerJs = html5PlayerJs.replace("\\/", "/");
+            html5PlayerJs = "http:" + html5PlayerJs;
+        }
         final String unavailableReason = this.br.getRegex("<div id=\"player-unavailable\" class=\"[^\"]*\">.*?<h. id=\"unavailable-message\"[^>]*?>([^<]+)").getMatch(0);
+
+        boolean hass = br.containsHTML("\"dashmpd\": \"https");
+
         // this work around before private video, as it also shares the same regex as content warning/age-gate
         boolean getVideoInfoWorkaroundUsed = false;
         if (this.br.containsHTML("age-gate|verify_controversy\\?next_url=")) {
@@ -955,7 +988,12 @@ public class YoutubeHelper {
             if (cw.containsHTML("age-gate")) {
                 // try to bypass
                 getVideoInfoWorkaroundUsed = true;
-                cw.getPage(this.base + "/get_video_info?video_id=" + vid.videoID);
+
+                cw.getPage(this.base + "/get_video_info?video_id=" + vid.videoID + "&hl=en&gl=US&ptk=vevo&el=detailpage");
+                if (cw.containsHTML("requires_purchase=1")) {
+                    logger.warning("Download not possible: You have to pay to watch this video");
+                    throw new Exception("Paid Video");
+                }
                 final String errorcode = cw.getRegex("errorcode=(\\d+)").getMatch(0);
                 if ("150".equals(errorcode)) {
                     // http://www.youtube.com/watch?v=xxWHMmiOTVM
@@ -977,8 +1015,8 @@ public class YoutubeHelper {
             String subError = br.getRegex("<div id=\"unavailable-submessage\" class=\"[^\"]*\">(.*?)</div>").getMatch(0);
             if (subError != null && !subError.matches("\\s*")) {
                 logger.warning(subError);
-                vid.error = Encoding.htmlDecode(unavailableReason.replaceAll("\\+", " ").trim());
-                return null;
+                // vid.error = Encoding.htmlDecode(unavailableReason.replaceAll("\\+", " ").trim());
+                // return null;
             }
         }
         this.extractData(vid);
@@ -1018,19 +1056,31 @@ public class YoutubeHelper {
         }
         if (html5_fmt_map != null) {
             for (final String line : html5_fmt_map.split("\\,")) {
-                final YoutubeStreamData match = this.parseLine(vid, line);
-                if (match != null) {
-                    if (!cfg.isExternMultimediaToolUsageEnabled() && match.getItag().name().contains("DASH_")) continue;
-                    ret.put(match.getItag(), match);
+                try {
+                    final YoutubeStreamData match = this.parseLine(vid, line, html5PlayerJs);
+                    if (match != null) {
+                        if (!cfg.isExternMultimediaToolUsageEnabled() && match.getItag().name().contains("DASH_")) {
+                            continue;
+                        }
+                        ret.put(match.getItag(), match);
+                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();
                 }
             }
         }
         if (dashFmt != null) {
             for (final String line : dashFmt.split("\\,")) {
-                final YoutubeStreamData match = this.parseLine(vid, line);
-                if (match != null) {
-                    if (!cfg.isExternMultimediaToolUsageEnabled() && match.getItag().name().contains("DASH_")) continue;
-                    ret.put(match.getItag(), match);
+                try {
+                    final YoutubeStreamData match = this.parseLine(vid, line, html5PlayerJs);
+                    if (match != null) {
+                        if (!cfg.isExternMultimediaToolUsageEnabled() && match.getItag().name().contains("DASH_")) {
+                            continue;
+                        }
+                        ret.put(match.getItag(), match);
+                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -1056,7 +1106,7 @@ public class YoutubeHelper {
                     }
                     if (StringUtils.isEmpty(signature)) {
                         // verified 7.1.213
-                        signature = this.descrambleSignature(query.get("s"));
+                        signature = this.descrambleSignature(query.get("s"), html5PlayerJs);
                     }
 
                     if (url != null && !url.contains("sig")) {
@@ -1091,9 +1141,18 @@ public class YoutubeHelper {
 
     private void handleRentalVideos(YoutubeClipData vid) throws Exception {
         String rentalText = br.getRegex("\"ypc_video_rental_bar_text\"\\s*\\:\\s*\"([^\"]+)").getMatch(0);
+
         if (StringUtils.isNotEmpty(rentalText)) {
             logger.warning("Download not possible: " + rentalText);
-            throw new Exception("Rental Video: " + rentalText);
+            throw new Exception(PAID_VIDEO + rentalText);
+        }
+        if (br.containsHTML("<meta itemprop=\"paid\" content=\"True\">")) {
+            logger.warning("Download not possible: You have to pay to watch this video");
+            throw new Exception(PAID_VIDEO + " Download not possible");
+        }
+        if (br.containsHTML("watch-checkout-offers")) {
+            logger.warning("Download not possible: You have to pay to watch this video");
+            throw new Exception(PAID_VIDEO + "Download not possible");
         }
     }
 
@@ -1108,8 +1167,12 @@ public class YoutubeHelper {
                 break;
             }
         }
-        if (!extended) return;
-        if (StringUtils.isEmpty(vid.user)) return;
+        if (!extended) {
+            return;
+        }
+        if (StringUtils.isEmpty(vid.user)) {
+            return;
+        }
         Browser clone = br.cloneBrowser();
         if (cfg.isPreferHttpsEnabled()) {
             clone.getPage("https://gdata.youtube.com/feeds/api/users/" + vid.user + "?v=2");
@@ -1125,8 +1188,9 @@ public class YoutubeHelper {
     }
 
     public static void main(String[] args) {
-        for (YoutubeITAG tag : YoutubeITAG.values())
+        for (YoutubeITAG tag : YoutubeITAG.values()) {
             System.out.println(tag.name());
+        }
     }
 
     private void doFeedScan(YoutubeClipData vid) throws IOException {
@@ -1139,7 +1203,9 @@ public class YoutubeHelper {
                 break;
             }
         }
-        if (!extended) return;
+        if (!extended) {
+            return;
+        }
         Browser clone = br.cloneBrowser();
         if (cfg.isPreferHttpsEnabled()) {
             clone.getPage("https://gdata.youtube.com/feeds/api/videos/" + vid.videoID + "?v=2");
@@ -1197,11 +1263,17 @@ public class YoutubeHelper {
         ArrayList<YoutubeStreamData> ret = new ArrayList<YoutubeStreamData>();
         String best = br.getRegex("<meta property=\"og\\:image\" content=\".*?/(\\w+\\.jpg)\">").getMatch(0);
         ret.add(new YoutubeStreamData(vid, "http://img.youtube.com/vi/" + vid.videoID + "/default.jpg", YoutubeITAG.IMAGE_LQ));
-        if (best != null && best.equals("default.jpg")) return ret;
+        if (best != null && best.equals("default.jpg")) {
+            return ret;
+        }
         ret.add(new YoutubeStreamData(vid, "http://img.youtube.com/vi/" + vid.videoID + "/mqdefault.jpg", YoutubeITAG.IMAGE_MQ));
-        if (best != null && best.equals("mqdefault.jpg")) return ret;
+        if (best != null && best.equals("mqdefault.jpg")) {
+            return ret;
+        }
         ret.add(new YoutubeStreamData(vid, "http://img.youtube.com/vi/" + vid.videoID + "/hqdefault.jpg", YoutubeITAG.IMAGE_HQ));
-        if (best != null && best.equals("hqdefault.jpg")) return ret;
+        if (best != null && best.equals("hqdefault.jpg")) {
+            return ret;
+        }
 
         ret.add(new YoutubeStreamData(vid, "http://img.youtube.com/vi/" + vid.videoID + "/maxresdefault.jpg", YoutubeITAG.IMAGE_MAX));
 
@@ -1230,7 +1302,9 @@ public class YoutubeHelper {
                             return;
                         } else {
                             this.br.getPage("http://www.youtube.com");
-                            if (!this.br.containsHTML("<span class=\"yt-uix-button-content\">Sign In </span></button></div>")) { return; }
+                            if (!this.br.containsHTML("<span class=\"yt-uix-button-content\">Sign In </span></button></div>")) {
+                                return;
+                            }
                         }
                     }
                 }
@@ -1265,7 +1339,9 @@ public class YoutubeHelper {
             form.put("asts", "");
             this.br.setFollowRedirects(false);
             final String cook = this.br.getCookie("http://www.google.com", "GALX");
-            if (cook == null) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+            if (cook == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             this.br.submitForm(form);
             if (this.br.getRedirectLocation() == null) {
                 final String page = Encoding.htmlDecode(this.br.toString());
@@ -1330,7 +1406,9 @@ public class YoutubeHelper {
                 throw new WTFException("Not Implemented");
 
             } else {
-                if (this.br.getRedirectLocation() == null) { throw new PluginException(LinkStatus.ERROR_PREMIUM, "The login verification is broken. Please contact our support."); }
+                if (this.br.getRedirectLocation() == null) {
+                    throw new PluginException(LinkStatus.ERROR_PREMIUM, "The login verification is broken. Please contact our support.");
+                }
                 this.br.setFollowRedirects(true);
                 this.br.getPage(this.br.getRedirectLocation());
 
@@ -1367,7 +1445,9 @@ public class YoutubeHelper {
                     try {
 
                         this.login(n, refresh, showDialog);
-                        if (n.isValid()) { return; }
+                        if (n.isValid()) {
+                            return;
+                        }
                     } catch (final Exception e) {
 
                         n.setValid(false);
@@ -1390,7 +1470,9 @@ public class YoutubeHelper {
                     try {
 
                         this.login(n, refresh, showDialog);
-                        if (n.isValid()) { return; }
+                        if (n.isValid()) {
+                            return;
+                        }
                     } catch (final Exception e) {
 
                         n.setValid(false);
@@ -1437,10 +1519,16 @@ public class YoutubeHelper {
                 formattedFilename = cfg.getVideoFilenamePattern();
             }
         }
-        if (StringUtils.isEmpty(formattedFilename)) formattedFilename = cfg.getFilenamePattern();
+        if (StringUtils.isEmpty(formattedFilename)) {
+            formattedFilename = cfg.getFilenamePattern();
+        }
         // validate the pattern
-        if ((!formattedFilename.contains("*videoname*") && !formattedFilename.contains("*videoid*")) || !formattedFilename.contains("*ext*")) formattedFilename = jd.plugins.hoster.Youtube.defaultCustomFilename;
-        if (formattedFilename == null || formattedFilename.equals("")) formattedFilename = "*videoname**quality**ext*";
+        if ((!formattedFilename.contains("*videoname*") && !formattedFilename.contains("*videoid*")) || !formattedFilename.contains("*ext*")) {
+            formattedFilename = jd.plugins.hoster.Youtube.defaultCustomFilename;
+        }
+        if (formattedFilename == null || formattedFilename.equals("")) {
+            formattedFilename = "*videoname**quality**ext*";
+        }
 
         formattedFilename = replaceVariables(link, formattedFilename);
         return formattedFilename;
@@ -1469,7 +1557,7 @@ public class YoutubeHelper {
         return formattedFilename;
     }
 
-    protected YoutubeStreamData parseLine(final YoutubeClipData vid, final String line) throws MalformedURLException, IOException, PluginException {
+    protected YoutubeStreamData parseLine(final YoutubeClipData vid, final String line, String html5PlayerJs) throws MalformedURLException, IOException, PluginException {
 
         final LinkedHashMap<String, String> query = Request.parseQuery(line);
         if (line.contains("conn=rtmp")) {
@@ -1489,9 +1577,10 @@ public class YoutubeHelper {
         if (StringUtils.isEmpty(signature)) {
             signature = query.get("signature");
         }
-        if (StringUtils.isEmpty(signature)) {
+
+        if (StringUtils.isEmpty(signature) && query.get("s") != null) {
             // verified 7.1.213
-            signature = this.descrambleSignature(query.get("s"));
+            signature = this.descrambleSignature(query.get("s"), html5PlayerJs);
         }
 
         if (url != null && !url.contains("sig")) {
@@ -1527,7 +1616,9 @@ public class YoutubeHelper {
     }
 
     public void setupProxy() {
-        if (br == null) return;
+        if (br == null) {
+            return;
+        }
         if (this.cfg.isProxyEnabled()) {
             final HTTPProxyStorable proxy = this.cfg.getProxy();
 
@@ -1563,6 +1654,8 @@ public class YoutubeHelper {
 
         ttsUrl = ttsUrl.replace("&v=" + vid.videoID, "");
         ttsUrl = ttsUrl.replace("?v=" + vid.videoID, "");
+        ttsUrl = ttsUrl.replace("timedtext&", "timedtext?");
+
         String[] matches = br.getRegex("<track id=\"(.*?)\".*?/>").getColumn(0);
 
         for (String trackID : matches) {
@@ -1586,8 +1679,12 @@ public class YoutubeHelper {
         String kind = new Regex(track, "kind=\"(.*?)\".*?/>").getMatch(0);
         String langOrg = new Regex(track, "lang_original=\"(.*?)\".*?/>").getMatch(0);
         String langTrans = new Regex(track, "lang_translated=\"(.*?)\".*?/>").getMatch(0);
-        if (name == null) name = "";
-        if (kind == null) kind = "";
+        if (name == null) {
+            name = "";
+        }
+        if (kind == null) {
+            kind = "";
+        }
 
         if (StringUtils.isNotEmpty(langTrans)) {
             langOrg = langTrans;

@@ -26,8 +26,6 @@ import jd.plugins.CryptedLink;
 import jd.plugins.DecrypterPlugin;
 import jd.plugins.DownloadLink;
 import jd.plugins.FilePackage;
-import jd.plugins.LinkStatus;
-import jd.plugins.PluginException;
 import jd.plugins.PluginForDecrypt;
 
 import org.appwork.utils.formatter.SizeFormatter;
@@ -43,11 +41,21 @@ public class MicrosoftComDecrypter extends PluginForDecrypt {
         ArrayList<DownloadLink> decryptedLinks = new ArrayList<DownloadLink>();
         final String dlid = new Regex(param.toString(), "(\\d+)$").getMatch(0);
         final String parameter = "http://www.microsoft.com/en-us/download/details.aspx?id=" + dlid;
+        br.setFollowRedirects(true);
         br.getPage(parameter);
-        if (br.containsHTML(">We are sorry, the page you requested cannot be found")) { throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND); }
+        if (br.getHttpConnection().getResponseCode() == 404) {
+            final DownloadLink offline = createDownloadlink("directhttp://" + parameter);
+            offline.setFinalFileName(dlid);
+            offline.setAvailable(false);
+            offline.setProperty("offline", true);
+            decryptedLinks.add(offline);
+            return decryptedLinks;
+        }
         br.getPage("http://www.microsoft.com/en-us/download/confirmation.aspx?id=" + dlid);
         String fpName = br.getRegex("<h2 class=\"title\">([^<>\"]*?)</h2>").getMatch(0);
-        if (fpName == null) fpName = "Microsoft.com download " + dlid;
+        if (fpName == null) {
+            fpName = "Microsoft.com download " + dlid;
+        }
         final String dlTable = br.getRegex("<div class=\"chooseFile jsOff\">(.*?)</div>").getMatch(0);
         if (dlTable == null) {
             logger.warning("Decrypter broken for link: " + parameter);
@@ -55,8 +63,8 @@ public class MicrosoftComDecrypter extends PluginForDecrypt {
         }
         final String[] entries = new Regex(dlTable, "<tr>(.*?)</tr>").getColumn(0);
         for (final String dlentry : entries) {
-            final String filename = new Regex(dlentry, "<td>([^<>\"]*?)(<span class=\"green-sniff-recommend\">\\(recommended\\)</span>)?</td>").getMatch(0);
-            final String filesize = new Regex(dlentry, "<td>(\\d+(\\.\\d{1,2})? [A-Za-z]{1,5})</td>").getMatch(0);
+            final String filename = new Regex(dlentry, "class=\"file\\-name\\-view1\">([^<>\"]*?)</span>").getMatch(0);
+            final String filesize = new Regex(dlentry, "class=\"file\\-size\\-view1\">([^<>\"]*?)</span>").getMatch(0);
             final String dllink = new Regex(dlentry, "href=\"(http://download\\.microsoft\\.com/download/[^<>\"]+)\"").getMatch(0);
             if (filename != null && filesize != null && dllink != null) {
                 final DownloadLink dl = createDownloadlink(dllink);

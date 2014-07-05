@@ -28,24 +28,32 @@ import jd.controlling.captcha.SkipException;
 import jd.controlling.captcha.SkipRequest;
 // import jd.controlling.linkcollector.LinkCollector;
 // import jd.controlling.linkcrawler.LinkCrawlerThread;
-// import jd.gui.swing.dialog.MultiSelectionDialog;
 import jd.nutils.JDFlags;
-import jd.plugins.DecrypterException;
+import jd.plugins.CaptchaException;
 import jd.plugins.PluginForDecrypt;
-import jd.plugins.RuntimeDecrypterException;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.storage.config.JsonConfig;
+import org.appwork.uio.ComboBoxDialogInterface;
+import org.appwork.uio.ConfirmDialogInterface;
+import org.appwork.uio.InputDialogInterface;
+import org.appwork.uio.MultiSelectionDialog;
+import org.appwork.uio.MultiSelectionDialogInterface;
 // import org.appwork.uio.UIOManager;
+import org.appwork.uio.UserIODefinition;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.logging2.LogSource;
 // import org.appwork.utils.swing.dialog.ComboBoxDialog;
+// import org.appwork.utils.swing.dialog.ConfirmDialog;
 // import org.appwork.utils.swing.dialog.Dialog;
 // import org.appwork.utils.swing.dialog.DialogCanceledException;
 // import org.appwork.utils.swing.dialog.DialogClosedException;
 // import org.appwork.utils.swing.dialog.ExtFileChooserDialog;
 // import org.appwork.utils.swing.dialog.FileChooserSelectionMode;
 // import org.appwork.utils.swing.dialog.FileChooserType;
+// import org.appwork.utils.swing.dialog.InputDialog;
+// import org.jdownloader.captcha.blacklist.BlacklistEntry;
 // import org.jdownloader.captcha.blacklist.BlockAllCrawlerCaptchasEntry;
 // import org.jdownloader.captcha.blacklist.CaptchaBlackList;
 // import org.jdownloader.captcha.v2.Challenge;
@@ -57,12 +65,6 @@ import org.jdownloader.gui.translate._GUI;
 // import org.jdownloader.settings.GraphicalUserInterfaceSettings;
 
 public class UserIO {
-    
-    // public static final int FILES_ONLY                     = JFileChooser.FILES_ONLY;
-    // public static final int DIRECTORIES_ONLY               = JFileChooser.DIRECTORIES_ONLY;
-    // public static final int FILES_AND_DIRECTORIES          = JFileChooser.FILES_AND_DIRECTORIES;
-    // public static final int OPEN_DIALOG                    = JFileChooser.OPEN_DIALOG;
-    // public static final int SAVE_DIALOG                    = JFileChooser.SAVE_DIALOG;
     public static final int FILES_ONLY                     = 1 << 1;
     public static final int DIRECTORIES_ONLY               = 1 << 2;
     public static final int FILES_AND_DIRECTORIES          = 1 << 3;
@@ -109,7 +111,7 @@ public class UserIO {
      * the textfield will be renderer as a passwordfield
      */
     public static final int STYLE_PASSWORD                 = 1 << 11;
-    
+
     /**
      * pressed ok
      */
@@ -119,7 +121,8 @@ public class UserIO {
      */
     public static final int RETURN_CANCEL                  = 1 << 2;
     /**
-     * don't show again flag has been set. the dialog may has been visible. if RETURN_SKIPPED_BY_DONT_SHOW is not set. the user set this flag latly
+     * don't show again flag has been set. the dialog may has been visible. if RETURN_SKIPPED_BY_DONT_SHOW is not set. the user set this
+     * flag latly
      */
     public static final int RETURN_DONT_SHOW_AGAIN         = 1 << 3;
     /**
@@ -134,14 +137,14 @@ public class UserIO {
     public static final int ICON_WARNING                   = 1;
     public static final int ICON_ERROR                     = 2;
     public static final int ICON_QUESTION                  = 3;
-    
+
     protected static UserIO INSTANCE                       = new UserIO();
-    
+
     public UserIO() {
         setCountdownTime(UserIO.getUserCountdownTime());
-        
+
     }
-    
+
     /**
      * @param countdownTime
      *            sets the countdown time or resets it to the user-selected value, if <code>countdownTime < 0</code>
@@ -155,22 +158,24 @@ public class UserIO {
         // }
         throw new UnsupportedOperationException("jdget TODO");
     }
-    
+
     @Deprecated
     private static int getUserCountdownTime() {
         // return Math.max(2, JsonConfig.create(GraphicalUserInterfaceSettings.class).getDialogDefaultTimeoutInMS() / 1000);
         throw new UnsupportedOperationException("jdget TODO");
     }
-    
+
     public static UserIO getInstance() {
         return UserIO.INSTANCE;
     }
-    
+
     public static void setInstance(UserIO userIO) {
-        if (userIO == null) throw new RuntimeException("userIO must not be null");
+        if (userIO == null) {
+            throw new RuntimeException("userIO must not be null");
+        }
         UserIO.INSTANCE = userIO;
     }
-    
+
     /**
      * Checks wether this answerfalg contains the ok option
      * 
@@ -180,37 +185,36 @@ public class UserIO {
     public static boolean isOK(final int answer) {
         return JDFlags.hasSomeFlags(answer, UserIO.RETURN_OK);
     }
-    
+
     /**
      * COnverts the flag mask of AW Dialogs to UserIO
      * 
      * @param ret
      * @return
      */
-    private int convertAWAnswer(final int ret) {
-        int response = 0;
-        // if (BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) {
-        //     response |= UserIO.RETURN_CANCEL;
-        // }
-        // if (BinaryLogic.containsAll(ret, Dialog.RETURN_OK)) {
-        //     response |= UserIO.RETURN_OK;
-        // }
-        // if (BinaryLogic.containsAll(ret, Dialog.RETURN_CLOSED)) {
-        //     response |= UserIO.RETURN_CANCEL;
-        // }
-        // if (BinaryLogic.containsAll(ret, Dialog.RETURN_DONT_SHOW_AGAIN)) {
-        //     response |= UserIO.RETURN_DONT_SHOW_AGAIN;
-        // }
-        // if (BinaryLogic.containsAll(ret, Dialog.RETURN_SKIPPED_BY_DONT_SHOW)) {
-        //     response |= UserIO.RETURN_SKIPPED_BY_DONT_SHOW;
-        // }
-        // if (BinaryLogic.containsAll(ret, Dialog.RETURN_TIMEOUT)) {
-        //     response |= UserIO.RETURN_COUNTDOWN_TIMEOUT;
-        // }
-        // return response;
-        throw new UnsupportedOperationException("jdget TODO");
-    }
-    
+    // private int convertAWAnswer(final int ret) {
+    //     int response = 0;
+    //     if (BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) {
+    //         response |= UserIO.RETURN_CANCEL;
+    //     }
+    //     if (BinaryLogic.containsAll(ret, Dialog.RETURN_OK)) {
+    //         response |= UserIO.RETURN_OK;
+    //     }
+    //     if (BinaryLogic.containsAll(ret, Dialog.RETURN_CLOSED)) {
+    //         response |= UserIO.RETURN_CANCEL;
+    //     }
+    //     if (BinaryLogic.containsAll(ret, Dialog.RETURN_DONT_SHOW_AGAIN)) {
+    //         response |= UserIO.RETURN_DONT_SHOW_AGAIN;
+    //     }
+    //     if (BinaryLogic.containsAll(ret, Dialog.RETURN_SKIPPED_BY_DONT_SHOW)) {
+    //         response |= UserIO.RETURN_SKIPPED_BY_DONT_SHOW;
+    //     }
+    //     if (BinaryLogic.containsAll(ret, Dialog.RETURN_TIMEOUT)) {
+    //         response |= UserIO.RETURN_COUNTDOWN_TIMEOUT;
+    //     }
+    //     return response;
+    // }
+
     /**
      * The flags in org.appwork.utils.swing.dialog.Dialog are different, so we need a converter
      * 
@@ -219,7 +223,7 @@ public class UserIO {
      */
     // private int convertFlagToAWDialog(final int flag) {
     //     int ret = 0;
-        
+
     //     if (BinaryLogic.containsNone(flag, UserIO.NO_COUNTDOWN)) {
     //         ret |= UIOManager.LOGIC_COUNTDOWN;
     //     }
@@ -252,7 +256,7 @@ public class UserIO {
     //     }
     //     return ret;
     // }
-    
+
     // public static ImageIcon getDefaultIcon(final String text) {
     //     if (text.contains("?")) {
     //         return getIcon(UserIO.ICON_QUESTION);
@@ -264,86 +268,91 @@ public class UserIO {
     //         return getIcon(UserIO.ICON_INFO);
     //     }
     // }
-    
+
     // public static ImageIcon getIcon(final int iconInfo) {
     //     switch (iconInfo) {
-    //         case UserIO.ICON_ERROR:
-    //             return NewTheme.I().getIcon("stop", 32);
-    //         case UserIO.ICON_WARNING:
-    //             return NewTheme.I().getIcon("warning", 32);
-    //         case UserIO.ICON_QUESTION:
-    //             return NewTheme.I().getIcon("help", 32);
-    //         default:
-    //             return NewTheme.I().getIcon("info", 32);
+    //     case UserIO.ICON_ERROR:
+    //         return NewTheme.I().getIcon("stop", 32);
+    //     case UserIO.ICON_WARNING:
+    //         return NewTheme.I().getIcon("warning", 32);
+    //     case UserIO.ICON_QUESTION:
+    //         return NewTheme.I().getIcon("help", 32);
+    //     default:
+    //         return NewTheme.I().getIcon("info", 32);
     //     }
     // }
-    
-    public Point requestClickPositionDialog(final File imagefile, final String titleTemplate, final String explain) {
+
+    public Point requestClickPositionDialog(final File imagefile, final String titleTemplate, final String explain) throws Exception {
         // Thread currentThread = Thread.currentThread();
         // if (currentThread instanceof LinkCrawlerThread) {
         //     /* Crawler */
         //     final PluginForDecrypt plugin = (PluginForDecrypt) ((LinkCrawlerThread) currentThread).getCurrentOwner();
+        //     LogSource logger = plugin.getLogger();
         //     String title = titleTemplate;
         //     if (title == null) {
         //         title = explain;
         //     } else if (explain != null) {
         //         title = title + " - " + explain;
         //     }
-            
+
         //     ClickCaptchaChallenge c = new ClickCaptchaChallenge(imagefile, title, plugin) {
-                
+
         //         @Override
         //         public boolean canBeSkippedBy(SkipRequest skipRequest, ChallengeSolver<?> solver, Challenge<?> challenge) {
         //             switch (skipRequest) {
-        //                 case STOP_CURRENT_ACTION:
-        //                     /* user wants to stop current action (eg crawling) */
-        //                     return true;
-        //                 case BLOCK_ALL_CAPTCHAS:
-        //                     /* user wants to block all captchas (current session) */
-        //                     return true;
-        //                 case BLOCK_HOSTER:
-        //                     /* user wants to block captchas from specific hoster */
-        //                     return plugin.getHost().equals(Challenge.getHost(challenge));
-        //                 case REFRESH:
-        //                 case SINGLE:
-        //                 default:
-        //                     return false;
+        //             case STOP_CURRENT_ACTION:
+        //                 /* user wants to stop current action (eg crawling) */
+        //                 return true;
+        //             case BLOCK_ALL_CAPTCHAS:
+        //                 /* user wants to block all captchas (current session) */
+        //                 return true;
+        //             case BLOCK_HOSTER:
+        //                 /* user wants to block captchas from specific hoster */
+        //                 return plugin.getHost().equals(Challenge.getHost(challenge));
+        //             case REFRESH:
+        //             case SINGLE:
+        //             default:
+        //                 return false;
         //             }
         //         }
-                
+
         //     };
         //     c.setTimeout(plugin.getCaptchaTimeout());
         //     plugin.invalidateLastChallengeResponse();
-        //     if (CaptchaBlackList.getInstance().matches(c)) {
+        //     final BlacklistEntry blackListEntry = CaptchaBlackList.getInstance().matches(c);
+        //     if (blackListEntry != null) {
         //         plugin.getLogger().warning("Cancel. Blacklist Matching");
-        //         return null;
+        //         throw new CaptchaException(blackListEntry);
         //     }
         //     try {
         //         ChallengeResponseController.getInstance().handle(c);
         //     } catch (InterruptedException ie) {
-        //         return null;
+        //         LogSource.exception(logger, ie);
+        //         throw ie;
         //     } catch (SkipException e) {
+        //         LogSource.exception(logger, e);
         //         switch (e.getSkipRequest()) {
-        //             case BLOCK_ALL_CAPTCHAS:
-        //                 CaptchaBlackList.getInstance().add(new BlockAllCrawlerCaptchasEntry(plugin.getCrawler()));
-        //                 break;
-        //             case BLOCK_HOSTER:
-        //             case BLOCK_PACKAGE:
-        //             case SINGLE:
-        //             case TIMEOUT:
-        //                 break;
-        //             case REFRESH:
-        //                 // refresh is not supported from the pluginsystem right now.
-        //                 return null;
-        //             case STOP_CURRENT_ACTION:
-        //                 LinkCollector.getInstance().abort();
-        //                 // Just to be sure
-        //                 CaptchaBlackList.getInstance().add(new BlockAllCrawlerCaptchasEntry(plugin.getCrawler()));
-        //                 throw new RuntimeDecrypterException(new DecrypterException(DecrypterException.CAPTCHA));
+        //         case BLOCK_ALL_CAPTCHAS:
+        //             CaptchaBlackList.getInstance().add(new BlockAllCrawlerCaptchasEntry(plugin.getCrawler()));
+        //             break;
+        //         case BLOCK_HOSTER:
+        //         case BLOCK_PACKAGE:
+        //         case SINGLE:
+        //         case TIMEOUT:
+        //             break;
+        //         case REFRESH:
+        //             // refresh is not supported from the pluginsystem right now.
+        //             return null;
+        //         case STOP_CURRENT_ACTION:
+        //             LinkCollector.getInstance().abort();
+        //             // Just to be sure
+        //             CaptchaBlackList.getInstance().add(new BlockAllCrawlerCaptchasEntry(plugin.getCrawler()));
         //         }
-        //         throw new RuntimeDecrypterException(new DecrypterException(DecrypterException.CAPTCHA));
+        //         throw new CaptchaException(e.getSkipRequest());
         //     }
-        //     if (!c.isSolved()) return null;
+        //     if (!c.isSolved()) {
+        //         return null;
+        //     }
         //     plugin.setLastChallengeResponse(c.getResult());
         //     return new Point(c.getResult().getValue().getX(), c.getResult().getValue().getY());
         // } else {
@@ -352,7 +361,7 @@ public class UserIO {
         // return null;
         throw new UnsupportedOperationException("jdget TODO");
     }
-    
+
     /**
      * Shows a combobox dialog. returns the options id if the user confirmed, or -1 if the user canceled
      * 
@@ -369,58 +378,97 @@ public class UserIO {
      * @return
      */
     // public int requestComboDialog(int flag, final String title, final String question, final Object[] options, final int defaultSelection, final ImageIcon icon, final String okText, final String cancelText, final ListCellRenderer renderer) {
-    //     try {
-    //         flag = this.convertFlagToAWDialog(flag);
-            
-    //         ComboBoxDialog d = new ComboBoxDialog(flag, title, question, options, defaultSelection, icon, okText, cancelText, renderer) {
-                
-    //             @Override
-    //             protected boolean isResizable() {
-    //                 return true;
-    //             }
-                
-    //         };
-            
-    //         return Dialog.getInstance().showDialog(d);
-    //     } catch (DialogClosedException e) {
-    //         e.printStackTrace();
-    //     } catch (DialogCanceledException e) {
-    //         e.printStackTrace();
-    //     }
-    //     return -1;
+
+    //     flag = this.convertFlagToAWDialog(flag);
+
+    //     ComboBoxDialog d = new ComboBoxDialog(flag, title, question, options, defaultSelection, icon, okText, cancelText, renderer) {
+
+    //         @Override
+    //         protected boolean isResizable() {
+    //             return true;
+    //         }
+
+    //         @Override
+    //         public boolean isRemoteAPIEnabled() {
+    //             return true;
+    //         }
+
+    //     };
+
+    //     return UIOManager.I().show(ComboBoxDialogInterface.class, d).getSelectedIndex();
+
     // }
     public int requestComboDialog(int flag, final String title, final String question, final Object[] options, final int defaultSelection, final Object icon, final String okText, final String cancelText, final Object renderer) {
         throw new UnsupportedOperationException("jdget TODO");
     }
-    
+
     public int requestConfirmDialog(final int flag, final String question) {
         // return this.requestConfirmDialog(flag, _GUI._.jd_gui_userio_defaulttitle_confirm(), question, getDefaultIcon(question), null, null);
         throw new UnsupportedOperationException("jdget TODO");
     }
-    
+
     public int requestConfirmDialog(final int flag, final String title, final String question) {
         // return this.requestConfirmDialog(flag, title, question, getDefaultIcon(title + question), null, null);
         throw new UnsupportedOperationException("jdget TODO");
     }
-    
+
     // public int requestConfirmDialog(final int flag, final String title, final String message, final ImageIcon icon, final String okOption, final String cancelOption) {
-    //     try {
-    //         return this.convertAWAnswer(Dialog.getInstance().showConfirmDialog(this.convertFlagToAWDialog(flag), title, message, icon, okOption, cancelOption));
-    //     } catch (DialogClosedException e) {
-    //         return UserIO.RETURN_CANCEL;
-    //     } catch (DialogCanceledException e) {
-    //         return UserIO.RETURN_CANCEL;
-    //     }
-    //     return -1;
+    //     return requestUIOManagerDialog(ConfirmDialogInterface.class, new ConfirmDialog(this.convertFlagToAWDialog(flag), title, message, icon, okOption, cancelOption));
     // }
     public int requestConfirmDialog(final int flag, final String title, final String message, final Object icon, final String okOption, final String cancelOption) {
         throw new UnsupportedOperationException("jdget TODO");
     }
-    
-    // public File[] requestFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final Boolean multiSelection) {
-    //     return this.requestFileChooser(id, title, fileSelectionMode, fileFilter, multiSelection, null, null);
+
+    // <T extends UserIODefinition> int requestUIOManagerDialog(Class<T> class1, T impl) {
+    //     int response = 0;
+    //     try {
+
+    //         T d = UIOManager.I().show(class1, impl);
+
+    //         switch (d.getCloseReason()) {
+    //         case CANCEL:
+    //         case CLOSE:
+    //         case INTERRUPT:
+    //             response |= UserIO.RETURN_CANCEL;
+    //             break;
+
+    //         case OK:
+    //             response |= UserIO.RETURN_OK;
+    //             break;
+    //         case TIMEOUT:
+    //             response |= UserIO.RETURN_COUNTDOWN_TIMEOUT;
+    //             break;
+
+    //         }
+    //         if (d.isDontShowAgainSelected()) {
+    //             response |= UserIO.RETURN_DONT_SHOW_AGAIN;
+    //         }
+    //         d.throwCloseExceptions();
+
+    //     } catch (DialogClosedException e) {
+    //         response |= UserIO.RETURN_CANCEL;
+    //         if (e.isCausedByDontShowAgain()) {
+    //             response |= UserIO.RETURN_SKIPPED_BY_DONT_SHOW;
+    //         }
+    //         if (e.isCausedByTimeout()) {
+    //             response |= UserIO.RETURN_COUNTDOWN_TIMEOUT;
+    //         }
+    //     } catch (DialogCanceledException e) {
+    //         response |= UserIO.RETURN_CANCEL;
+    //         if (e.isCausedByDontShowAgain()) {
+    //             response |= UserIO.RETURN_SKIPPED_BY_DONT_SHOW;
+    //         }
+    //         if (e.isCausedByTimeout()) {
+    //             response |= UserIO.RETURN_COUNTDOWN_TIMEOUT;
+    //         }
+    //     }
+    //     return response;
     // }
-    
+
+    public File[] requestFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final Boolean multiSelection) {
+        return this.requestFileChooser(id, title, fileSelectionMode, fileFilter, multiSelection, null, null);
+    }
+
     /**
      * Requests a FileChooserDialog.
      * 
@@ -441,9 +489,9 @@ public class UserIO {
      * @return an array of files or null if the user cancel the dialog
      */
     // public File[] requestFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final Boolean multiSelection, final File startDirectory, final Integer dialogType) {
-        
+
     //     FileChooserSelectionMode fsm = FileChooserSelectionMode.FILES_AND_DIRECTORIES;
-        
+
     //     for (final FileChooserSelectionMode f : FileChooserSelectionMode.values()) {
     //         if (f.getId() == fileSelectionMode) {
     //             fsm = f;
@@ -459,7 +507,7 @@ public class UserIO {
     //             }
     //         }
     //     }
-        
+
     //     ExtFileChooserDialog d = new ExtFileChooserDialog(0, title, null, null);
     //     d.setStorageID(id);
     //     d.setFileSelectionMode(fsm);
@@ -476,10 +524,10 @@ public class UserIO {
     //         // TODO Auto-generated catch block
     //         e.printStackTrace();
     //     }
-        
+
     //     return d.getSelection();
     // }
-    
+
     /**
      * 
      * @param flag
@@ -494,62 +542,52 @@ public class UserIO {
         // return this.requestInputDialog(flag, _GUI._.jd_gui_userio_defaulttitle_input(), question, defaultvalue, this.getDefaultIcon(question), null, null);
         throw new UnsupportedOperationException("jdget TODO");
     }
-    
+
     // public String requestInputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
+
     //     try {
-    //         return Dialog.getInstance().showInputDialog(this.convertFlagToAWDialog(flag), title, message, defaultMessage, icon, okOption, cancelOption);
+
+    //         InputDialogInterface d = UIOManager.I().show(InputDialogInterface.class, new InputDialog(this.convertFlagToAWDialog(flag), title, message, defaultMessage, icon, okOption, cancelOption));
+
+    //         switch (d.getCloseReason()) {
+    //         case OK:
+    //             return d.getText();
+    //         default:
+    //         }
+    //         d.throwCloseExceptions();
+
     //     } catch (DialogClosedException e) {
-    //         e.printStackTrace();
+
     //     } catch (DialogCanceledException e) {
-    //         e.printStackTrace();
+
     //     }
     //     return null;
     // }
     public String requestInputDialog(final int flag, final String title, final String message, final String defaultMessage, final Object icon, final String okOption, final String cancelOption) {
         throw new UnsupportedOperationException("jdget TODO");
     }
-    
+
     public String requestInputDialog(final String message) {
         return this.requestInputDialog(0, message, null);
     }
-    
+
     public void requestMessageDialog(final int flag, final String message) {
         this.requestMessageDialog(flag, _GUI._.gui_dialogs_message_title(), message);
     }
-    
+
     public void requestMessageDialog(final int flag, final String title, final String message) {
         // this.requestConfirmDialog(UserIO.NO_CANCEL_OPTION | flag, title, message, this.getIcon(UserIO.ICON_INFO), null, null);
         throw new UnsupportedOperationException("jdget TODO");
     }
-    
+
     public void requestMessageDialog(final String message) {
         this.requestMessageDialog(0, _GUI._.gui_dialogs_message_title(), message);
     }
-    
+
     public void requestMessageDialog(final String title, final String message) {
         this.requestMessageDialog(0, title, message);
     }
-    
-    /**
-     * Displays a Dialog with a title, a message, and an editable Textpane. USe it to give the user a dialog to enter Multilined text
-     * 
-     * @param title
-     * @param message
-     * @param def
-     * @return
-     */
-    public String requestTextAreaDialog(final String title, final String message, final String def) {
-        // try {
-        //     return Dialog.getInstance().showTextAreaDialog(title, message, def);
-        // } catch (DialogClosedException e) {
-        //     e.printStackTrace();
-        // } catch (DialogCanceledException e) {
-        //     e.printStackTrace();
-        // }
-        // return null;
-        throw new UnsupportedOperationException("jdget TODO");
-    }
-    
+
     /**
      * Shows a multi-selection dialog.
      * 
@@ -557,7 +595,14 @@ public class UserIO {
      */
     // public int[] requestMultiSelectionDialog(final int flag, final String title, final String question, final Object[] options, final ImageIcon icon, final String okText, final String cancelText, final ListCellRenderer renderer) {
     //     try {
-    //         return Dialog.getInstance().showDialog(new MultiSelectionDialog(flag, title, question, options, icon, okText, cancelText, renderer));
+    //         MultiSelectionDialogInterface d = UIOManager.I().show(MultiSelectionDialogInterface.class, new MultiSelectionDialog(flag, title, question, options, icon, okText, cancelText, renderer) {
+    //             @Override
+    //             public boolean isRemoteAPIEnabled() {
+    //                 return true;
+    //             }
+    //         });
+    //         d.throwCloseExceptions();
+    //         return d.getSelectedIndices();
     //     } catch (DialogClosedException e) {
     //         e.printStackTrace();
     //     } catch (DialogCanceledException e) {
@@ -568,5 +613,5 @@ public class UserIO {
     public int[] requestMultiSelectionDialog(final int flag, final String title, final String question, final Object[] options, final Object icon, final String okText, final String cancelText, final Object renderer) {
         throw new UnsupportedOperationException("jdget TODO");
     }
-    
+
 }

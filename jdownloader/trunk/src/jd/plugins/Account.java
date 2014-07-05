@@ -26,6 +26,10 @@ import org.jdownloader.controlling.UniqueAlltimeID;
 
 public class Account extends Property {
 
+    private static final String VALID_UNTIL                    = "VALID_UNTIL";
+
+    private static final String ACCOUNT_TYPE                   = "ACCOUNT_TYPE";
+
     private static final String LATEST_VALID_TIMESTAMP         = "LATEST_VALID_TIMESTAMP";
 
     public static final String  IS_MULTI_HOSTER_ACCOUNT        = "IS_MULTI_HOSTER_ACCOUNT";
@@ -187,11 +191,43 @@ public class Account extends Property {
 
     public void setAccountInfo(final AccountInfo info) {
         accinfo = info;
+        if (info != null) {
+            if (AccountType.PREMIUM.equals(getType()) && !info.isExpired() && info.getValidUntil() > 0) {
+                setValidPremiumUntil(info.getValidUntil());
+            } else if (info.getValidPremiumUntil() > 0) {
+                setValidPremiumUntil(info.getValidPremiumUntil());
+            }
+        }
+    }
+
+    private void setValidPremiumUntil(long validUntil) {
+        setProperty(VALID_UNTIL, validUntil);
+    }
+
+    /**
+     * this method returns for how long this account will be (or has been) a premium account
+     * 
+     * @return
+     */
+    public long getValidPremiumUntil() {
+        AccountInfo info = getAccountInfo();
+        long ret = -1;
+        if (info != null) {
+            if (AccountType.PREMIUM.equals(getType()) && !info.isExpired()) {
+                ret = info.getValidUntil();
+            }
+            if (ret <= 0 && info.getValidPremiumUntil() > 0) {
+                ret = info.getValidPremiumUntil();
+            }
+        }
+
+        if (ret <= 0) {
+            ret = getLongProperty(VALID_UNTIL, 0);
+        }
+        return ret;
     }
 
     public String getUser() {
-        // if (user != null) return user.trim();
-        // return null;
         return user;
     }
 
@@ -236,16 +272,19 @@ public class Account extends Property {
         EXPIRED,
         INVALID,
         PLUGIN_ERROR;
-
     }
 
     public void setError(final AccountError error, String errorString) {
-        if (error == null) errorString = null;
+        if (error == null) {
+            errorString = null;
+        }
         if (this.error != error || !StringUtils.equals(this.errorString, errorString)) {
             if (AccountError.TEMP_DISABLED.equals(error)) {
                 long defaultTmpDisabledTimeOut = 60 * 60 * 1000l;
                 Long timeout = this.getLongProperty(PROPERTY_TEMP_DISABLED_TIMEOUT, defaultTmpDisabledTimeOut);
-                if (timeout == null || timeout <= 0) timeout = defaultTmpDisabledTimeOut;
+                if (timeout == null || timeout <= 0) {
+                    timeout = defaultTmpDisabledTimeOut;
+                }
                 this.tmpDisabledTimeout = System.currentTimeMillis() + timeout;
             } else {
                 this.tmpDisabledTimeout = -1;
@@ -283,12 +322,16 @@ public class Account extends Property {
         /* default refresh timeout is 30 mins */
         long defaultRefreshTimeOut = 30 * 60 * 1000l;
         Long timeout = this.getLongProperty(PROPERTY_REFRESH_TIMEOUT, defaultRefreshTimeOut);
-        if (timeout == null || timeout <= 0) timeout = defaultRefreshTimeOut;
+        if (timeout == null || timeout <= 0) {
+            timeout = defaultRefreshTimeOut;
+        }
         return timeout;
     }
 
     public boolean refreshTimeoutReached() {
-        if (updatetime <= 0) return true;
+        if (updatetime <= 0) {
+            return true;
+        }
         return System.currentTimeMillis() - updatetime >= getRefreshTimeout();
     }
 
@@ -312,7 +355,9 @@ public class Account extends Property {
         }
         notify = getAccountController();
         if (notify != null && notifyController) {
-            if (event == null) event = new AccountProperty(this, property, value);
+            if (event == null) {
+                event = new AccountProperty(this, property, value);
+            }
             notifyController = notify.fireAccountPropertyChange(event);
         }
     }
@@ -350,24 +395,36 @@ public class Account extends Property {
     public String toString() {
         AccountInfo ai = this.accinfo;
         if (ai != null) {
-            return user + ":" + pass + " " + enabled + " " + super.toString() + " AccInfo: " + ai.toString();
+            return user + ":" + pass + "@" + hoster + "=" + enabled + " " + super.toString() + " AccInfo: " + ai.toString();
         } else {
-            return user + ":" + pass + " " + enabled + " " + super.toString();
+            return user + ":" + pass + "@" + hoster + "=" + enabled + " " + super.toString();
         }
     }
 
     public boolean equals(final Account account2) {
-        if (account2 == null) return false;
-        if (account2 == this) return true;
+        if (account2 == null) {
+            return false;
+        }
+        if (account2 == this) {
+            return true;
+        }
         if (this.user == null) {
-            if (account2.user != null) { return false; }
+            if (account2.user != null) {
+                return false;
+            }
         } else {
-            if (account2.user == null || !this.user.equalsIgnoreCase(account2.user)) { return false; }
+            if (account2.user == null || !this.user.equalsIgnoreCase(account2.user)) {
+                return false;
+            }
         }
         if (this.pass == null) {
-            if (account2.pass != null) { return false; }
+            if (account2.pass != null) {
+                return false;
+            }
         } else {
-            if (account2.pass == null || !this.pass.equalsIgnoreCase(account2.pass)) { return false; }
+            if (account2.pass == null || !this.pass.equalsIgnoreCase(account2.pass)) {
+                return false;
+            }
         }
         return true;
     }
@@ -376,19 +433,84 @@ public class Account extends Property {
         return isMulti;
     }
 
+    public void setLastValidTimestamp(long currentTimeMillis) {
+        setProperty(LATEST_VALID_TIMESTAMP, currentTimeMillis);
+    }
+
+    public static enum AccountType {
+        FREE,
+        PREMIUM,
+        UNKNOWN
+    }
+
+    /**
+     * JD2 Code!
+     * 
+     * @since JD2
+     */
+    public void setType(AccountType type) {
+        super.setProperty(ACCOUNT_TYPE, type.name());
+    }
+
     @Override
     public boolean setProperty(String key, Object value) {
         if (IS_MULTI_HOSTER_ACCOUNT.equalsIgnoreCase(key)) {
             isMulti = value != null && Boolean.TRUE.equals(value);
-            return false;
-        } else {
-            return super.setProperty(key, value);
+        } else if ("nopremium".equalsIgnoreCase(key)) {
+            // convert.. some day we will use the setType only. The earlier we start to the correct fields, the better
+            if (Boolean.TRUE.equals(value)) {
+                setType(AccountType.FREE);
+            } else {
+                setType(AccountType.PREMIUM);
+            }
+        } else if ("free".equalsIgnoreCase(key)) {
+            if (Boolean.TRUE.equals(value)) {
+                setType(AccountType.FREE);
+            } else {
+                setType(AccountType.PREMIUM);
+            }
+        } else if ("session_type".equalsIgnoreCase(key)) {
+            if (!"premium".equals(value)) {
+                setType(AccountType.FREE);
+            } else {
+                setType(AccountType.PREMIUM);
+            }
+        } else if ("premium".equalsIgnoreCase(key)) {
+            if (Boolean.TRUE.equals(value)) {
+                setType(AccountType.PREMIUM);
+            } else {
+                setType(AccountType.FREE);
+            }
         }
+        return super.setProperty(key, value);
 
     }
 
-    public void setLastValidTimestamp(long currentTimeMillis) {
-        setProperty(LATEST_VALID_TIMESTAMP, currentTimeMillis);
+    public AccountType getType() {
+        String v = getStringProperty(ACCOUNT_TYPE, null);
+        if (v != null) {
+            try {
+                return AccountType.valueOf(v);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        // nopremium z.b. 4shared.com
+        if (getBooleanProperty("nopremium", false)) {
+            // nopremium z.b. 4shared.com
+            return AccountType.FREE;
+        } else if (getBooleanProperty("free", false)) {
+            return AccountType.FREE;
+        } else if (getBooleanProperty("premium", false)) {
+            return AccountType.PREMIUM;
+        } else if (getBooleanProperty("PREMIUM", false)) {
+            return AccountType.PREMIUM;
+        } else if (getStringProperty("session_type", null) != null && !StringUtils.equals("premium", getStringProperty("session_type", null))) {
+            // session_type rapidgator
+            return AccountType.FREE;
+        } else {
+            return AccountType.PREMIUM;
+        }
     }
 
 }

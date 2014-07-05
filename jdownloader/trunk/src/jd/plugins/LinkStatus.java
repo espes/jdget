@@ -25,12 +25,12 @@ import org.appwork.utils.formatter.StringFormatter;
 public class LinkStatus implements Serializable {
 
     /**
-     * Controlling & Downloadinterface: Link has been downloaded
+     * Controlling & DownloadInterface: Link has been downloaded
      */
     public final static int FINISHED                             = 1 << 1;
 
     /**
-     * Plugins: a unknown error occured
+     * Plugins: a unknown error occurred
      */
     public final static int ERROR_RETRY                          = 1 << 2;
 
@@ -40,17 +40,17 @@ public class LinkStatus implements Serializable {
     public final static int ERROR_CAPTCHA                        = 1 << 3;
 
     /**
-     * Plugins: Download Limit has been reached. Ip is blocked
+     * Plugins: Download Limit has been reached. IP Address is blocked
      */
     public final static int ERROR_IP_BLOCKED                     = 1 << 4;
 
     /**
-     * Plugins & Downloadinterface: File not found - file not available any more
+     * Plugins & DownloadInterface: File not found - file not available any more
      */
     public final static int ERROR_FILE_NOT_FOUND                 = 1 << 5;
 
     /**
-     * Plugins & Controlling: A Premium error occured. check value flag for further details
+     * Plugins & Controlling: A Premium error occurred. check value flag for further details
      */
     public static final int ERROR_PREMIUM                        = 1 << 8;
 
@@ -65,7 +65,7 @@ public class LinkStatus implements Serializable {
     public static final int ERROR_TEMPORARILY_UNAVAILABLE        = 1 << 11;
 
     /**
-     * hoster is temporarily not available, dont try other links for this host
+     * hoster is temporarily not available, don't try other links for this host
      */
     public static final int ERROR_HOSTER_TEMPORARILY_UNAVAILABLE = 1 << 12;
 
@@ -77,7 +77,7 @@ public class LinkStatus implements Serializable {
     public static final int ERROR_DOWNLOAD_FAILED                = 1 << 14;
 
     /**
-     * Plugins & Downloadinterface: Serious fatal error. No retry. Download will be canceled finally.
+     * Plugins & DownloadInterface: Serious fatal error. No retry. Download will be cancelled finally.
      */
     public static final int ERROR_FATAL                          = 1 << 17;
 
@@ -87,14 +87,14 @@ public class LinkStatus implements Serializable {
     public static final int ERROR_PLUGIN_DEFECT                  = 1 << 22;
 
     /**
-     * timeout reached during download
+     * network IO issues during download
      */
-    public static final int VALUE_TIMEOUT_REACHED                = 1 << 1;
+    public static final int VALUE_NETWORK_IO_ERROR               = 1;
 
     /**
-     * local IO error, eg invalid rights, not existing folder...
+     * local IO error, eg. invalid rights, not existing folder...
      */
-    public static final int VALUE_LOCAL_IO_ERROR                 = 1 << 2;
+    public static final int VALUE_LOCAL_IO_ERROR                 = 2;
 
     private void readObject(final java.io.ObjectInputStream stream) throws java.io.IOException, ClassNotFoundException {
         /* make sure we set transient variables here */
@@ -131,7 +131,9 @@ public class LinkStatus implements Serializable {
 
     private void notifyChanges(LinkStatusProperty property) {
         DownloadLink dl = this.downloadLink;
-        if (dl != null) dl.getFilePackage().nodeUpdated(dl, jd.controlling.packagecontroller.AbstractNodeNotifier.NOTIFY.PROPERTY_CHANCE, property);
+        if (dl != null) {
+            dl.getFilePackage().nodeUpdated(dl, jd.controlling.packagecontroller.AbstractNodeNotifier.NOTIFY.PROPERTY_CHANCE, property);
+        }
     }
 
     /**
@@ -144,7 +146,9 @@ public class LinkStatus implements Serializable {
     }
 
     public void setStatusText(final String l) {
-        if (statusText != null && statusText.equals(l)) return;
+        if (statusText != null && statusText.equals(l)) {
+            return;
+        }
         statusText = l;
         notifyChanges(new LinkStatusProperty(this, LinkStatusProperty.Property.STATUSTEXT, l));
     }
@@ -155,9 +159,13 @@ public class LinkStatus implements Serializable {
             if (java.lang.reflect.Modifier.isStatic(f.getModifiers()) && f.getType() == int.class) {
 
                 try {
-                    if (BinaryLogic.containsAll(status, f.getInt(null))) {
-                        if (ret.length() > 0) ret.append(", ");
-                        ret.append(f.getName());
+                    if (!f.getName().startsWith("VALUE")) {
+                        if (BinaryLogic.containsAll(status, f.getInt(null))) {
+                            if (ret.length() > 0) {
+                                ret.append(", ");
+                            }
+                            ret.append(f.getName());
+                        }
                     }
                 } catch (IllegalArgumentException e) {
                     e.printStackTrace();

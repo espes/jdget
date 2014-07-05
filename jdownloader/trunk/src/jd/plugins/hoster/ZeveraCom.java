@@ -73,15 +73,24 @@ public class ZeveraCom extends PluginForHost {
         // define custom browser headers and language settings.
         br.getHeaders().put("Accept-Language", "en-gb, en;q=0.9, de;q=0.8");
         br.setCookie(mProt + mName, "lang", "english");
-        br.getHeaders().put("User-Agent", "JDOWNLOADER");
+        br.getHeaders().put("User-Agent", "JDownloader");
         br.setCustomCharset("utf-8");
         br.setConnectTimeout(60 * 1000);
         br.setReadTimeout(60 * 1000);
     }
 
+    /**
+     * JD 2 Code. DO NOT USE OVERRIDE FOR COMPATIBILITY REASONS
+     */
+    public boolean isProxyRotationEnabledForLinkChecker() {
+        return false;
+    }
+
     public boolean checkLinks(DownloadLink[] urls) {
         prepBrowser();
-        if (urls == null || urls.length == 0) { return false; }
+        if (urls == null || urls.length == 0) {
+            return false;
+        }
         try {
             List<Account> accs = AccountController.getInstance().getValidAccounts(this.getHost());
             if (accs == null || accs.size() == 0) {
@@ -122,7 +131,9 @@ public class ZeveraCom extends PluginForHost {
     @Override
     public AvailableStatus requestFileInformation(DownloadLink link) throws PluginException {
         checkLinks(new DownloadLink[] { link });
-        if (!link.isAvailable()) { throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND); }
+        if (!link.isAvailable()) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
         return getAvailableStatus(link);
     }
 
@@ -131,7 +142,9 @@ public class ZeveraCom extends PluginForHost {
             final Field field = link.getClass().getDeclaredField("availableStatus");
             field.setAccessible(true);
             Object ret = field.get(link);
-            if (ret != null && ret instanceof AvailableStatus) return (AvailableStatus) ret;
+            if (ret != null && ret instanceof AvailableStatus) {
+                return (AvailableStatus) ret;
+            }
         } catch (final Throwable e) {
         }
         return AvailableStatus.UNCHECKED;
@@ -151,7 +164,9 @@ public class ZeveraCom extends PluginForHost {
                     return false;
                 } else if (lastUnavailable != null) {
                     unavailableMap.remove(downloadLink.getHost());
-                    if (unavailableMap.size() == 0) hostUnavailableMap.remove(account);
+                    if (unavailableMap.size() == 0) {
+                        hostUnavailableMap.remove(account);
+                    }
                 }
             }
         }
@@ -179,16 +194,18 @@ public class ZeveraCom extends PluginForHost {
 
     private void handleDL(final DownloadLink link, String dllink) throws Exception {
 
-        // Severa uses this redirect logic to wait for the actuall file in the backend. This means: follow the redirects undtil we get Data
-        // after 10 redirects, severa shows an error page. We do not allow more than 10 redirects - so we probably never see this error page
+        // Zevera uses this redirect logic to wait for the actual file in the backend. This means: follow the redirects until we get Data!
+        // After 10 redirects Zevera shows an error. We do not allow more than 10 redirects - so we probably never see this error page
         //
-        // Besides redirects, the connections often run into socketexceptions. do the same on socket problems - retry
-        // according to zevera, 20 retries should be enough
+        // Besides redirects, the connections often run into socket exceptions. do the same on socket problems - retry
+        // according to Zevera, 20 retries should be enough
 
         br.setFollowRedirects(true);
         showMessage(link, "Phase 3/3: Check download!");
         int maxchunks = 0;
-        if (link.getBooleanProperty(ZeveraCom.NOCHUNKS, false)) maxchunks = 1;
+        if (link.getBooleanProperty(ZeveraCom.NOCHUNKS, false)) {
+            maxchunks = 1;
+        }
         try {
             logger.info("Connecting to " + new URL(dllink).getHost());
             dl = jd.plugins.BrowserAdapter.openDownload(br, link, dllink, true, maxchunks);
@@ -253,7 +270,9 @@ public class ZeveraCom extends PluginForHost {
             try {
                 if (!this.dl.startDownload()) {
                     try {
-                        if (dl.externalDownloadStop()) return;
+                        if (dl.externalDownloadStop()) {
+                            return;
+                        }
                     } catch (final Throwable e) {
                     }
                     /* unknown error, we disable multiple chunks */
@@ -315,7 +334,9 @@ public class ZeveraCom extends PluginForHost {
         final String continuePage = br.getRedirectLocation();
         br.getPage(continuePage);
         String dllink = br.getRedirectLocation();
-        if (dllink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (dllink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         if (dllink.contains("/member/systemmessage.aspx")) {
             logger.info("zevera.com: unknown error");
             int timesFailed = link.getIntegerProperty("timesfailedzeveracom_unknown", 1);
@@ -356,11 +377,15 @@ public class ZeveraCom extends PluginForHost {
         long eTime = 0, sTime = 0;
         if (expireTime != null) {
             eTime = TimeFormatter.getMilliSeconds(expireTime, "MM/dd/yyyy hh:mm:ss a", null);
-            if (sTime == -1) sTime = TimeFormatter.getMilliSeconds(expireTime, "MM/dd/yyyy hh:mm a", null);
+            if (sTime == -1) {
+                sTime = TimeFormatter.getMilliSeconds(expireTime, "MM/dd/yyyy hh:mm a", null);
+            }
         }
         if (serverTime != null) {
             sTime = TimeFormatter.getMilliSeconds(serverTime, "MM/dd/yyyy hh:mm:ss a", null);
-            if (sTime == -1) sTime = TimeFormatter.getMilliSeconds(serverTime, "MM/dd/yyyy hh:mm a", null);
+            if (sTime == -1) {
+                sTime = TimeFormatter.getMilliSeconds(serverTime, "MM/dd/yyyy hh:mm a", null);
+            }
         }
         if (eTime >= 0 && sTime >= 0) {
             // accounts for different time zones! Should always be correct assuming the user doesn't change time every five minutes. Adjust
@@ -382,9 +407,8 @@ public class ZeveraCom extends PluginForHost {
              * set ArrayList<String> with all supported multiHosts of this service
              */
             // we used local cached links provided by our decrypter, locked to ip addresses. Can not use multihoster
-            ai.setProperty("multiHostSupport", supportedHosts);
+            ai.setMultiHostSupport(supportedHosts);
         } catch (Throwable e) {
-            account.setProperty("multiHostSupport", Property.NULL);
             logger.info("Could not fetch ServerList from Multishare: " + e.toString());
         }
         return ai;
@@ -398,7 +422,9 @@ public class ZeveraCom extends PluginForHost {
                 prepBrowser();
                 final Object ret = account.getProperty("cookies", null);
                 boolean acmatch = Encoding.urlEncode(account.getUser()).equals(account.getStringProperty("name", Encoding.urlEncode(account.getUser())));
-                if (acmatch) acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                if (acmatch) {
+                    acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                }
                 if (acmatch && ret != null && ret instanceof HashMap<?, ?> && !force) {
                     final HashMap<String, String> cookies = (HashMap<String, String>) ret;
                     if (account.isValid()) {
@@ -437,7 +463,9 @@ public class ZeveraCom extends PluginForHost {
     }
 
     private void tempUnavailableHoster(Account account, DownloadLink downloadLink, long timeout) throws PluginException {
-        if (downloadLink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        if (downloadLink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap == null) {

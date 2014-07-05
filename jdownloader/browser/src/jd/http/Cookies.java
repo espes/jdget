@@ -51,7 +51,6 @@ public class Cookies {
             } else if (st2.length == 2) {
                 key = st2[0].trim();
                 value = st2[1].trim();
-                
             }
             
             if (key != null) {
@@ -121,6 +120,9 @@ public class Cookies {
     
     public Cookie get(final String key) {
         if (key == null) { return null; }
+        for (final Cookie cookie : this.cookies) {
+            if (cookie.getKey().equals(key)) { return cookie; }
+        }
         for (final Cookie cookie : this.cookies) {
             if (cookie.getKey().equalsIgnoreCase(key)) { return cookie; }
         }

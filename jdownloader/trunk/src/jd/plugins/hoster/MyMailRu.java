@@ -63,13 +63,24 @@ public class MyMailRu extends PluginForHost {
             br.getHeaders().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
             final String urlpart = getUrlpart(link);
             br.getPage("http://my.mail.ru/video/" + urlpart + ".html?ajax=photoitem&ajax_call=1&func_name=&mna=&mnb=&encoding=windows-1251");
+            if (br.containsHTML("b\\-video__layer\\-error")) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             br.getRequest().setHtmlCode(br.toString().replace("\\", ""));
+            if (br.containsHTML("class=\"unauthorised\\-user")) {
+                link.getLinkStatus().setStatusText("Private video");
+                return AvailableStatus.TRUE;
+            }
             final String signvideourl = getJson("signVideoUrl");
             final String filename = getJson("videoTitle");
-            if (signvideourl == null || filename == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (signvideourl == null || filename == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             br.getPage("http://videoapi.my.mail.ru" + signvideourl);
             getVideoURL();
-            if (DLLINK == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (DLLINK == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             URLConnectionAdapter con = null;
             try {
                 con = br.openGetConnection(DLLINK);
@@ -87,12 +98,21 @@ public class MyMailRu extends PluginForHost {
             }
         } else {
             final String originalLink = link.getStringProperty("mainlink", null);
-            final Regex linkInfo = new Regex(originalLink, "http://foto\\.mail\\.ru/([^<>\"/]*?)/([^<>\"/]*?)/([^<>\"/]*?)/(\\d+)\\.html");
+            // final Regex linkInfo = new Regex(originalLink, "\\.mail\\.ru/([^<>\"/]*?)/([^<>\"/]*?)/([^<>\"/]*?)/(\\d+)\\.html");
+            final String fid = new Regex(originalLink, "(\\d+)\\.html$").getMatch(0);
             br.getPage(originalLink);
-            if (br.containsHTML(">Данная страница не найдена на нашем сервере")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            if (br.containsHTML(">Данная страница не найдена на нашем сервере")) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             for (int i = 1; i <= 2; i++) {
-                if (i == 1) DLLINK = br.getRegex("\"(http://content\\.foto\\.mail\\.ru/[^<>\"/]*?/[^<>\"/]*?/[^<>\"/]*?/s\\-\\d+\\.[A-Za-z]{1,5})\"").getMatch(0);
-                if (DLLINK == null) DLLINK = "http://content.foto.mail.ru/" + linkInfo.getMatch(0) + "/" + linkInfo.getMatch(1) + "/" + linkInfo.getMatch(2) + "/i-" + linkInfo.getMatch(3) + link.getStringProperty("ext", null);
+                if (i == 1) {
+                    DLLINK = br.getRegex("data\\-filedimageurl=\"(http://[^<>\"]+\\-" + fid + "[^<>\"]*?)\"").getMatch(0);
+                }
+                // if (DLLINK == null) DLLINK = "http://content.foto.mail.ru/" + linkInfo.getMatch(0) + "/" + linkInfo.getMatch(1) + "/" +
+                // linkInfo.getMatch(2) + "/i-" + linkInfo.getMatch(3) + link.getStringProperty("ext", null);
+                if (DLLINK == null) {
+                    continue;
+                }
                 URLConnectionAdapter con = null;
                 try {
                     con = br.openGetConnection(DLLINK);
@@ -103,11 +123,11 @@ public class MyMailRu extends PluginForHost {
                     }
                     if (!con.getContentType().contains("html")) {
                         link.setDownloadSize(con.getLongContentLength());
-                        link.setFinalFileName(linkInfo.getMatch(3) + link.getStringProperty("ext", null));
+                        link.setFinalFileName(fid + link.getStringProperty("ext", null));
+                        break;
                     } else {
                         throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
                     }
-                    return AvailableStatus.TRUE;
                 } finally {
                     try {
                         con.disconnect();
@@ -121,14 +141,21 @@ public class MyMailRu extends PluginForHost {
 
     @Override
     public void handleFree(final DownloadLink downloadLink) throws Exception, PluginException {
-        requestFileInformation(downloadLink);
-        if (DLLINK == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         int maxChunks = 1;
+        requestFileInformation(downloadLink);
         if (downloadLink.getDownloadURL().matches(TYPE_VIDEO_ALL)) {
+            if (br.containsHTML("class=\"unauthorised\\-user")) {
+                throw new PluginException(LinkStatus.ERROR_FATAL, "Private video");
+            }
             maxChunks = 0;
         }
+        if (DLLINK == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         boolean resume = true;
-        if (downloadLink.getBooleanProperty("noresume", false)) resume = false;
+        if (downloadLink.getBooleanProperty("noresume", false)) {
+            resume = false;
+        }
         // More chunks possible but not needed because we're only downloading
         // pictures here
         dl = jd.plugins.BrowserAdapter.openDownload(br, downloadLink, DLLINK, resume, maxChunks);
@@ -146,7 +173,7 @@ public class MyMailRu extends PluginForHost {
             br.followConnection();
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         }
-        fixFilename(downloadLink);
+        // fixFilename(downloadLink);
         dl.startDownload();
     }
 
@@ -161,7 +188,9 @@ public class MyMailRu extends PluginForHost {
                 br.setCookiesExclusive(true);
                 final Object ret = account.getProperty("cookies", null);
                 boolean acmatch = Encoding.urlEncode(account.getUser()).equals(account.getStringProperty("name", Encoding.urlEncode(account.getUser())));
-                if (acmatch) acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                if (acmatch) {
+                    acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                }
                 if (acmatch && ret != null && ret instanceof HashMap<?, ?> && !force) {
                     final HashMap<String, String> cookies = (HashMap<String, String>) ret;
                     if (account.isValid()) {
@@ -175,9 +204,13 @@ public class MyMailRu extends PluginForHost {
                 }
                 br.setFollowRedirects(false);
                 final String[] userSplit = account.getUser().split("@");
-                if (userSplit.length != 2) throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+                if (userSplit.length != 2) {
+                    throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+                }
                 br.postPage("https://auth.mail.ru/cgi-bin/auth", "level=1&page=http%3A%2F%2Fmy.mail.ru%2F&Login=" + Encoding.urlEncode(userSplit[0]) + "&Domain=" + Encoding.urlEncode(userSplit[1]) + "&Password=" + Encoding.urlEncode(account.getPass()));
-                if (br.getCookie(MAINPAGE, "Mpop") == null) throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+                if (br.getCookie(MAINPAGE, "Mpop") == null) {
+                    throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+                }
                 // Save cookies
                 final HashMap<String, String> cookies = new HashMap<String, String>();
                 final Cookies add = br.getCookies(MAINPAGE);
@@ -213,7 +246,9 @@ public class MyMailRu extends PluginForHost {
     public void handlePremium(final DownloadLink link, final Account account) throws Exception {
         requestFileInformation(link);
         login(br, account, false);
-        if (DLLINK == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (DLLINK == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         // More chunks possible but not needed because we're only downloading
         // pictures here
         dl = jd.plugins.BrowserAdapter.openDownload(br, link, DLLINK, false, 1);
@@ -230,16 +265,19 @@ public class MyMailRu extends PluginForHost {
         final String newExtension = serverFilename.substring(serverFilename.lastIndexOf("."));
         if (newExtension != null && !downloadLink.getFinalFileName().endsWith(newExtension)) {
             final String oldExtension = downloadLink.getFinalFileName().substring(downloadLink.getFinalFileName().lastIndexOf("."));
-            if (oldExtension != null)
+            if (oldExtension != null) {
                 downloadLink.setFinalFileName(downloadLink.getFinalFileName().replace(oldExtension, newExtension));
-            else
+            } else {
                 downloadLink.setFinalFileName(downloadLink.getFinalFileName() + newExtension);
+            }
         }
     }
 
     private String getJson(final String parameter) {
         String result = br.getRegex("\"" + parameter + "\":([0-9\\.]+)").getMatch(0);
-        if (result == null) result = br.getRegex("\"" + parameter + "\"([\t\n\r ]+)?:([\t\n\r ]+)?\"([^<>\"]*?)\"").getMatch(2);
+        if (result == null) {
+            result = br.getRegex("\"" + parameter + "\"([\t\n\r ]+)?:([\t\n\r ]+)?\"([^<>\"]*?)\"").getMatch(2);
+        }
         return result;
     }
 
@@ -267,7 +305,9 @@ public class MyMailRu extends PluginForHost {
         final String[] qualities = { "hd", "md", "sd" };
         for (final String quality : qualities) {
             DLLINK = br.getRegex("\"name\":\"" + quality + "\",\"url\":\"(http://[^<>\"]*?)\"").getMatch(0);
-            if (DLLINK != null) break;
+            if (DLLINK != null) {
+                break;
+            }
         }
         return DLLINK;
     }

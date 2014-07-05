@@ -19,6 +19,10 @@ package jd.plugins.decrypter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 
 import jd.PluginWrapper;
 import jd.captcha.specials.Linksave;
@@ -26,9 +30,6 @@ import jd.controlling.ProgressController;
 import jd.http.Browser;
 import jd.http.RandomUserAgent;
 import jd.http.URLConnectionAdapter;
-import jd.http.ext.BasicBrowserEnviroment;
-import jd.http.ext.ExtBrowser;
-import jd.http.ext.ExtBrowserException;
 import jd.nutils.encoding.Encoding;
 import jd.nutils.io.JDIO;
 import jd.parser.Regex;
@@ -39,6 +40,10 @@ import jd.plugins.DownloadLink;
 import jd.plugins.Plugin;
 import jd.plugins.PluginForDecrypt;
 import jd.utils.JDUtilities;
+
+import org.appwork.storage.JSonStorage;
+import org.appwork.utils.StringUtils;
+import org.appwork.utils.formatter.HexFormatter;
 
 @DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "Linksave.in" }, urls = { "https?://(www\\.)?linksave\\.in/(view.php\\?id=)?(?!dl\\-)[\\w]+" }, flags = { 0 })
 public class Lnksvn extends PluginForDecrypt {
@@ -59,7 +64,16 @@ public class Lnksvn extends PluginForDecrypt {
     @Override
     public ArrayList<DownloadLink> decryptIt(final CryptedLink param, final ProgressController progress) throws Exception {
         br.setRequestIntervalLimit(getHost(), 1000);
-        ArrayList<DownloadLink> decryptedLinks = new ArrayList<DownloadLink>();
+        ArrayList<DownloadLink> decryptedLinks = new ArrayList<DownloadLink>() {
+            @Override
+            public boolean add(DownloadLink e) {
+                try {
+                    distribute(e);
+                } catch (final Throwable ignore) {
+                }
+                return super.add(e);
+            }
+        };
         setBrowserExclusive();
         final String parameter = param.toString().replace("https://", "http://");
         br.forceDebug(true);
@@ -69,7 +83,7 @@ public class Lnksvn extends PluginForDecrypt {
         br.setRequestIntervalLimit("linksave.in", 1000);
         br.setFollowRedirects(true);
         br.getPage(param.getCryptedUrl());
-        if (br.containsHTML(">Error 404 \\- Ordner nicht gefunden") || br.containsHTML("<title>404 \\- Not Found</title>")) {
+        if (br.containsHTML(">Error 404 \\- Ordner nicht gefunden") || br.containsHTML("<title>404 \\- Not Found</title>") || br.containsHTML("/fopen\\.html")) {
             logger.info("Link offline: " + parameter);
             return decryptedLinks;
         }
@@ -88,13 +102,38 @@ public class Lnksvn extends PluginForDecrypt {
             cnlform.put("jk", Encoding.formEncoding(jkvalue));
 
             if (jkvalue != null) {
-                final Browser cnlbr = br.cloneBrowser();
-                cnlbr.setConnectTimeout(5000);
-                cnlbr.getHeaders().put("jd.randomNumber", System.getProperty("jd.randomNumber"));
-                try {
-                    cnlbr.submitForm(cnlform);
-                    if (cnlbr.containsHTML("success")) { return decryptedLinks; }
-                } catch (final Throwable e) {
+
+                if (System.getProperty("jd.revision.jdownloaderrevision") != null) {
+                    HashMap<String, String> infos = new HashMap<String, String>();
+                    infos.put("crypted", Encoding.urlDecode(cnlform.getInputField("crypted").getValue(), false));
+                    infos.put("jk", Encoding.urlDecode(cnlform.getInputField("jk").getValue(), false));
+                    String source = cnlform.getInputField("source").getValue();
+                    if (StringUtils.isEmpty(source)) {
+                        source = parameter.toString();
+                    } else {
+                        source = Encoding.urlDecode(source, true);
+                    }
+                    infos.put("source", source);
+                    String json = JSonStorage.toString(infos);
+                    final DownloadLink dl = createDownloadlink("http://dummycnl.jdownloader.org/" + HexFormatter.byteArrayToHex(json.getBytes("UTF-8")));
+                    try {
+                        distribute(dl);
+                    } catch (final Throwable e) {
+                        /* does not exist in 09581 */
+                    }
+                    decryptedLinks.add(dl);
+                    return decryptedLinks;
+                } else {
+                    final Browser cnlbr = br.cloneBrowser();
+                    cnlbr.setConnectTimeout(5000);
+                    cnlbr.getHeaders().put("jd.randomNumber", System.getProperty("jd.randomNumber"));
+                    try {
+                        cnlbr.submitForm(cnlform);
+                        if (cnlbr.containsHTML("success")) {
+                            return decryptedLinks;
+                        }
+                    } catch (final Throwable e) {
+                    }
                 }
             }
         }
@@ -139,7 +178,9 @@ public class Lnksvn extends PluginForDecrypt {
                 }
             }
         }
-        if (decryptedLinks != null && decryptedLinks.size() > 0) { return decryptedLinks; }
+        if (decryptedLinks != null && decryptedLinks.size() > 0) {
+            return decryptedLinks;
+        }
         // if containersearch did not work
         final ArrayList<String> allLinks = new ArrayList<String>();
         int pages = 1;
@@ -188,6 +229,7 @@ public class Lnksvn extends PluginForDecrypt {
             public void run() {
                 try {
                     result = getDirektLink(browser);
+                    distribute(createDownloadlink(result));
                 } catch (final IOException e) {
                     e.printStackTrace();
                 } finally {
@@ -209,7 +251,7 @@ public class Lnksvn extends PluginForDecrypt {
             logger.info("Link " + i + " von " + dlinks.length);
         }
         for (final LsDirektLinkTH lsDirektLinkTH : dlinks) {
-            while (lsDirektLinkTH.isAlive() || lsDirektLinkTH.done) {
+            while (lsDirektLinkTH.isAlive() && !lsDirektLinkTH.done) {
                 synchronized (lsDirektLinkTH) {
                     try {
                         lsDirektLinkTH.wait(5000);
@@ -224,7 +266,9 @@ public class Lnksvn extends PluginForDecrypt {
             }
         }
         if (decryptedLinks.size() == 0) {
-            if (br.getRegex("cnl\\.jpg").matches() && !isExternInterfaceActive()) { return decryptedLinks; }
+            if (br.getRegex("cnl\\.jpg").matches() && !isExternInterfaceActive()) {
+                return decryptedLinks;
+            }
             logger.warning("Decrypter out of date for link: " + parameter);
             return null;
         }
@@ -277,66 +321,102 @@ public class Lnksvn extends PluginForDecrypt {
         final String link = br.getRegex("<frame scrolling=\"auto\" noresize src=\"([^\"]*)\">").getMatch(0);
         final String url = br.getURL().toString();
         if (link != null) {
+
             br.getPage(link);
         }
+
         String link2 = Encoding.htmlDecode(br.getRegex("iframe src=\"([^\"]*)\"").getMatch(0));
-        if (link2 != null) { return link2.trim(); }
-        br.getRequest().setHtmlCode(br.toString().replaceFirst("<script type=\"text/javascript\" src=\"[^\"]*.js\">", ""));
-        // Start Evaluation of br
-        try {
-            // this is a workaround to use ExtBrowser Insteadof old
-            // JavaScript class.
-            final ExtBrowser eb = new ExtBrowser();
-            // settings: blacklist allows nothing. this means that only
-            // whitelisted links will be loaded
-            eb.setBrowserEnviroment(new BasicBrowserEnviroment(new String[] { ".*" }, new String[] { ".*linksave.in.*" }) {
-                @Override
-                public boolean isAutoProcessSubFrames() {
-                    return false;
-                }
-            });
-            eb.eval(br);
-            link2 = eb.getRegex("location.replace\\('([^\']*)").getMatch(0);
-            if (link2 == null) {
-                link2 = eb.getRegex("src=\"([^\"]*)\"").getMatch(0);
-            }
-            if (link2 == null) {
-                link2 = eb.getRegex("URL=([^\"]*)\"").getMatch(0);
-            }
-            eb.getCommContext().setFollowRedirects(false);
-            eb.getPage(link2);
-            eb.getCommContext().setFollowRedirects(true);
-            link2 = Encoding.htmlDecode(eb.getRegex("iframe .*?src=\"([^\"]*)\"").getMatch(0));
-            if (link2 == null && br.getRedirectLocation() != null) {
-                link2 = eb.getCommContext().getRedirectLocation();
-            }
-            if (link2 == null) {
-                link2 = eb.getCommContext().getHttpConnection().getHeaderField("Location");
-            }
-            if (link2 == null && eb.getCommContext().getHttpConnection().getContentType().contains("html")) {
-                if (eb.getCommContext().containsHTML("404 - Not Found")) {
-                    logger.info("404 - File: \"" + url + "\" not found!");
-                    return null;
-                }
-            }
+        if (link2 != null) {
             return link2.trim();
-            // TODO: old code is below... did not find an example about that
-            // if (link2 == null) {
-            // js = new JavaScript(br);
-            // js.runPage();
-            // br.getRequest().setHtmlCode(js.getDocment().getContent());
-            // link2 = br.getForm(0).getAction();
-            // }
-            // if (link2 != null) return link2.trim();
-            // } catch (SAXException e) {
-            // e.printStackTrace();
-            // } catch (IOException e) {
-            // e.printStackTrace();
-            // }
-        } catch (final ExtBrowserException e) {
-            e.printStackTrace();
         }
-        return null;
+        String js = br.getRegex("<script type=\"text/javascript\">(.+?)</script>").getMatch(0);
+        try {
+
+            final ScriptEngineManager manager = jd.plugins.hoster.DummyScriptEnginePlugin.getScriptEngineManager(this);
+            final ScriptEngine engine = manager.getEngineByName("javascript");
+
+            engine.eval("document = {};document.text=\"\";document.write= function (a) { document.text+=a;};");
+            engine.eval(js);
+
+            Object html = engine.eval("document.text");
+
+            link2 = new Regex(html, "location.replace\\('([^\']*)").getMatch(0);
+            if (link2 == null) {
+                link2 = new Regex(html, "src=\"([^\"]*)\"").getMatch(0);
+            }
+            if (link2 == null) {
+                link2 = new Regex(html, "URL=([^\"]*)\"").getMatch(0);
+            }
+            br.setFollowRedirects(false);
+            br.getPage(link2);
+
+            link2 = Encoding.htmlDecode(new Regex(br, "iframe .*?src=\"([^\"]*)\"").getMatch(0));
+            if (link2 == null && br.getRedirectLocation() != null) {
+                link2 = br.getRedirectLocation();
+            }
+            if (link2 == null) {
+                link2 = br.getHttpConnection().getHeaderField("Location");
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+            e.printStackTrace();
+
+        }
+        if (link2 == null) {
+            return null;
+        }
+        // Start Evaluation of br
+
+        // this is a workaround to use ExtBrowser Insteadof old
+        // JavaScript class.
+        // final ExtBrowser eb = new ExtBrowser();
+        // // settings: blacklist allows nothing. this means that only
+        // // whitelisted links will be loaded
+        // eb.setBrowserEnviroment(new BasicBrowserEnviroment(new String[] { ".*" }, new String[] { ".*linksave.in.*" }) {
+        // @Override
+        // public boolean isAutoProcessSubFrames() {
+        // return false;
+        // }
+        // });
+        // eb.eval(br);
+        // link2 = new Regex(html,"location.replace\\('([^\']*)").getMatch(0);
+        // if (link2 == null) {
+        // link2 = new Regex(html,"src=\"([^\"]*)\"").getMatch(0);
+        // }
+        // if (link2 == null) {
+        // link2 = new Regex(html,"URL=([^\"]*)\"").getMatch(0);
+        // }
+        // eb.getCommContext().setFollowRedirects(false);
+        // eb.getPage(link2);
+        // eb.getCommContext().setFollowRedirects(true);
+        // link2 = Encoding.htmlDecode(new Regex(html,"iframe .*?src=\"([^\"]*)\"").getMatch(0));
+        // if (link2 == null && br.getRedirectLocation() != null) {
+        // link2 = eb.getCommContext().getRedirectLocation();
+        // }
+        // if (link2 == null) {
+        // link2 = eb.getCommContext().getHttpConnection().getHeaderField("Location");
+        // }
+        // if (link2 == null && eb.getCommContext().getHttpConnection().getContentType().contains("html")) {
+        // if (eb.getCommContext().containsHTML("404 - Not Found")) {
+        // logger.info("404 - File: \"" + url + "\" not found!");
+        // return null;
+        // }
+        // }
+        return link2.trim();
+        // TODO: old code is below... did not find an example about that
+        // if (link2 == null) {
+        // js = new JavaScript(br);
+        // js.runPage();
+        // br.getRequest().setHtmlCode(js.getDocment().getContent());
+        // link2 = br.getForm(0).getAction();
+        // }
+        // if (link2 != null) return link2.trim();
+        // } catch (SAXException e) {
+        // e.printStackTrace();
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
+
     }
 
     /* NO OVERRIDE!! */

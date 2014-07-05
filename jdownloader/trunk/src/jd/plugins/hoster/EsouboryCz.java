@@ -55,7 +55,7 @@ public class EsouboryCz extends PluginForHost {
     private static HashMap<Account, HashMap<String, Long>> hostUnavailableMap = new HashMap<Account, HashMap<String, Long>>();
 
     private void prepBr() {
-        br.getHeaders().put("User-Agent", "JDOWNLOADER");
+        br.getHeaders().put("User-Agent", "JDownloader");
     }
 
     @Override
@@ -68,11 +68,20 @@ public class EsouboryCz extends PluginForHost {
                     return false;
                 } else if (lastUnavailable != null) {
                     unavailableMap.remove(downloadLink.getHost());
-                    if (unavailableMap.size() == 0) hostUnavailableMap.remove(account);
+                    if (unavailableMap.size() == 0) {
+                        hostUnavailableMap.remove(account);
+                    }
                 }
             }
         }
         return true;
+    }
+
+    /**
+     * JD2 CODE. DO NOT USE OVERRIDE FOR JD=) COMPATIBILITY REASONS!
+     */
+    public boolean isProxyRotationEnabledForLinkChecker() {
+        return false;
     }
 
     @Override
@@ -82,7 +91,9 @@ public class EsouboryCz extends PluginForHost {
         link.setName(new Regex(link.getDownloadURL(), "esoubory\\.cz/soubor/([a-z0-9]+)/").getMatch(0));
         if (aa != null) {
             br.getPage("http://www.esoubory.cz/api/exists?token=" + getToken(aa) + "&url=" + Encoding.urlEncode(link.getDownloadURL()));
-            if (!br.containsHTML("\"exists\":true")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            if (!br.containsHTML("\"exists\":true")) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             final String filename = getJson("filename");
             final String filesize = getJson("filesize");
             link.setName(Encoding.htmlDecode(filename.trim()));
@@ -95,11 +106,13 @@ public class EsouboryCz extends PluginForHost {
     }
 
     @Override
-    public void handleFree(DownloadLink downloadLink) throws Exception, PluginException {
+    public void handleFree(final DownloadLink downloadLink) throws Exception, PluginException {
         try {
             throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_ONLY);
         } catch (final Throwable e) {
-            if (e instanceof PluginException) throw (PluginException) e;
+            if (e instanceof PluginException) {
+                throw (PluginException) e;
+            }
         }
         throw new PluginException(LinkStatus.ERROR_FATAL, "This file can only be downloaded by premium users");
     }
@@ -118,7 +131,9 @@ public class EsouboryCz extends PluginForHost {
         String finallink = checkDirectLink(link, "esouborydirectlink");
         if (finallink == null) {
             br.getPage("http://www.esoubory.cz/api/filelink?token=" + getToken(account) + "&url=" + Encoding.urlEncode(link.getDownloadURL()));
-            if (br.containsHTML("\"error\":\"not\\-enough\\-credits\"")) throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_TEMP_DISABLE);
+            if (br.containsHTML("\"error\":\"not\\-enough\\-credits\"")) {
+                throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_TEMP_DISABLE);
+            }
             finallink = getJson("link");
             finallink = finallink.replace("\\", "");
             link.setProperty("esouborydirectlink", finallink);
@@ -149,25 +164,14 @@ public class EsouboryCz extends PluginForHost {
         ai.setTrafficLeft(SizeFormatter.getSize(getJson("credit") + "MB"));
         br.getPage("http://www.esoubory.cz/api/list");
         String hostsSup = br.getRegex("\"list\":\"(.*?)\"").getMatch(0);
-        hostsSup = hostsSup.replace("\\", "");
-        hostsSup = hostsSup.replace("http://www.", "");
-        hostsSup = hostsSup.replace("http://", "");
-        hostsSup = hostsSup.replace("https://www.", "");
-        hostsSup = hostsSup.replace("https://", "");
-        final String[] hosts = hostsSup.split(";");
-        final ArrayList<String> supportedHosts = new ArrayList<String>(Arrays.asList(hosts));
-        if (supportedHosts.contains("uploaded.net") || supportedHosts.contains("ul.to") || supportedHosts.contains("uploaded.to")) {
-            if (!supportedHosts.contains("uploaded.net")) {
-                supportedHosts.add("uploaded.net");
-            }
-            if (!supportedHosts.contains("ul.to")) {
-                supportedHosts.add("ul.to");
-            }
-            if (!supportedHosts.contains("uploaded.to")) {
-                supportedHosts.add("uploaded.to");
-            }
+        if (hostsSup != null) {
+            hostsSup = hostsSup.replace("\\", "");
+            hostsSup = hostsSup.replaceFirst("https?://(www\\.)?", "");
+            final String[] hosts = hostsSup.split(";");
+            final ArrayList<String> supportedHosts = new ArrayList<String>(Arrays.asList(hosts));
+            ai.setMultiHostSupport(supportedHosts);
         }
-        ai.setProperty("multiHostSupport", supportedHosts);
+
         return ai;
     }
 
@@ -210,12 +214,16 @@ public class EsouboryCz extends PluginForHost {
 
     private String getJson(final String parameter) {
         String result = br.getRegex("\"" + parameter + "\":(\\d+)").getMatch(0);
-        if (result == null) result = br.getRegex("\"" + parameter + "\":\"([^<>\"]*?)\"").getMatch(0);
+        if (result == null) {
+            result = br.getRegex("\"" + parameter + "\":\"([^<>\"]*?)\"").getMatch(0);
+        }
         return result;
     }
 
     private void tempUnavailableHoster(final Account account, final DownloadLink downloadLink, final long timeout) throws PluginException {
-        if (downloadLink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        if (downloadLink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap == null) {

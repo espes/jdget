@@ -41,10 +41,12 @@ public class DiskYandexNetFolder extends PluginForDecrypt {
         super(wrapper);
     }
 
-    private final String primaryURLs  = "https?://(www\\.)?((mail|disk)\\.)?yandex\\.(net|com|com\\.tr|ru|ua)/(disk/)?public/(\\?hash=[A-Za-z0-9%/\\+=\\&]+|#[A-Za-z0-9%\\/+=]+)";
-    private final String shortURLs    = "https?://(www\\.)?(yadi\\.sk|yadisk\\.cc)/d/[A-Za-z0-9\\-_]+";
+    private final String        primaryURLs  = "https?://(www\\.)?((mail|disk)\\.)?yandex\\.(net|com|com\\.tr|ru|ua)/(disk/)?public/(\\?hash=[A-Za-z0-9%/\\+=\\&]+|#[A-Za-z0-9%\\/+=]+)";
+    private final String        shortURLs    = "https?://(www\\.)?(yadi\\.sk|yadisk\\.cc)/d/[A-Za-z0-9\\-_]+";
 
-    private final String DOWNLOAD_ZIP = "DOWNLOAD_ZIP_2";
+    private final String        DOWNLOAD_ZIP = "DOWNLOAD_ZIP_2";
+
+    private static final String OFFLINE_TEXT = "<title>The file you are looking for could not be found\\.|>Nothing found</span>|<title>Nothing found \\— Yandex\\.Disk</title>|_file\\-blocked\"";
 
     public ArrayList<DownloadLink> decryptIt(CryptedLink param, ProgressController progress) throws Exception {
         br.setFollowRedirects(true);
@@ -55,18 +57,25 @@ public class DiskYandexNetFolder extends PluginForDecrypt {
         String hashID = null;
         if (parameter.matches(shortURLs)) {
             br.getPage(parameter);
-            if (br.containsHTML("This link was removed or not found")) {
+            if (br.containsHTML(OFFLINE_TEXT)) {
                 main.setAvailable(false);
                 main.setProperty("offline", true);
+                main.setFinalFileName(new Regex(parameter, "([A-Za-z0-9\\-_]+)$").getMatch(0));
                 decryptedLinks.add(main);
                 return decryptedLinks;
             }
-            final String newUrl = Encoding.htmlDecode(br.getURL()).replace("&locale=ru", "");
-            if (!newUrl.matches(primaryURLs)) {
-                logger.warning("Decrypter broken for link: " + parameter);
-                return null;
+            String newUrl = Encoding.htmlDecode(br.getURL()).replace("&locale=ru", "");
+            if (newUrl.matches(primaryURLs)) {
+                parameter = new Regex(newUrl, primaryURLs).getMatch(-1);
+            } else {
+                /* URL has not changed - try to manually change it to our basic url format */
+                final String hash = br.getRegex("\"hash\":\"([^<>\"]*?)\"").getMatch(0);
+                if (hash == null) {
+                    logger.warning("Decrypter broken for link: " + parameter);
+                    return null;
+                }
+                parameter = "https://disk.yandex.com/public/?hash=" + hash;
             }
-            parameter = new Regex(newUrl, primaryURLs).getMatch(-1);
         }
         if (parameter.matches(primaryURLs)) {
             String protocol = new Regex(parameter, "(https?)://").getMatch(0);
@@ -84,9 +93,10 @@ public class DiskYandexNetFolder extends PluginForDecrypt {
         main.setProperty("mainlink", parameter);
         main.setName(hashID);
 
-        if (br.containsHTML("<title>The file you are looking for could not be found\\.|>Nothing found</span>|<title>Nothing found \\— Yandex\\.Disk</title>|_file\\-blocked\"")) {
+        if (br.containsHTML(OFFLINE_TEXT)) {
             main.setAvailable(false);
             main.setProperty("offline", true);
+            main.setFinalFileName(new Regex(parameter, "([A-Za-z0-9\\-_]+)$").getMatch(0));
             decryptedLinks.add(main);
             return decryptedLinks;
         }
@@ -102,7 +112,9 @@ public class DiskYandexNetFolder extends PluginForDecrypt {
             linktext = Encoding.htmlDecode(linktext);
         }
         String[] data = null;
-        if (linktext != null) data = linktext.split("<div");
+        if (linktext != null) {
+            data = linktext.split("<div");
+        }
         if (data != null && data.length != 0) {
             for (final String singleData : data) {
                 String hash = getJson("hash", singleData);
@@ -176,13 +188,17 @@ public class DiskYandexNetFolder extends PluginForDecrypt {
 
     private String unescape(final String s) {
         /* we have to make sure the youtube plugin is loaded */
-        if (!yt_loaded.getAndSet(true)) JDUtilities.getPluginForHost("youtube.com");
+        if (!yt_loaded.getAndSet(true)) {
+            JDUtilities.getPluginForHost("youtube.com");
+        }
         return jd.plugins.hoster.Youtube.unescape(s);
     }
 
     private String getJson(final String parameter, final String source) {
         String result = new Regex(source, "\"" + parameter + "\":([0-9\\.]+)").getMatch(0);
-        if (result == null) result = new Regex(source, "\"" + parameter + "\":\"([^<>\"]*?)\"").getMatch(0);
+        if (result == null) {
+            result = new Regex(source, "\"" + parameter + "\":\"([^<>\"]*?)\"").getMatch(0);
+        }
         return result;
     }
 

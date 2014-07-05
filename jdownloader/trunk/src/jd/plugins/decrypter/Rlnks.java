@@ -20,6 +20,7 @@ import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
 import jd.PluginWrapper;
@@ -37,6 +38,10 @@ import jd.plugins.DownloadLink;
 import jd.plugins.Plugin;
 import jd.plugins.PluginForDecrypt;
 import jd.utils.JDUtilities;
+
+import org.appwork.storage.JSonStorage;
+import org.appwork.utils.StringUtils;
+import org.appwork.utils.formatter.HexFormatter;
 
 @DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "relink.us" }, urls = { "http://(www\\.)?relink\\.us/(f/|(go|view|container_captcha)\\.php\\?id=)[0-9a-f]+" }, flags = { 0 })
 public class Rlnks extends PluginForDecrypt {
@@ -88,8 +93,16 @@ public class Rlnks extends PluginForDecrypt {
                 logger.info("Link offline: " + parameter);
                 return decryptedLinks;
             }
-            if (ALLFORM != null && ALLFORM.getRegex("password").matches()) { throw new DecrypterException(DecrypterException.PASSWORD); }
-            if (ALLFORM != null && ALLFORM.getRegex("captcha").matches()) { throw new DecrypterException(DecrypterException.CAPTCHA); }
+            if (br.containsHTML("<title>404</title>")) {
+                logger.info("Link offline: " + parameter);
+                return decryptedLinks;
+            }
+            if (ALLFORM != null && ALLFORM.getRegex("password").matches()) {
+                throw new DecrypterException(DecrypterException.PASSWORD);
+            }
+            if (ALLFORM != null && ALLFORM.getRegex("captcha").matches()) {
+                throw new DecrypterException(DecrypterException.CAPTCHA);
+            }
 
             final String page = br.toString();
             progress.setRange(0);
@@ -101,25 +114,56 @@ public class Rlnks extends PluginForDecrypt {
 
                 Form cnlForm = null;
                 for (Form f : cnlbr.getForms()) {
-                    if (f.containsHTML(cnlUrl)) cnlForm = f;
+                    if (f.containsHTML(cnlUrl)) {
+                        cnlForm = f;
+                    }
                 }
                 if (cnlForm != null) {
-                    String jk = cnlbr.getRegex("<input type=\"hidden\" name=\"jk\" value=\"([^\"]+)\"").getMatch(0);
-                    cnlForm.remove("jk");
-                    cnlForm.put("jk", (jk != null ? jk.replaceAll("\\+", "%2B") : "nothing"));
-                    try {
-                        cnlbr.submitForm(cnlForm);
-                        if (cnlbr.containsHTML("success")) return decryptedLinks;
-                        if (cnlbr.containsHTML("^failed")) {
-                            logger.warning("relink.us: CNL2 Postrequest was failed! Please upload now a logfile, contact our support and add this loglink to your bugreport!");
-                            logger.warning("relink.us: CNL2 Message: " + cnlbr.toString());
+
+                    if (System.getProperty("jd.revision.jdownloaderrevision") != null) {
+                        String jk = cnlbr.getRegex("<input type=\"hidden\" name=\"jk\" value=\"([^\"]+)\"").getMatch(0);
+                        HashMap<String, String> infos = new HashMap<String, String>();
+                        infos.put("crypted", Encoding.urlDecode(cnlForm.getInputField("crypted").getValue(), false));
+                        infos.put("jk", jk);
+                        String source = cnlForm.getInputField("source").getValue();
+                        if (StringUtils.isEmpty(source)) {
+                            source = parameter.toString();
+                        } else {
+                            source = Encoding.urlDecode(source, true);
                         }
-                    } catch (Throwable e) {
-                        logger.info("relink.us: ExternInterface(CNL2) is disabled!");
+                        infos.put("source", source);
+                        String json = JSonStorage.toString(infos);
+                        final DownloadLink dl = createDownloadlink("http://dummycnl.jdownloader.org/" + HexFormatter.byteArrayToHex(json.getBytes("UTF-8")));
+                        try {
+                            distribute(dl);
+                        } catch (final Throwable e) {
+                            /* does not exist in 09581 */
+                        }
+                        decryptedLinks.add(dl);
+                        return decryptedLinks;
+                    } else {
+
+                        String jk = cnlbr.getRegex("<input type=\"hidden\" name=\"jk\" value=\"([^\"]+)\"").getMatch(0);
+                        cnlForm.remove("jk");
+                        cnlForm.put("jk", (jk != null ? jk.replaceAll("\\+", "%2B") : "nothing"));
+                        try {
+                            cnlbr.submitForm(cnlForm);
+                            if (cnlbr.containsHTML("success")) {
+                                return decryptedLinks;
+                            }
+                            if (cnlbr.containsHTML("^failed")) {
+                                logger.warning("relink.us: CNL2 Postrequest was failed! Please upload now a logfile, contact our support and add this loglink to your bugreport!");
+                                logger.warning("relink.us: CNL2 Message: " + cnlbr.toString());
+                            }
+                        } catch (Throwable e) {
+                            logger.info("relink.us: ExternInterface(CNL2) is disabled!");
+                        }
                     }
                 }
             }
-            if (!br.containsHTML("download.php\\?id=[a-f0-9]+") && !br.containsHTML("getFile\\(")) return null;
+            if (!br.containsHTML("download.php\\?id=[a-f0-9]+") && !br.containsHTML("getFile\\(")) {
+                return null;
+            }
             if (!decryptContainer(page, parameter, "dlc", decryptedLinks)) {
                 if (!decryptContainer(page, parameter, "ccf", decryptedLinks)) {
                     decryptContainer(page, parameter, "rsdf", decryptedLinks);
@@ -134,7 +178,9 @@ public class Rlnks extends PluginForDecrypt {
                     decryptLinks(decryptedLinks, param);
                 }
             }
-            if (decryptedLinks.isEmpty() && br.containsHTML(cnlUrl)) { throw new DecrypterException("CNL2 only, open this link in Browser"); }
+            if (decryptedLinks.isEmpty() && br.containsHTML(cnlUrl)) {
+                throw new DecrypterException("CNL2 only, open this link in Browser");
+            }
             try {
                 validateLastChallengeResponse();
             } catch (final Throwable e) {
@@ -214,7 +260,9 @@ public class Rlnks extends PluginForDecrypt {
                     final File captchaFile = this.getLocalCaptchaFile();
                     Browser.download(captchaFile, br.cloneBrowser().openGetConnection("http://www.relink.us/" + captchaLink));
                     final Point p = UserIO.getInstance().requestClickPositionDialog(captchaFile, "relink.us | " + String.valueOf(i + 1) + "/5", null);
-                    if (p == null) { throw new DecrypterException(DecrypterException.CAPTCHA); }
+                    if (p == null) {
+                        throw new DecrypterException(DecrypterException.CAPTCHA);
+                    }
                     ALLFORM.put("button.x", String.valueOf(p.x));
                     ALLFORM.put("button.y", String.valueOf(p.y));
                 }
@@ -225,7 +273,9 @@ public class Rlnks extends PluginForDecrypt {
                 }
                 ALLFORM = br.getFormbyProperty("name", "form");
                 ALLFORM = ALLFORM == null && b ? br.getForm(0) : ALLFORM;
-                if (ALLFORM != null && ALLFORM.getAction().startsWith("http://www.relink.us/container_password.php")) continue;
+                if (ALLFORM != null && ALLFORM.getAction().startsWith("http://www.relink.us/container_password.php")) {
+                    continue;
+                }
                 ALLFORM = null;
                 break;
             }

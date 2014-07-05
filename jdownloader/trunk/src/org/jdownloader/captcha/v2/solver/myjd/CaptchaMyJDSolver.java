@@ -43,11 +43,9 @@ public class CaptchaMyJDSolver extends CESChallengeSolver<String> implements Cha
     private MyJDownloaderSettings          config;
 
     private LogSource                      logger;
+    private final boolean                  enabled  = !Application.isJared(SecondLevelLaunch.class);
 
     private static final CaptchaMyJDSolver INSTANCE = new CaptchaMyJDSolver();
-
-    // private ThreadPoolExecutor threadPool = new ThreadPoolExecutor(0, 1, 30000, TimeUnit.MILLISECONDS, new
-    // LinkedBlockingDeque<Runnable>(), Executors.defaultThreadFactory());
 
     public static CaptchaMyJDSolver getInstance() {
         return INSTANCE;
@@ -74,12 +72,11 @@ public class CaptchaMyJDSolver extends CESChallengeSolver<String> implements Cha
 
         });
         ServicePanel.getInstance().requestUpdate(true);
-
     }
 
     @Override
     public boolean canHandle(Challenge<?> c) {
-        return c instanceof BasicCaptchaChallenge && CFG_CAPTCHA.CAPTCHA_EXCHANGE_SERVICES_ENABLED.isEnabled() && config.isCESEnabled() && super.canHandle(c);
+        return enabled && c instanceof BasicCaptchaChallenge && CFG_CAPTCHA.CAPTCHA_EXCHANGE_SERVICES_ENABLED.isEnabled() && config.isCESEnabled() && super.canHandle(c);
     }
 
     @Override
@@ -152,7 +149,9 @@ public class CaptchaMyJDSolver extends CESChallengeSolver<String> implements Cha
             ch.setSource(challenge.getTypeID());
             ch.setType(TYPE.TEXT);
             MyCaptchaSolution id = MyJDownloaderController.getInstance().pushChallenge(ch);
-            if (id == null) throw new SolverException("Unknown Connection problems");
+            if (id == null) {
+                throw new SolverException("Unknown Connection problems");
+            }
             long startTime = System.currentTimeMillis();
             // Encoding.urlEncode(challenge.getTypeID())
 
@@ -166,8 +165,9 @@ public class CaptchaMyJDSolver extends CESChallengeSolver<String> implements Cha
                 while (true) {
                     job.getLogger().info(this.getName() + "my.jdownloader.org Ask " + id);
                     MyCaptchaSolution solution = MyJDownloaderController.getInstance().getChallengeResponse(id.getId());
-                    if (solution == null) throw new SolverException("Unknown Connection problems");
-
+                    if (solution == null) {
+                        throw new SolverException("Unknown Connection problems");
+                    }
                     switch (solution.getState()) {
                     case NOT_AVAILABLE:
                         throw new SolverException("Not Available");
@@ -180,14 +180,13 @@ public class CaptchaMyJDSolver extends CESChallengeSolver<String> implements Cha
                         job.setAnswer(new CaptchaMyJDCESResponse(challenge, this, solution.getResponse(), 100, solution));
                         return;
                     }
-
                     checkInterruption();
                     Thread.sleep(1000);
                 }
             } catch (InterruptedException e) {
                 try {
                     MyJDownloaderController.getInstance().sendChallengeFeedback(id.getId(), MyCaptchaSolution.RESULT.ABORT);
-                } catch (MyJDownloaderException e1) {
+                } catch (Throwable e1) {
                     logger.log(e1);
                 }
                 throw e;
@@ -196,7 +195,6 @@ public class CaptchaMyJDSolver extends CESChallengeSolver<String> implements Cha
             // polling
 
         } catch (IOException e) {
-
             job.getLogger().log(e);
             throw new SolverException(e);
         } catch (MyJDownloaderException e) {
@@ -210,25 +208,27 @@ public class CaptchaMyJDSolver extends CESChallengeSolver<String> implements Cha
         if (response instanceof CaptchaMyJDCESResponse) {
             try {
                 MyJDownloaderController.getInstance().sendChallengeFeedback(((CaptchaMyJDCESResponse) response).getSolution().getId(), MyCaptchaSolution.RESULT.CORRECT);
-            } catch (MyJDownloaderException e) {
+            } catch (Throwable e) {
                 logger.log(e);
             }
         }
-        // send feedback
 
     }
 
     @Override
     public void setUnused(final AbstractResponse<?> response) {
-        // unused
+        try {
+            MyJDownloaderController.getInstance().sendChallengeFeedback(((CaptchaMyJDCESResponse) response).getSolution().getId(), MyCaptchaSolution.RESULT.ABORT);
+        } catch (Throwable e) {
+            logger.log(e);
+        }
     }
 
     @Override
     public void setInvalid(final AbstractResponse<?> response) {
-        // send feedback
         try {
             MyJDownloaderController.getInstance().sendChallengeFeedback(((CaptchaMyJDCESResponse) response).getSolution().getId(), MyCaptchaSolution.RESULT.WRONG);
-        } catch (MyJDownloaderException e) {
+        } catch (Throwable e) {
             logger.log(e);
         }
     }
@@ -240,7 +240,7 @@ public class CaptchaMyJDSolver extends CESChallengeSolver<String> implements Cha
 
     @Override
     public void extendServicePabel(LinkedList<ServiceCollection<?>> services) {
-        if (isMyJDownloaderAccountValid()) {
+        if (isMyJDownloaderAccountValid() && enabled) {
 
             services.add(new ServiceCollection<CaptchaMyJDSolver>() {
 
@@ -280,8 +280,7 @@ public class CaptchaMyJDSolver extends CESChallengeSolver<String> implements Cha
 
     @Override
     protected boolean validateLogins() {
-        return !Application.isJared(null) && isMyJDownloaderAccountValid() && config.isCESEnabled();
-
+        return enabled && isMyJDownloaderAccountValid() && config.isCESEnabled();
     }
 
     private boolean isMyJDownloaderAccountValid() {

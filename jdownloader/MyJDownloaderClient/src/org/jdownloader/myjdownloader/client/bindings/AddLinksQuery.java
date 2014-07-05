@@ -78,6 +78,16 @@ public class AddLinksQuery extends AbstractJsonData {
         this.destinationFolder = destinationFolder;
     }
 
+    private PriorityStorable priority = PriorityStorable.DEFAULT;
+
+    public PriorityStorable getPriority() {
+        return priority;
+    }
+
+    public void setPriority(PriorityStorable priority) {
+        this.priority = priority;
+    }
+
     private String downloadPassword  = null;
     private String destinationFolder = null;
 

@@ -2,29 +2,46 @@ package jd.http;
 
 import java.util.logging.Logger;
 
-import org.appwork.utils.net.httpconnection.HTTPProxy;
-
 public class BrowserSettingsThread extends Thread implements BrowserSettings {
 
-    private HTTPProxy proxy;
-    private boolean   debug;
-    private boolean   verbose;
-    protected Logger  logger;
-   
+    private ProxySelectorInterface proxySelector;
+    private boolean                debug;
+    private boolean                verbose;
+    protected Logger               logger;
+
+    public BrowserSettingsThread() {
+
+        this.copySettings();
+    }
+
+    public BrowserSettingsThread(ThreadGroup group, Runnable target, String name) {
+        super(group, target, name);
+        this.copySettings();
+    }
+
+    public BrowserSettingsThread(ThreadGroup group, Runnable target) {
+        super(group, target);
+        this.copySettings();
+    }
+
+    public BrowserSettingsThread(ThreadGroup group, String name) {
+        super(group, name);
+        this.copySettings();
+    }
 
     public BrowserSettingsThread(final Runnable r) {
         super(r);
-        copySettings();
+        this.copySettings();
     }
 
     public BrowserSettingsThread(final Runnable r, final String name) {
         super(r, name);
-        copySettings();
+        this.copySettings();
     }
 
     public BrowserSettingsThread(final String name) {
         super(name);
-        copySettings();
+        this.copySettings();
     }
 
     private void copySettings() {
@@ -33,36 +50,37 @@ public class BrowserSettingsThread extends Thread implements BrowserSettings {
          * use BrowserSettings from current thread if available
          */
         if (currentThread != null && currentThread instanceof BrowserSettings) {
+            @SuppressWarnings("unchecked")
             final BrowserSettings settings = (BrowserSettings) currentThread;
-            proxy = settings.getCurrentProxy();
-            debug = settings.isDebug();
-            verbose = settings.isVerbose();
-            logger = settings.getLogger();
+            this.proxySelector = settings.getProxySelector();
+            this.debug = settings.isDebug();
+            this.verbose = settings.isVerbose();
+            this.logger = settings.getLogger();
         }
     }
 
-    public HTTPProxy getCurrentProxy() {
-        return proxy;
+    public ProxySelectorInterface getProxySelector() {
+        return this.proxySelector;
     }
 
     public Logger getLogger() {
-        return logger;
+        return this.logger;
     }
 
     public boolean isDebug() {
-        return debug;
+        return this.debug;
     }
 
     public boolean isVerbose() {
-        return verbose;
+        return this.verbose;
     }
 
-    public void setCurrentProxy(final HTTPProxy proxy) {
-        this.proxy = proxy;
+    public void setProxySelector(final ProxySelectorInterface proxy) {
+        this.proxySelector = proxy;
     }
 
     public void setDebug(final boolean b) {
-        debug = b;
+        this.debug = b;
     }
 
     public void setLogger(final Logger logger) {
@@ -70,7 +88,7 @@ public class BrowserSettingsThread extends Thread implements BrowserSettings {
     }
 
     public void setVerbose(final boolean b) {
-        verbose = b;
+        this.verbose = b;
     }
 
 }

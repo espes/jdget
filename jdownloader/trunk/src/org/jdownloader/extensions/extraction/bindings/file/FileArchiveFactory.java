@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import jd.plugins.DownloadLink;
-import jd.plugins.FilePackage;
 
 import org.appwork.utils.Hash;
 import org.appwork.utils.StringUtils;
@@ -46,7 +45,9 @@ public class FileArchiveFactory extends FileArchiveFile implements ArchiveFactor
             File[] list = getFile().getParentFile().listFiles();
             if (list != null) {
                 for (File f : list) {
-                    if (f.isDirectory()) continue;
+                    if (f.isDirectory()) {
+                        continue;
+                    }
                     String nodeFile = f.getAbsolutePath();
                     if (nodeFile.equals(file) || pat.matcher(nodeFile).matches()) {
                         if (origin == null) {
@@ -86,6 +87,18 @@ public class FileArchiveFactory extends FileArchiveFile implements ArchiveFactor
                                     super.setProgress(controller, value, max, color);
                                 }
 
+                                @Override
+                                public void removePluginProgress(ExtractionController controller) {
+                                    if (isFirstArchiveFile()) {
+                                        origin.getFirstArchiveFile().removePluginProgress(controller);
+                                    } else {
+                                        for (ArchiveFile archiveFile : origin.getArchiveFiles()) {
+                                            archiveFile.removePluginProgress(controller);
+                                        }
+                                    }
+                                    super.removePluginProgress(controller);
+                                }
+
                             });
                         }
                     }
@@ -96,7 +109,9 @@ public class FileArchiveFactory extends FileArchiveFile implements ArchiveFactor
     }
 
     public Archive createArchive() {
-        if (origin == null) return new Archive(this);
+        if (origin == null) {
+            return new Archive(this);
+        }
         return new Archive(this) {
 
             @Override
@@ -129,34 +144,36 @@ public class FileArchiveFactory extends FileArchiveFile implements ArchiveFactor
 
     public String createExtractSubPath(String path, Archive archiv) {
         try {
-            String packageName = null;
-            for (ArchiveFile file : archiv.getArchiveFiles()) {
-                if (packageName != null) break;
-                if (file instanceof DownloadLinkArchiveFile) {
-                    DownloadLinkArchiveFile daf = (DownloadLinkArchiveFile) file;
-                    if (daf.getDownloadLinks() != null) {
-                        for (DownloadLink link : daf.getDownloadLinks()) {
-                            if (!FilePackage.isDefaultFilePackage(link.getFilePackage())) {
-                                packageName = CrossSystem.alleviatePathParts(link.getFilePackage().getName());
-                                break;
-                            } else if ((packageName = link.getStringProperty(DownloadLink.PROPERTY_LASTFPNAME, null)) != null) {
+            if (path.contains(PACKAGENAME)) {
+                String packageName = null;
+                for (ArchiveFile file : archiv.getArchiveFiles()) {
+                    if (packageName != null) {
+                        break;
+                    }
+                    if (file instanceof DownloadLinkArchiveFile) {
+                        final DownloadLinkArchiveFile daf = (DownloadLinkArchiveFile) file;
+                        if (daf.getDownloadLinks() != null) {
+                            for (DownloadLink link : daf.getDownloadLinks()) {
+                                packageName = CrossSystem.alleviatePathParts(link.getLastValidFilePackage().getName());
                                 break;
                             }
                         }
                     }
                 }
+                if (!StringUtils.isEmpty(packageName)) {
+                    path = path.replace(PACKAGENAME, packageName);
+                } else {
+                    path = path.replace(PACKAGENAME, "");
+                    Log.L.severe("Could not set packagename for " + archiv.getFirstArchiveFile().getFilePath());
+                }
             }
-            if (!StringUtils.isEmpty(packageName)) {
-                path = path.replace(PACKAGENAME, packageName);
-            } else {
-                path = path.replace(PACKAGENAME, "");
-                Log.L.severe("Could not set packagename for " + archiv.getFirstArchiveFile().getFilePath());
-            }
-            if (!StringUtils.isEmpty(archiv.getName())) {
-                path = path.replace(ARCHIVENAME, archiv.getName());
-            } else {
-                path = path.replace(ARCHIVENAME, "");
-                Log.L.severe("Could not set archivename for " + archiv.getFirstArchiveFile().getFilePath());
+            if (path.contains(ARCHIVENAME)) {
+                if (!StringUtils.isEmpty(archiv.getName())) {
+                    path = path.replace(ARCHIVENAME, archiv.getName());
+                } else {
+                    path = path.replace(ARCHIVENAME, "");
+                    Log.L.severe("Could not set archivename for " + archiv.getFirstArchiveFile().getFilePath());
+                }
             }
             if (path.contains(HOSTER)) {
                 path = path.replace(HOSTER, "");

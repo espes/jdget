@@ -4,10 +4,8 @@ import org.jdownloader.myjdownloader.client.bindings.AbstractLinkQuery;
 
 public class CrawledLinkQuery extends AbstractLinkQuery {
 
- 
-
-
     private boolean availability = false;
+
     public boolean isAvailability() {
         return availability;
     }
@@ -24,18 +22,16 @@ public class CrawledLinkQuery extends AbstractLinkQuery {
         this.variants = variants;
     }
 
-
     private boolean variants = false;
 
-  
+    private boolean priority = false;
 
+    public boolean isPriority() {
+        return priority;
+    }
 
-
-
-
-
-  
-
-
+    public void setPriority(boolean priority) {
+        this.priority = priority;
+    }
 
 }

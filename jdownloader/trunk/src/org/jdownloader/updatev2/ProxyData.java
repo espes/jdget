@@ -1,7 +1,5 @@
 package org.jdownloader.updatev2;
 
-import java.util.List;
-
 import org.appwork.storage.Storable;
 import org.appwork.utils.net.httpconnection.HTTPProxyStorable;
 
@@ -12,50 +10,68 @@ public class ProxyData implements Storable {
         // required by Storable
     }
 
-    private boolean           proxyRotationEnabled   = true;
-    private boolean           defaultProxy           = false;
     private HTTPProxyStorable proxy                  = null;
-    private String            ID                     = null;
-    private List<String>      permitDenyList         = null;
+    // private String ID = null;
+
     private boolean           rangeRequestsSupported = true;
+
+    private FilterList        filter;
+    private boolean           pac                    = false;
 
     public boolean isRangeRequestsSupported() {
         return rangeRequestsSupported;
     }
 
-    public String getID() {
-        return ID;
-    }
-
-    public List<String> getPermitDenyList() {
-        return this.permitDenyList;
-    }
-
-    public void setID(String iD) {
-        ID = iD;
-    }
-
-    public boolean isDefaultProxy() {
-        return defaultProxy;
-    }
-
-    public void setDefaultProxy(boolean defaultProxy) {
-        this.defaultProxy = defaultProxy;
-    }
+    // public String getID() {
+    // return ID;
+    // }
+    //
+    // public void setID(String iD) {
+    // ID = iD;
+    // }
 
     /**
      * @return the enabled
      */
-    public boolean isProxyRotationEnabled() {
-        return proxyRotationEnabled;
-    }
 
     /**
      * @param enabled
      *            the enabled to set
      */
+    @Deprecated
     public void setProxyRotationEnabled(boolean enabled) {
-        this.proxyRotationEnabled = enabled;
+        setEnabled(enabled);
+        // setUseForPremiumEnabled(enabled);
+    }
+
+    private boolean enabled;
+
+    // private boolean useForFreeEnabled;
+    //
+    // public boolean isUseForFreeEnabled() {
+    // return useForFreeEnabled;
+    // }
+    //
+    // public void setUseForFreeEnabled(boolean useForFreeEnabled) {
+    // this.useForFreeEnabled = useForFreeEnabled;
+    // }
+    //
+    // public boolean isUseForPremiumEnabled() {
+    // return useForPremiumEnabled;
+    // }
+    //
+    // public void setUseForPremiumEnabled(boolean useForPremiumEnabled) {
+    // this.useForPremiumEnabled = useForPremiumEnabled;
+    // }
+    //
+    // private boolean useForPremiumEnabled;
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     /**
@@ -64,10 +80,6 @@ public class ProxyData implements Storable {
      */
     public void setProxy(HTTPProxyStorable proxy) {
         this.proxy = proxy;
-    }
-
-    public void setPermitDenyList(final List<String> permitDenyList) {
-        this.permitDenyList = permitDenyList;
     }
 
     /**
@@ -79,6 +91,22 @@ public class ProxyData implements Storable {
 
     public void setRangeRequestsSupported(boolean b) {
         rangeRequestsSupported = b;
+    }
+
+    public void setFilter(FilterList filter) {
+        this.filter = filter;
+    }
+
+    public FilterList getFilter() {
+        return filter;
+    }
+
+    public void setPac(boolean b) {
+        pac = b;
+    }
+
+    public boolean isPac() {
+        return pac;
     }
 
 }

@@ -24,13 +24,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import jd.PluginWrapper;
+import jd.config.ConfigContainer;
+import jd.config.ConfigEntry;
 import jd.config.Property;
+import jd.http.Browser;
 import jd.http.Cookie;
 import jd.http.Cookies;
 import jd.nutils.encoding.Encoding;
 import jd.parser.Regex;
 import jd.parser.html.Form;
 import jd.plugins.Account;
+import jd.plugins.Account.AccountType;
 import jd.plugins.AccountInfo;
 import jd.plugins.DownloadLink;
 import jd.plugins.DownloadLink.AvailableStatus;
@@ -40,6 +44,7 @@ import jd.plugins.Plugin;
 import jd.plugins.PluginException;
 import jd.plugins.PluginForHost;
 import jd.utils.JDUtilities;
+import jd.utils.locale.JDL;
 
 import org.appwork.utils.formatter.SizeFormatter;
 import org.appwork.utils.formatter.TimeFormatter;
@@ -55,12 +60,15 @@ public class PutLockerCom extends PluginForHost {
     private static AtomicReference<String> agent              = new AtomicReference<String>(null);
     private static final String            NORESUME           = "NORESUME";
     private static final String            NOCHUNKS           = "NOCHUNKS";
+    private final String[]                 servers            = new String[] { "Original format (bigger size, better quality)", "Stream format [.flv] (smaller size, less quality)" };
+    private final String                   formats            = "formats";
 
     private static final String            PASSWORD_PROTECTED = "id=\"file_password_container\"";
 
     public PutLockerCom(PluginWrapper wrapper) {
         super(wrapper);
         this.enablePremium("https://auth.firedrive.com/signup");
+        this.setConfigElements();
     }
 
     public boolean isPremiumEnabled() {
@@ -94,7 +102,9 @@ public class PutLockerCom extends PluginForHost {
         // respect users protocol import
         final String prot = new Regex(link.getDownloadURL(), "https?://").getMatch(-1);
         final String fuid = new Regex(link.getDownloadURL(), "/([A-Z0-9]+)$").getMatch(0);
-        if (prot == null || fuid == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (prot == null || fuid == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         link.setUrlDownload(prot + "www.firedrive.com/file/" + fuid);
     }
 
@@ -160,8 +170,12 @@ public class PutLockerCom extends PluginForHost {
         br.setFollowRedirects(true);
         br.getPage(link.getDownloadURL());
         // http://svn.jdownloader.org/issues/27819
-        if (br.containsHTML("No htmlCode read|This file is temporarily unavailable due to maintenance\\.")) return AvailableStatus.UNCHECKABLE;
-        if (br.containsHTML("This file might have been moved, replaced or deleted")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        if (br.containsHTML("No htmlCode read|This file is temporarily unavailable due to maintenance\\.")) {
+            return AvailableStatus.UNCHECKABLE;
+        }
+        if (br.containsHTML("This file might have been moved, replaced or deleted")) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
         if (br.containsHTML(PASSWORD_PROTECTED)) {
             link.getLinkStatus().setStatusText("This link is password protected");
             return AvailableStatus.TRUE;
@@ -170,13 +184,19 @@ public class PutLockerCom extends PluginForHost {
             return AvailableStatus.TRUE;
         }
         String filename = br.getRegex("<b>Name:</b>([^<>\"]*?)<br>").getMatch(0);
-        if (filename == null) filename = br.getRegex("<title>([^<>\"]*?)\\| Firedrive</title>").getMatch(0);
+        if (filename == null) {
+            filename = br.getRegex("<title>([^<>\"]*?)\\| Firedrive</title>").getMatch(0);
+        }
         final String filesize = br.getRegex("<b>Size:</b>([^<>\"]*?)<br>").getMatch(0);
-        if (filename == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (filename == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         // User sometimes adds random stuff to filenames when downloading so we
         // better set the final name here
         link.setName(Encoding.htmlDecode(filename.trim()));
-        if (filesize != null) link.setDownloadSize(SizeFormatter.getSize(filesize.trim()));
+        if (filesize != null) {
+            link.setDownloadSize(SizeFormatter.getSize(filesize.trim()));
+        }
         return AvailableStatus.TRUE;
     }
 
@@ -190,13 +210,27 @@ public class PutLockerCom extends PluginForHost {
             throw e;
         }
         br.getPage("http://www.firedrive.com/my_settings?_=" + System.currentTimeMillis());
-        final String validUntil = br.getRegex("Pro features end on: ([^<>\"]*?)</span>").getMatch(0);
-        if (validUntil != null) {
-            ai.setValidUntil(TimeFormatter.getMilliSeconds(validUntil, "MMMM dd, yyyy", Locale.ENGLISH));
-            account.setProperty("freeacc", false);
+        final String validUntil = br.getRegex("Pro(Lite)? features end on: ([^<>\"]*?)</span>").getMatch(1);
+        if (validUntil != null || br.containsHTML("id=\\'storage_total\\'>Unlimited remaining</div>")) {
+            try {
+                account.setType(AccountType.PREMIUM);
+                account.setConcurrentUsePossible(true);
+            } catch (final Throwable e) {
+                /* not available in old Stable 0.9.581 */
+            }
+            if (validUntil != null) {
+                ai.setValidUntil(TimeFormatter.getMilliSeconds(validUntil, "MMMM dd, yyyy", Locale.ENGLISH));
+            }
+            account.setProperty("free", false);
             ai.setStatus("Premium User");
         } else {
-            account.setProperty("freeacc", true);
+            try {
+                account.setType(AccountType.FREE);
+                account.setConcurrentUsePossible(false);
+            } catch (final Throwable e) {
+                /* not available in old Stable 0.9.581 */
+            }
+            account.setProperty("free", true);
             ai.setStatus("Registered (free) user");
         }
         ai.setUnlimitedTraffic();
@@ -237,7 +271,9 @@ public class PutLockerCom extends PluginForHost {
     }
 
     public void doFree(final DownloadLink downloadLink) throws Exception, PluginException {
-        if (br.containsHTML("This file is private and only viewable by the owner")) throw new PluginException(LinkStatus.ERROR_FATAL, "Private file - only downloadable by the owner");
+        if (br.containsHTML("This file is private and only viewable by the owner")) {
+            throw new PluginException(LinkStatus.ERROR_FATAL, "Private file - only downloadable by the owner");
+        }
         br.setFollowRedirects(false);
         String passCode = null;
         // 10 MB trash-testfile: http://www.firedrive.com/file/54F8207A5D669183 PW: 12345
@@ -251,19 +287,38 @@ public class PutLockerCom extends PluginForHost {
 
         /* Not always needed */
         final Form freeform = br.getFormbyKey("confirm");
-        if (freeform != null) br.submitForm(freeform);
+        if (freeform != null) {
+            br.submitForm(freeform);
+        }
 
         if (br.containsHTML("prepare_continue_btn")) {
             sleep(5000, downloadLink, "Prepare File...");
             br.submitForm(freeform);
 
         }
-        if (br.containsHTML("prepare_continue_btn")) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+        if (br.containsHTML("prepare_continue_btn")) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         checkForErrors();
 
-        final String dllink = getDllink(downloadLink);
+        String dllink;
+        if (getConfiguredServer() == 0) {
+            dllink = getDllink_General(downloadLink);
+        } else {
+            dllink = getStreamDl();
+            if (dllink == null) {
+                logger.info("Configured type stream was not found, falling back to original format");
+                dllink = getFileDllink();
+            }
+        }
+        if (dllink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
+
         boolean resume = true;
-        if (downloadLink.getBooleanProperty(NORESUME, false)) resume = false;
+        if (downloadLink.getBooleanProperty(NORESUME, false)) {
+            resume = false;
+        }
         int chunks = 0;
         if (downloadLink.getBooleanProperty(PutLockerCom.NOCHUNKS, false) || !resume) {
             chunks = 1;
@@ -306,7 +361,9 @@ public class PutLockerCom extends PluginForHost {
         try {
             if (!this.dl.startDownload()) {
                 try {
-                    if (dl.externalDownloadStop()) return;
+                    if (dl.externalDownloadStop()) {
+                        return;
+                    }
                 } catch (final Throwable e) {
                 }
                 /* unknown error, we disable multiple chunks */
@@ -350,14 +407,6 @@ public class PutLockerCom extends PluginForHost {
                     throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Fatal server error");
                 }
 
-                /* Removed to test */
-                // if (downloadLink.getBooleanProperty(NORESUME, false)) {
-                // downloadLink.setProperty(NORESUME, Boolean.valueOf(false));
-                // throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Unknown server error", 30 * 60 * 1000l);
-                // }
-                // downloadLink.setProperty(NORESUME, Boolean.valueOf(true));
-                // downloadLink.setChunksProgress(null);
-                // throw new PluginException(LinkStatus.ERROR_RETRY, "ERROR_DOWNLOAD_INCOMPLETE");
             }
 
             logger.warning("firedrive.com: Unknown error2");
@@ -395,7 +444,9 @@ public class PutLockerCom extends PluginForHost {
 
     private String handlePassword(final DownloadLink dl) throws IOException, PluginException {
         String passCode = dl.getStringProperty("pass");
-        if (passCode == null) passCode = Plugin.getUserInput("Password?", dl);
+        if (passCode == null) {
+            passCode = Plugin.getUserInput("Password?", dl);
+        }
         br.postPage(br.getURL(), "item_pass=" + Encoding.urlEncode(passCode));
         if (br.containsHTML(PASSWORD_PROTECTED)) {
             dl.setProperty("pass", Property.NULL);
@@ -405,7 +456,9 @@ public class PutLockerCom extends PluginForHost {
     }
 
     protected void checkForErrors() throws PluginException {
-        if (br.containsHTML("This file is temporarily unavailable due to maintenance")) { throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "File temporarily not available", 5 * 60 * 1000l); }
+        if (br.containsHTML("This file is temporarily unavailable due to maintenance")) {
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "File temporarily not available", 5 * 60 * 1000l);
+        }
         // Add firedrive errorhandling here
     }
 
@@ -418,10 +471,15 @@ public class PutLockerCom extends PluginForHost {
         requestFileInformation(link);
         login(account, false);
         br.getPage(link.getDownloadURL());
-        if (account.getBooleanProperty("freeacc", false)) {
+        if (br.containsHTML("No htmlCode read")) {
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error", 5 * 60 * 1000l);
+        }
+        if (account.getBooleanProperty("free", false)) {
             doFree(link);
         } else {
-            if (br.containsHTML("This file is private and only viewable by the owner")) throw new PluginException(LinkStatus.ERROR_FATAL, "Private file - only downloadable by the owner");
+            if (br.containsHTML("This file is private and only viewable by the owner")) {
+                throw new PluginException(LinkStatus.ERROR_FATAL, "Private file - only downloadable by the owner");
+            }
             String passCode = null;
             // 10 MB trash-testfile: http://www.firedrive.com/file/54F8207A5D669183 PW: 12345
             if (br.containsHTML(PASSWORD_PROTECTED)) {
@@ -429,7 +487,9 @@ public class PutLockerCom extends PluginForHost {
             }
             br.setFollowRedirects(true);
             final String dlURL = getFileDllink();
-            if (dlURL == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (dlURL == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             dl = jd.plugins.BrowserAdapter.openDownload(br, link, dlURL, true, 0);
             if (dl.getConnection().getContentType().contains("html")) {
                 br.followConnection();
@@ -464,7 +524,9 @@ public class PutLockerCom extends PluginForHost {
                 final Object ret = account.getProperty("cookies", null);
                 boolean cookiesSet = false;
                 boolean acmatch = Encoding.urlEncode(account.getUser()).equals(account.getStringProperty("name", Encoding.urlEncode(account.getUser())));
-                if (acmatch) acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                if (acmatch) {
+                    acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                }
                 if (acmatch && ret != null && ret instanceof Map<?, ?>) {
                     final Map<String, String> cookies = (Map<String, String>) ret;
                     if (account.isValid()) {
@@ -476,11 +538,15 @@ public class PutLockerCom extends PluginForHost {
                         }
                     }
                 }
-                if (!fetchInfo && cookiesSet) return;
+                if (!fetchInfo && cookiesSet) {
+                    return;
+                }
                 br.setFollowRedirects(true);
                 br.postPage("https://auth.firedrive.com/", "remember=1&json=1&user=" + Encoding.urlEncode(account.getUser()) + "&pass=" + Encoding.urlEncode(account.getPass()));
                 // no auth = not logged / invalid account.
-                if (br.getCookie(MAINPAGE, "auth") == null) { throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nInvalid username/password wrong!\r\nUngültiger Benutzername oder ungültiges Passwort!", PluginException.VALUE_ID_PREMIUM_DISABLE); }
+                if (br.getCookie(MAINPAGE, "auth") == null) {
+                    throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nInvalid username/password wrong!\r\nUngültiger Benutzername oder ungültiges Passwort!", PluginException.VALUE_ID_PREMIUM_DISABLE);
+                }
                 /** Save cookies */
                 final HashMap<String, String> cookies = new HashMap<String, String>();
                 final Cookies add = this.br.getCookies(MAINPAGE);
@@ -497,24 +563,40 @@ public class PutLockerCom extends PluginForHost {
         }
     }
 
-    private String getDllink(DownloadLink downloadLink) throws IOException, PluginException {
+    private String getDllink_General(DownloadLink downloadLink) throws IOException, PluginException {
         String dllink = null;
         // get file_dllink
         dllink = getFileDllink();
         if (dllink == null) {
             // check if there is a video stream... this is generally of lesser quality!
-            final String stream_dl = br.getRegex("('|\")(http://dl\\.firedrive\\.com/\\?stream=[^<>\"]+)\\1").getMatch(1);
-            if (stream_dl != null) {
-                br.postPage(stream_dl, "");
-                dllink = br.toString();
-            }
+            dllink = getStreamDl();
         }
-        if (dllink == null || !dllink.startsWith("http") || dllink.length() > 500) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
-        return dllink.replace("&amp;", "&");
+        return dllink;
+    }
+
+    private String getStreamDl() throws IOException {
+        String dllink = null;
+        final String stream_dl = br.getRegex("('|\")(http://dl\\.firedrive\\.com/\\?stream=[^<>\"]*?)\\'").getMatch(1);
+        if (stream_dl != null) {
+            final Browser br2 = br.cloneBrowser();
+            br2.postPage(stream_dl, "");
+            dllink = br2.toString();
+        }
+        if (dllink != null && (!dllink.startsWith("http") || dllink.length() > 500)) {
+            dllink = null;
+        }
+        if (dllink != null) {
+            dllink = dllink.replace("&amp;", "&");
+        }
+        return dllink;
     }
 
     private String getFileDllink() {
-        return br.getRegex("\"(https?://dl\\.firedrive\\.com/[^<>\"]+)\"").getMatch(0);
+        String dllink = br.getRegex("\"(https?://dl\\.firedrive\\.com/[^<>\"]+)\"").getMatch(0);
+        if (dllink != null) {
+            dllink = dllink.replace("&amp;", "&");
+        }
+        return dllink;
     }
 
     private String getFID(final DownloadLink dl) {
@@ -523,7 +605,9 @@ public class PutLockerCom extends PluginForHost {
 
     private void fixFilename(final DownloadLink downloadLink) {
         String oldName = downloadLink.getFinalFileName();
-        if (oldName == null) oldName = downloadLink.getName();
+        if (oldName == null) {
+            oldName = downloadLink.getName();
+        }
         final String serverFilename = Encoding.htmlDecode(getFileNameFromHeader(dl.getConnection()));
         String newExtension = null;
         // some streaming sites do not provide proper file.extension within
@@ -535,12 +619,33 @@ public class PutLockerCom extends PluginForHost {
         }
         if (newExtension != null && !oldName.endsWith(newExtension)) {
             String oldExtension = null;
-            if (oldName.contains(".")) oldExtension = oldName.substring(oldName.lastIndexOf("."));
-            if (oldExtension != null && oldExtension.length() <= 5)
+            if (oldName.contains(".")) {
+                oldExtension = oldName.substring(oldName.lastIndexOf("."));
+            }
+            if (oldExtension != null && oldExtension.length() <= 5) {
                 downloadLink.setFinalFileName(oldName.replace(oldExtension, newExtension));
-            else
+            } else {
                 downloadLink.setFinalFileName(oldName + newExtension);
+            }
         }
+    }
+
+    private int getConfiguredServer() {
+        switch (getPluginConfig().getIntegerProperty(formats, -1)) {
+        case 0:
+            logger.fine("Original format is configured");
+            return 0;
+        case 1:
+            logger.fine("Stream format is configured");
+            return 1;
+        default:
+            logger.fine("No format is cunfigured, returning default format (original format)");
+            return 0;
+        }
+    }
+
+    private void setConfigElements() {
+        getConfig().addEntry(new ConfigEntry(ConfigContainer.TYPE_COMBOBOX_INDEX, getPluginConfig(), formats, servers, JDL.L("plugins.host.firedrivecom.preferredformats", "Format selection - select your prefered format:\r\nBy default, JDownloader will download the original format if possible.\r\nIf the desired format isn't available, JDownloader will download the other one.\r\n\rPremium users can only download the original format.")).setDefaultValue(0));
     }
 
     @Override
@@ -557,7 +662,7 @@ public class PutLockerCom extends PluginForHost {
             /* no account, yes we can expect captcha */
             return true;
         }
-        if (Boolean.TRUE.equals(acc.getBooleanProperty("freeacc"))) {
+        if (Boolean.TRUE.equals(acc.getBooleanProperty("free"))) {
             /* free accounts also have captchas */
             return true;
         }

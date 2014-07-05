@@ -34,7 +34,7 @@ import jd.plugins.PluginForDecrypt;
 import jd.plugins.PluginForHost;
 import jd.utils.JDUtilities;
 
-@DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "flickr.com" }, urls = { "https?://(www\\.)?flickr\\.com/(photos/([^<>\"/]+/(\\d+|favorites)|[^<>\"/]+(/galleries)?/(page\\d+|sets/\\d+)|[^<>\"/]+)|groups/[^<>\"/]+/(?!members)[^<>\"/]+(/[^<>\"/]+)?)" }, flags = { 0 })
+@DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "flickr.com" }, urls = { "https?://(www\\.)?flickr\\.com/(photos/([^<>\"/]+/(\\d+|favorites)|[^<>\"/]+(/galleries)?/(page\\d+|sets/\\d+)|[^<>\"/]+)|groups/[^<>\"/]+/(?!members|discuss)[^<>\"/]+(/[^<>\"/]+)?)" }, flags = { 0 })
 public class FlickrCom extends PluginForDecrypt {
 
     public FlickrCom(PluginWrapper wrapper) {
@@ -47,7 +47,9 @@ public class FlickrCom extends PluginForDecrypt {
     private static final String PHOTOLINK    = "https?://(www\\.)?flickr\\.com/photos/.*?";
     private static final String SETLINK      = "https?://(www\\.)?flickr\\.com/photos/[^<>\"/]+/sets/\\d+";
 
-    private static final String INVALIDLINKS = "https?://(www\\.)?flickr\\.com/photos/(me|upload|tags)";
+    private static final String INVALIDLINKS = "https?://(www\\.)?flickr\\.com/(photos/(me|upload|tags)|groups/[a-z0-9\\-_]+/(rules))";
+
+    // private boolean USE_API = false;
 
     /* TODO: Maybe implement API: https://api.flickr.com/services/rest?photo_id=&extras=can_ ... */
     public ArrayList<DownloadLink> decryptIt(CryptedLink param, ProgressController progress) throws Exception {
@@ -57,15 +59,15 @@ public class FlickrCom extends PluginForDecrypt {
         br.setCookiesExclusive(true);
         br.setCookie(MAINPAGE, "localization", "en-us%3Bus%3Bde");
         br.setCookie(MAINPAGE, "fldetectedlang", "en-us");
-        String parameter = param.toString().replace("http://", "https://");
+        String parameter = Encoding.htmlDecode(param.toString()).replace("http://", "https://");
         int lastPage = 1;
-        // Check if link is for hosterplugin
+        /* Check if link is for hosterplugin */
         if (parameter.matches("http://(www\\.)?flickr\\.com/photos/[^<>\"/]+/\\d+")) {
             final DownloadLink dl = createDownloadlink(parameter.replace("flickr.com/", "flickrdecrypted.com/"));
             decryptedLinks.add(dl);
             return decryptedLinks;
         }
-        if (parameter.matches(INVALIDLINKS)) {
+        if (parameter.matches(INVALIDLINKS) || parameter.contains("/map")) {
             final DownloadLink offline = createDownloadlink("http://flickrdecrypted.com/photos/xxoffline/" + System.currentTimeMillis() + new Random().nextInt(10000));
             offline.setName(new Regex(parameter, "flickr\\.com/(.+)").getMatch(0));
             offline.setAvailable(false);
@@ -76,19 +78,47 @@ public class FlickrCom extends PluginForDecrypt {
         br.getPage(parameter);
         if (br.containsHTML("Page Not Found<|>This member is no longer active") || br.getHttpConnection().getResponseCode() == 404) {
             final DownloadLink offline = createDownloadlink("http://flickrdecrypted.com/photos/xxoffline/" + System.currentTimeMillis() + new Random().nextInt(10000));
-            offline.setName(new Regex(parameter, "flickr\\.com/(.+)").getMatch(0));
+            offline.setFinalFileName(new Regex(parameter, "flickr\\.com/(.+)").getMatch(0));
+            offline.setAvailable(false);
+            offline.setProperty("offline", true);
+            decryptedLinks.add(offline);
+            return decryptedLinks;
+        } else if (parameter.matches(FAVORITELINK) && br.containsHTML("id=\"no\\-faves\"")) {
+            /* Favourite link but user has no favourites */
+            final DownloadLink offline = createDownloadlink("http://flickrdecrypted.com/photos/xxoffline/" + System.currentTimeMillis() + new Random().nextInt(10000));
+            offline.setName(new Regex(parameter, "flickr\\.com/photos/([^<>\"/]+)/favorites").getMatch(0));
+            offline.setAvailable(false);
+            offline.setProperty("offline", true);
+            decryptedLinks.add(offline);
+            return decryptedLinks;
+        } else if (parameter.matches(PHOTOLINK) && br.containsHTML("class=\"refresh\\-empty\\-state\\-photostream\"")) {
+            /* Photos link has no photos */
+            final DownloadLink offline = createDownloadlink("http://flickrdecrypted.com/photos/xxoffline/" + System.currentTimeMillis() + new Random().nextInt(10000));
+            offline.setName(new Regex(parameter, "flickr\\.com/photos/(.+)").getMatch(0));
             offline.setAvailable(false);
             offline.setProperty("offline", true);
             decryptedLinks.add(offline);
             return decryptedLinks;
         }
         /* Login is not always needed but we force it to get all pictures */
-        if (!getUserLogin()) {
+        final boolean logged_in = getUserLogin();
+        if (!logged_in) {
             logger.info("Login failed or no accounts active/existing -> Continuing without account");
         }
         br.getPage(parameter);
-        if (br.containsHTML("doesn\\'t have anything available to you")) {
+        if ((br.containsHTML("class=\"ThinCase Interst\"") || br.getURL().contains("/login.yahoo.com/")) && !logged_in) {
+            logger.info("Account needed to decrypt this link: " + parameter);
+            final DownloadLink offline = createDownloadlink("directhttp://" + parameter);
+            offline.setAvailable(false);
+            offline.setProperty("offline", true);
+            decryptedLinks.add(offline);
+            return decryptedLinks;
+        } else if (br.containsHTML("doesn\\'t have anything available to you")) {
             logger.info("Link offline (empty): " + parameter);
+            final DownloadLink offline = createDownloadlink("directhttp://" + parameter);
+            offline.setAvailable(false);
+            offline.setProperty("offline", true);
+            decryptedLinks.add(offline);
             return decryptedLinks;
         }
         /* Check if we have a single link */
@@ -101,21 +131,31 @@ public class FlickrCom extends PluginForDecrypt {
             String picCount = br.getRegex("\"total\":(\")?(\\d+)").getMatch(1);
             int maxEntriesPerPage = 72;
             String fpName = br.getRegex("<title>Flickr: ([^<>\"]*)</title>").getMatch(0);
-            if (fpName == null) fpName = br.getRegex("\"search_default\":\"Search ([^<>\"]*)\"").getMatch(0);
+            if (fpName == null) {
+                fpName = br.getRegex("\"search_default\":\"Search ([^<>\"]*)\"").getMatch(0);
+            }
             if (parameter.matches(SETLINK)) {
 
                 picCount = br.getRegex("class=\"Results\">\\((\\d+) in set\\)</div>").getMatch(0);
-                if (picCount == null) picCount = br.getRegex("<div class=\"vsNumbers\">[\t\n\r ]+(\\d+) photos").getMatch(0);
-                if (picCount == null) picCount = br.getRegex("<div class=\"stats\">.*?<h1>(\\d+)</h1>[\t\n\r ]+<h2>").getMatch(0);
+                if (picCount == null) {
+                    picCount = br.getRegex("<div class=\"vsNumbers\">[\t\n\r ]+(\\d+) photos").getMatch(0);
+                }
+                if (picCount == null) {
+                    picCount = br.getRegex("<div class=\"stats\">.*?<h1>(\\d+)</h1>[\t\n\r ]+<h2>").getMatch(0);
+                }
 
                 fpName = br.getRegex("<meta property=\"og:title\" content=\"([^<>\"]*?)\"").getMatch(0);
-                if (fpName == null) fpName = br.getRegex("<title>([^<>\"]*?) \\- a set on Flickr</title>").getMatch(0);
+                if (fpName == null) {
+                    fpName = br.getRegex("<title>([^<>\"]*?) \\- a set on Flickr</title>").getMatch(0);
+                }
             } else if (parameter.matches(PHOTOLINK)) {
                 maxEntriesPerPage = 100;
             } else if (parameter.matches(FAVORITELINK)) {
                 fpName = br.getRegex("<title>([^<>\"]*?) \\| Flickr</title>").getMatch(0);
             } else if (parameter.matches(GROUPSLINK)) {
-                if (picCount == null) picCount = br.getRegex("<h1>(\\d+(,\\d+)?)</h1>[\t\n\r ]+<h2>Photos</h2>").getMatch(0);
+                if (picCount == null) {
+                    picCount = br.getRegex("<h1>(\\d+(,\\d+)?)</h1>[\t\n\r ]+<h2>Photos</h2>").getMatch(0);
+                }
             }
             if (picCount == null) {
                 logger.warning("Couldn't find total number of pictures, aborting...");
@@ -145,8 +185,18 @@ public class FlickrCom extends PluginForDecrypt {
                 getPage = parameter + "/page%s/?fragment=1";
             }
             for (int i = 1; i <= lastPage; i++) {
+                try {
+                    if (this.isAbort()) {
+                        logger.info("Decryption aborted by user: " + parameter);
+                        return decryptedLinks;
+                    }
+                } catch (final Throwable e) {
+                    // Not available in old 0.9.581 Stable
+                }
                 int addedLinksCounter = 0;
-                if (i != 1) br.getPage(String.format(getPage, i));
+                if (i != 1) {
+                    br.getPage(String.format(getPage, i));
+                }
                 final String[] regexes = { "data\\-track=\"photo\\-click\" href=\"(/photos/[^<>\"\\'/]+/\\d+)" };
                 for (String regex : regexes) {
                     String[] links = br.getRegex(regex).getColumn(0);
@@ -185,6 +235,13 @@ public class FlickrCom extends PluginForDecrypt {
             }
         }
         return decryptedLinks;
+    }
+
+    /**
+     * JD2 CODE: DO NOIT USE OVERRIDE FÒR COMPATIBILITY REASONS!!!!!
+     */
+    public boolean isProxyRotationEnabledForLinkCrawler() {
+        return false;
     }
 
     private boolean getUserLogin() throws Exception {

@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import jd.PluginWrapper;
 import jd.config.Property;
@@ -32,6 +31,7 @@ import jd.http.Cookies;
 import jd.http.URLConnectionAdapter;
 import jd.nutils.encoding.Encoding;
 import jd.plugins.Account;
+import jd.plugins.Account.AccountType;
 import jd.plugins.AccountInfo;
 import jd.plugins.DownloadLink;
 import jd.plugins.DownloadLink.AvailableStatus;
@@ -47,7 +47,6 @@ public class ShareDirCom extends PluginForHost {
 
     // Based on API: http://easyfiles.pl/api_dokumentacja.php?api_en=1
     private static HashMap<Account, HashMap<String, Long>> hostUnavailableMap = new HashMap<Account, HashMap<String, Long>>();
-    private static AtomicInteger                           maxPrem            = new AtomicInteger(20);
     private static final String                            NOCHUNKS           = "NOCHUNKS";
 
     private static final String                            NICE_HOST          = "sharedir.com";
@@ -66,11 +65,6 @@ public class ShareDirCom extends PluginForHost {
         return "http://sharedir.com/terms.html";
     }
 
-    @Override
-    public int getMaxSimultanDownload(DownloadLink link, Account account) {
-        return maxPrem.get();
-    }
-
     private Browser prepBr(final Browser br) {
         br.setCookiesExclusive(true);
         // define custom browser headers and language settings.
@@ -80,6 +74,13 @@ public class ShareDirCom extends PluginForHost {
         br.setConnectTimeout(60 * 1000);
         br.setReadTimeout(60 * 1000);
         return br;
+    }
+
+    /**
+     * JD2 CODE. DO NOT USE OVERRIDE FOR JD=) COMPATIBILITY REASONS!
+     */
+    public boolean isProxyRotationEnabledForLinkChecker() {
+        return false;
     }
 
     @SuppressWarnings("deprecation")
@@ -122,36 +123,38 @@ public class ShareDirCom extends PluginForHost {
         safeAPIRequest("http://sharedir.com/sdapi.php?get_acc_type", account, null);
         String acctype = null;
         if (br.containsHTML("0")) {
+            account.setType(AccountType.FREE);
             acctype = "Registered (free) user";
         } else {
+            account.setType(AccountType.PREMIUM);
             acctype = "Premium Account";
         }
         safeAPIRequest("http://sharedir.com/sdapi.php?get_traffic_left", account, null);
         ac.setTrafficLeft(Long.parseLong(br.toString().trim()) * 1024);
         safeAPIRequest("http://sharedir.com/sdapi.php?get_expire_date", account, null);
-        if (!br.toString().trim().equals("0")) ac.setValidUntil(TimeFormatter.getMilliSeconds(br.toString(), "yyyy-MM-dd hh:mm:ss", Locale.ENGLISH));
+        if (!br.toString().trim().equals("0")) {
+            ac.setValidUntil(TimeFormatter.getMilliSeconds(br.toString(), "yyyy-MM-dd hh:mm:ss", Locale.ENGLISH));
+        }
 
         ac.setProperty("multiHostSupport", Property.NULL);
         safeAPIRequest("http://sharedir.com/sdapi.php?get_dl_limit", account, null);
-        try {
-            int maxSim = Integer.parseInt(br.toString().trim());
-            if (maxSim > 20)
-                maxSim = 20;
-            else if (maxSim < 0) maxSim = 1;
-            maxPrem.set(maxSim);
-            account.setMaxSimultanDownloads(maxPrem.get());
-            account.setConcurrentUsePossible(true);
-        } catch (final Throwable e) {
-            // not available in old Stable 0.9.581
+        int maxSim = Integer.parseInt(br.toString().trim());
+        if (maxSim < 0) {
+            maxSim = 1;
         }
+        account.setMaxSimultanDownloads(maxSim);
+        account.setConcurrentUsePossible(true);
+
+        // this should done at the point of link generating (which this host doesn't do). As not every hoster would have the same value...
         safeAPIRequest("http://sharedir.com/sdapi.php?get_max_file_conn", account, null);
         int maxcon = Integer.parseInt(br.toString().trim());
-        if (maxcon >= 20)
+        if (maxcon >= 20) {
             maxcon = 0;
-        else if (maxcon <= 1)
+        } else if (maxcon <= 1) {
             maxcon = 1;
-        else
+        } else {
             maxcon = -maxcon;
+        }
         account.setProperty("maxcon", maxcon);
         // now let's get a list of all supported hosts:
         safeAPIRequest("http://sharedir.com/sdapi.php?get_dl_hosts", account, null);
@@ -162,24 +165,8 @@ public class ShareDirCom extends PluginForHost {
                 supportedHosts.add(host.trim());
             }
         }
-        if (supportedHosts.contains("uploaded.net") || supportedHosts.contains("ul.to") || supportedHosts.contains("uploaded.to")) {
-            if (!supportedHosts.contains("uploaded.net")) {
-                supportedHosts.add("uploaded.net");
-            }
-            if (!supportedHosts.contains("ul.to")) {
-                supportedHosts.add("ul.to");
-            }
-            if (!supportedHosts.contains("uploaded.to")) {
-                supportedHosts.add("uploaded.to");
-            }
-        }
-
-        if (supportedHosts.size() == 0) {
-            ac.setStatus(acctype + " valid: 0 Hosts via " + NICE_HOST + " available");
-        } else {
-            ac.setStatus(acctype + " valid: " + supportedHosts.size() + " Hosts via " + NICE_HOST + " available");
-            ac.setProperty("multiHostSupport", supportedHosts);
-        }
+        ac.setStatus(acctype);
+        ac.setMultiHostSupport(supportedHosts);
         return ac;
     }
 
@@ -269,7 +256,9 @@ public class ShareDirCom extends PluginForHost {
         try {
             if (!this.dl.startDownload()) {
                 try {
-                    if (dl.externalDownloadStop()) return;
+                    if (dl.externalDownloadStop()) {
+                        return;
+                    }
                 } catch (final Throwable e) {
                 }
                 /* unknown error, we disable multiple chunks */
@@ -317,7 +306,9 @@ public class ShareDirCom extends PluginForHost {
                 prepBr(this.br);
                 final Object ret = account.getProperty("cookies", null);
                 boolean acmatch = Encoding.urlEncode(account.getUser()).equals(account.getStringProperty("name", Encoding.urlEncode(account.getUser())));
-                if (acmatch) acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                if (acmatch) {
+                    acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                }
                 if (acmatch && ret != null && ret instanceof HashMap<?, ?> && !force) {
                     final HashMap<String, String> cookies = (HashMap<String, String>) ret;
                     if (account.isValid()) {
@@ -349,6 +340,7 @@ public class ShareDirCom extends PluginForHost {
                 account.setProperty("pass", Encoding.urlEncode(account.getPass()));
                 account.setProperty("cookies", cookies);
             } catch (final PluginException e) {
+                account.setType(AccountType.UNKNOWN);
                 account.setProperty("cookies", Property.NULL);
                 throw e;
             }
@@ -397,7 +389,9 @@ public class ShareDirCom extends PluginForHost {
                 try {
                     throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_ONLY);
                 } catch (final Throwable e) {
-                    if (e instanceof PluginException) throw (PluginException) e;
+                    if (e instanceof PluginException) {
+                        throw (PluginException) e;
+                    }
                 }
                 throw new PluginException(LinkStatus.ERROR_FATAL, "This file is only downloadable via premium account (filesize > 150 MB)");
             case 667:
@@ -416,9 +410,13 @@ public class ShareDirCom extends PluginForHost {
     }
 
     private void tempUnavailableHoster(final Account account, final DownloadLink downloadLink, final long timeout) throws PluginException {
-        if (downloadLink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        if (downloadLink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        }
         // This should never happen
-        if (downloadLink.getHost().equals("sharedir.com")) { throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "FATAL Server error"); }
+        if (downloadLink.getHost().equals("sharedir.com")) {
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "FATAL Server error");
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap == null) {
@@ -433,6 +431,10 @@ public class ShareDirCom extends PluginForHost {
 
     @Override
     public boolean canHandle(DownloadLink downloadLink, Account account) {
+        final long verifiedFileSize = downloadLink.getVerifiedFileSize();
+        if (verifiedFileSize >= 150 * 1000 * 1000l && !Account.AccountType.PREMIUM.equals(account.getType())) {
+            return false;
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap != null) {
@@ -441,7 +443,9 @@ public class ShareDirCom extends PluginForHost {
                     return false;
                 } else if (lastUnavailable != null) {
                     unavailableMap.remove(downloadLink.getHost());
-                    if (unavailableMap.size() == 0) hostUnavailableMap.remove(account);
+                    if (unavailableMap.size() == 0) {
+                        hostUnavailableMap.remove(account);
+                    }
                 }
             }
         }

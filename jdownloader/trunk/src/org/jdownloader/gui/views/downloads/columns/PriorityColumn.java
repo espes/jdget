@@ -15,6 +15,7 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.JTableHeader;
 
+import jd.controlling.TaskQueue;
 import jd.controlling.linkcrawler.CrawledLink;
 import jd.controlling.linkcrawler.CrawledPackage;
 import jd.controlling.packagecontroller.AbstractNode;
@@ -28,6 +29,7 @@ import org.appwork.swing.exttable.ExtDefaultRowSorter;
 import org.appwork.swing.exttable.ExtTableHeaderRenderer;
 import org.appwork.swing.exttable.columns.ExtComboColumn;
 import org.appwork.utils.ImageProvider.ImageProvider;
+import org.appwork.utils.event.queue.QueueAction;
 import org.jdownloader.controlling.Priority;
 import org.jdownloader.gui.IconKey;
 import org.jdownloader.gui.translate._GUI;
@@ -97,7 +99,9 @@ public class PriorityColumn extends ExtComboColumn<AbstractNode, Priority> {
             public int compare(final AbstractNode o1, final AbstractNode o2) {
                 int p1 = getPriority(o1).ordinal();
                 int p2 = getPriority(o2).ordinal();
-                if (p1 == p2) { return 0; }
+                if (p1 == p2) {
+                    return 0;
+                }
                 if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return p1 > p2 ? -1 : 1;
                 } else {
@@ -183,33 +187,8 @@ public class PriorityColumn extends ExtComboColumn<AbstractNode, Priority> {
         return true;
     }
 
-    // protected int getPriority(AbstractNode value) {
-    // Integer p = null;
-    // if (value instanceof DownloadLink) {
-    // p = ((DownloadLink) value).getPriority();
-    // } else if (value instanceof CrawledLink) {
-    // p = ((CrawledLink) value).getPriority().getId();
-    // }
-    // if (p != null) {
-    // switch (p) {
-    // case 0:
-    // default:
-    // return 0;
-    // case -1:
-    // return -1;
-    // case 1:
-    // return 1;
-    // case 2:
-    // return 2;
-    // case 3:
-    // return 3;
-    // }
-    // }
-    // return 0;
-    // }
-
     protected Icon getPriorityIcon(AbstractNode value) {
-        Priority p = getPriority(value);
+        final Priority p = getPriority(value);
         return getIconByPriority(p);
     }
 
@@ -235,15 +214,26 @@ public class PriorityColumn extends ExtComboColumn<AbstractNode, Priority> {
 
     private Priority getPriority(AbstractNode value) {
         if (value instanceof DownloadLink) {
-            return ((DownloadLink) value).getPriorityEnum();
+            final DownloadLink link = ((DownloadLink) value);
+            final Priority ret = link.getPriorityEnum();
+            if (Priority.DEFAULT.equals(ret)) {
+                return link.getFilePackage().getPriorityEnum();
+            }
+            return ret;
         } else if (value instanceof CrawledLink) {
-            return ((CrawledLink) value).getPriority();
+            final CrawledLink link = ((CrawledLink) value);
+            final Priority ret = link.getPriority();
+            if (Priority.DEFAULT.equals(ret)) {
+                final CrawledPackage parent = link.getParentNode();
+                if (parent != null) {
+                    return parent.getPriorityEnum();
+                }
+            }
+            return ret;
         } else if (value instanceof FilePackage) {
-            return ((FilePackage) value).getView().getHighestPriority();
+            return ((FilePackage) value).getPriorityEnum();
         } else if (value instanceof CrawledPackage) {
-
-        return ((CrawledPackage) value).getView().getHighestPriority();
-
+            return ((CrawledPackage) value).getPriorityEnum();
         }
         return Priority.DEFAULT;
     }
@@ -266,8 +256,12 @@ public class PriorityColumn extends ExtComboColumn<AbstractNode, Priority> {
 
     @Override
     public boolean isEnabled(AbstractNode obj) {
-        if (obj instanceof CrawledPackage) { return ((CrawledPackage) obj).getView().isEnabled(); }
-        if (obj instanceof FilePackage) { return ((FilePackage) obj).getView().isEnabled(); }
+        if (obj instanceof CrawledPackage) {
+            return ((CrawledPackage) obj).getView().isEnabled();
+        }
+        if (obj instanceof FilePackage) {
+            return ((FilePackage) obj).getView().isEnabled();
+        }
         return obj.isEnabled();
     }
 
@@ -277,31 +271,24 @@ public class PriorityColumn extends ExtComboColumn<AbstractNode, Priority> {
     }
 
     @Override
-    protected void setSelectedItem(AbstractNode object, Priority value) {
-        if (object instanceof DownloadLink) {
-            ((DownloadLink) object).setPriorityEnum(value);
-        } else if (object instanceof CrawledLink) {
-            ((CrawledLink) object).setPriority(value);
-        } else if (object instanceof FilePackage) {
-            boolean readL = ((FilePackage) object).getModifyLock().readLock();
-            try {
-                for (DownloadLink dl : ((FilePackage) object).getChildren()) {
-                    dl.setPriorityEnum(value);
+    protected void setSelectedItem(final AbstractNode object, final Priority value) {
+        TaskQueue.getQueue().add(new QueueAction<Void, RuntimeException>() {
+
+            @Override
+            protected Void run() throws RuntimeException {
+                if (object instanceof DownloadLink) {
+                    ((DownloadLink) object).setPriorityEnum(value);
+                } else if (object instanceof CrawledLink) {
+                    ((CrawledLink) object).setPriority(value);
+                } else if (object instanceof FilePackage) {
+                    ((FilePackage) object).setPriorityEnum(value);
+                } else if (object instanceof CrawledPackage) {
+                    ((CrawledPackage) object).setPriorityEnum(value);
                 }
-            } finally {
-                ((FilePackage) object).getModifyLock().readUnlock(readL);
+                return null;
             }
 
-        } else if (object instanceof CrawledPackage) {
+        });
 
-            boolean readL = ((CrawledPackage) object).getModifyLock().readLock();
-            try {
-                for (CrawledLink dl : ((CrawledPackage) object).getChildren()) {
-                    dl.setPriority(value);
-                }
-            } finally {
-                ((CrawledPackage) object).getModifyLock().readUnlock(readL);
-            }
-        }
     }
 }

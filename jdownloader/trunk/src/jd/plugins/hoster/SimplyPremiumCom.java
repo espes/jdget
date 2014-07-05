@@ -23,6 +23,7 @@ import java.awt.Insets;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -106,7 +107,9 @@ public class SimplyPremiumCom extends PluginForHost {
                     return false;
                 } else if (lastUnavailable != null) {
                     unavailableMap.remove(downloadLink.getHost());
-                    if (unavailableMap.size() == 0) hostUnavailableMap.remove(account);
+                    if (unavailableMap.size() == 0) {
+                        hostUnavailableMap.remove(account);
+                    }
                 }
             }
         }
@@ -136,9 +139,15 @@ public class SimplyPremiumCom extends PluginForHost {
         final boolean resume_allowed = account.getBooleanProperty("resume_allowed", false);
 
         int maxChunks = (int) account.getLongProperty("maxconnections", 1);
-        if (maxChunks > 20) maxChunks = 0;
-        if (link.getBooleanProperty(NOCHUNKS, false)) maxChunks = 1;
-        if (!resume_allowed) maxChunks = 1;
+        if (maxChunks > 20) {
+            maxChunks = 0;
+        }
+        if (link.getBooleanProperty(NOCHUNKS, false)) {
+            maxChunks = 1;
+        }
+        if (!resume_allowed) {
+            maxChunks = 1;
+        }
 
         link.setProperty(NICE_HOSTproperty + "directlink", dllink);
         dl = jd.plugins.BrowserAdapter.openDownload(br, link, dllink, resume_allowed, maxChunks);
@@ -161,7 +170,9 @@ public class SimplyPremiumCom extends PluginForHost {
         try {
             if (!this.dl.startDownload()) {
                 try {
-                    if (dl.externalDownloadStop()) return;
+                    if (dl.externalDownloadStop()) {
+                        return;
+                    }
                 } catch (final Throwable e) {
                 }
                 /* unknown error, we disable multiple chunks */
@@ -263,8 +274,6 @@ public class SimplyPremiumCom extends PluginForHost {
         br.setFollowRedirects(true);
         getapikey(account);
         br.getPage("http://simply-premium.com/api/user.php?apikey=" + APIKEY);
-        account.setValid(true);
-        account.setConcurrentUsePossible(true);
         final String acctype = getXML("account_typ");
         if (acctype == null) {
             final String lang = System.getProperty("user.language");
@@ -303,13 +312,12 @@ public class SimplyPremiumCom extends PluginForHost {
         if (maxSimultanDls < 1) {
             maxSimultanDls = 1;
         } else if (maxSimultanDls > 20) {
-            maxSimultanDls = 20;
+            maxSimultanDls = -1;
         }
-        account.setMaxSimultanDownloads(maxSimultanDls);
-        maxPrem.set(maxSimultanDls);
-
         long maxChunks = Integer.parseInt(getXML("chunks"));
-        if (maxChunks > 1) maxChunks = -maxChunks;
+        if (maxChunks > 1) {
+            maxChunks = -maxChunks;
+        }
         final boolean resumeAllowed = "1".equals(getXML("resume"));
         account.setProperty("maxconnections", maxChunks);
         account.setProperty("max_downloads", maxSimultanDls);
@@ -318,31 +326,24 @@ public class SimplyPremiumCom extends PluginForHost {
 
         /* online=1 == show only working hosts */
         br.getPage("http://www.simply-premium.com/api/hosts.php?online=1");
-        final ArrayList<String> supportedHosts = new ArrayList<String>();
         final String[] hostDomains = br.getRegex("<host>([^<>\"]*?)</host>").getColumn(0);
-        for (final String domain : hostDomains) {
-            supportedHosts.add(domain);
+        if (hostDomains != null) {
+            final ArrayList<String> supportedHosts = new ArrayList<String>(Arrays.asList(hostDomains));
+            ai.setMultiHostSupport(supportedHosts);
         }
-        if (supportedHosts.contains("uploaded.net") || supportedHosts.contains("ul.to") || supportedHosts.contains("uploaded.to")) {
-            if (!supportedHosts.contains("uploaded.net")) {
-                supportedHosts.add("uploaded.net");
-            }
-            if (!supportedHosts.contains("ul.to")) {
-                supportedHosts.add("ul.to");
-            }
-            if (!supportedHosts.contains("uploaded.to")) {
-                supportedHosts.add("uploaded.to");
-            }
-        }
-        ai.setStatus(accdesc + " - " + supportedHosts.size() + " hosts available");
-        ai.setProperty("multiHostSupport", supportedHosts);
+        account.setMaxSimultanDownloads(maxSimultanDls);
+        account.setConcurrentUsePossible(true);
+        account.setValid(true);
+        ai.setStatus(accdesc);
         return ai;
     }
 
-    private void getapikey(final Account acc) throws IOException, PluginException {
+    private void getapikey(final Account acc) throws IOException, Exception {
         synchronized (LOCK) {
             boolean acmatch = Encoding.urlEncode(acc.getUser()).equals(acc.getStringProperty("name", Encoding.urlEncode(acc.getUser())));
-            if (acmatch) acmatch = Encoding.urlEncode(acc.getPass()).equals(acc.getStringProperty("pass", Encoding.urlEncode(acc.getPass())));
+            if (acmatch) {
+                acmatch = Encoding.urlEncode(acc.getPass()).equals(acc.getStringProperty("pass", Encoding.urlEncode(acc.getPass())));
+            }
             APIKEY = acc.getStringProperty(NICE_HOSTproperty + "apikey", null);
             if (APIKEY != null && acmatch) {
                 br.setCookie("http://simply-premium.com/", "apikey", APIKEY);
@@ -352,26 +353,27 @@ public class SimplyPremiumCom extends PluginForHost {
         }
     }
 
-    private void login(final Account account) throws IOException, PluginException {
+    private void login(final Account account) throws IOException, Exception {
         final String lang = System.getProperty("user.language");
         br.getPage("http://simply-premium.com/login.php?login_name=" + Encoding.urlEncode(account.getUser()) + "&login_pass=" + Encoding.urlEncode(account.getPass()));
         if (br.containsHTML("<error>captcha_required</error>")) {
             final DownloadLink dummyLink = new DownloadLink(this, "Account", "simply-premium.com", "http://simply-premium.com", true);
             final PluginForHost recplug = JDUtilities.getPluginForHost("DirectHTTP");
             final jd.plugins.hoster.DirectHTTP.Recaptcha rc = ((DirectHTTP) recplug).getReCaptcha(br);
-            rc.setId("6LfBs-8SAAAAAKRWHd9j-sq-qpoOnjwoZlA4s3Ix");
+            final String rcID = getXML("captcha");
+            rc.setId(rcID);
             rc.load();
             for (int i = 1; i <= 3; i++) {
                 final File cf = rc.downloadCaptcha(getLocalCaptchaFile());
                 final String c = getCaptchaCode(cf, dummyLink);
                 br.getPage("http://simply-premium.com/login.php?login_name=" + Encoding.urlEncode(account.getUser()) + "&login_pass=" + Encoding.urlEncode(account.getPass()) + "&recaptcha_challenge_field=" + rc.getChallenge() + "&recaptcha_response_field=" + Encoding.urlEncode(c));
-                if (br.containsHTML("<error>captcha_required</error>")) {
+                if (br.containsHTML("<error>captcha_incorrect</error>")) {
                     rc.reload();
                     continue;
                 }
                 break;
             }
-            if (br.containsHTML("<error>captcha_required</error>")) {
+            if (br.containsHTML("<error>captcha_incorrect</error>")) {
                 if ("de".equalsIgnoreCase(lang)) {
                     throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nUngültiger Benutzername, ungültiges Passwort und/oder ungültiges Login-Captcha!\r\nDu bist dir sicher, dass dein eingegebener Benutzername und Passwort stimmen? Versuche folgendes:\r\n1. Falls dein Passwort Sonderzeichen enthält, ändere es (entferne diese) und versuche es erneut!\r\n2. Gib deine Zugangsdaten per Hand (ohne kopieren/einfügen) ein.", PluginException.VALUE_ID_PREMIUM_DISABLE);
                 } else {
@@ -416,7 +418,9 @@ public class SimplyPremiumCom extends PluginForHost {
     }
 
     private void tempUnavailableHoster(final Account account, final DownloadLink downloadLink, final long timeout) throws PluginException {
-        if (downloadLink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        if (downloadLink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap == null) {
@@ -443,7 +447,9 @@ public class SimplyPremiumCom extends PluginForHost {
         if (ai != null) {
             final String windowTitleLangText = "Account Zusatzinformationen";
             int maxChunks = (int) account.getLongProperty("maxconnections", 1);
-            if (maxChunks < 0) maxChunks = maxChunks * -1;
+            if (maxChunks < 0) {
+                maxChunks = maxChunks * -1;
+            }
             int max_dls = (int) account.getLongProperty("max_downloads", 1);
             final String accType = account.getStringProperty("acc_type", "?");
             final boolean resume_allowed = account.getBooleanProperty("resume_allowed", false);
@@ -594,7 +600,9 @@ public class SimplyPremiumCom extends PluginForHost {
     private String getPhrase(String key) {
         if ("de".equals(System.getProperty("user.language")) && phrasesDE.containsKey(key)) {
             return phrasesDE.get(key);
-        } else if (phrasesEN.containsKey(key)) { return phrasesEN.get(key); }
+        } else if (phrasesEN.containsKey(key)) {
+            return phrasesEN.get(key);
+        }
         return "Translation not found!";
     }
 

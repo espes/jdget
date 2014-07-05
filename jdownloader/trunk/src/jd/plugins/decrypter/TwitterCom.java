@@ -73,7 +73,7 @@ public class TwitterCom extends PluginForDecrypt {
                 if (embed_links != null && embed_links.length != 0) {
                     for (final String single_embed_ink : embed_links) {
                         final DownloadLink dl = createDownloadlink(single_embed_ink);
-                        dl._setFilePackage(fp);
+                        fp.add(dl);
                         try {
                             distribute(dl);
                         } catch (final Throwable e) {
@@ -89,9 +89,13 @@ public class TwitterCom extends PluginForDecrypt {
             for (final String regex : directlink_regexes) {
                 final String[] piclinks = br.getRegex(regex).getColumn(0);
                 if (piclinks != null && piclinks.length != 0) {
-                    for (final String singleLink : piclinks) {
+                    for (String singleLink : piclinks) {
+                        final String remove = new Regex(singleLink, "(:[a-z0-9]+)").getMatch(0);
+                        if (remove != null) {
+                            singleLink = singleLink.replace(remove, "");
+                        }
                         final DownloadLink dl = createDownloadlink("directhttp://" + Encoding.htmlDecode(singleLink.trim()));
-                        dl._setFilePackage(fp);
+                        fp.add(dl);
                         dl.setAvailable(true);
                         try {
                             distribute(dl);

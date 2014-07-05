@@ -175,7 +175,7 @@ public class JDGui implements UpdaterListener, OwnerFinder {
         return JDGui.INSTANCE;
     }
 
-    public static void help(final String title, final String msg, final ImageIcon icon) {
+    public static void help(final String title, final String msg, final Icon icon) {
 
         Timer timer = new Timer(200, new ActionListener() {
 
@@ -245,6 +245,7 @@ public class JDGui implements UpdaterListener, OwnerFinder {
 
                     @Override
                     public void run() {
+
                         new Thread("TrayBug") {
                             public void run() {
 
@@ -345,9 +346,13 @@ public class JDGui implements UpdaterListener, OwnerFinder {
     };
 
     public void disposeView(View view) {
-        if (view == null) return;
+        if (view == null) {
+            return;
+        }
         view = this.mainTabbedPane.getComponentEquals(view);
-        if (view == null) return;
+        if (view == null) {
+            return;
+        }
         this.mainTabbedPane.remove(view);
     }
 
@@ -508,7 +513,6 @@ public class JDGui implements UpdaterListener, OwnerFinder {
         this.mainTabbedPane.addTab(downloadView);
         this.mainTabbedPane.addTab(this.linkgrabberView);
 
-        this.mainTabbedPane.addTab(this.linkgrabberView);
         SecondLevelLaunch.GUI_COMPLETE.executeWhenReached(new Runnable() {
             @Override
             public void run() {
@@ -652,7 +656,7 @@ public class JDGui implements UpdaterListener, OwnerFinder {
                 try {
                     if (frame instanceof InternDialog) {
 
-                        AbstractDialog dialog = (AbstractDialog) ((InternDialog) frame).getDialogModel();
+                        AbstractDialog dialog = ((InternDialog) frame).getDialogModel();
 
                         String key = dialog.getTitle();
                         if (StringUtils.isEmpty(key)) {
@@ -668,7 +672,9 @@ public class JDGui implements UpdaterListener, OwnerFinder {
 
             @Override
             public void onClose(AbstractDialog<?> abstractDialog) {
-                if (!abstractDialog.hasBeenMoved()) return;
+                if (!abstractDialog.hasBeenMoved()) {
+                    return;
+                }
                 super.onClose(abstractDialog);
             }
 
@@ -677,7 +683,9 @@ public class JDGui implements UpdaterListener, OwnerFinder {
 
             @Override
             public Point getLocationOnScreen(AbstractDialog<?> abstractDialog) {
-                if (abstractDialog.getDialog().getParent() != null && abstractDialog.getDialog().getParent().isShowing()) { return AbstractDialog.LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(abstractDialog); }
+                if (abstractDialog.getDialog().getParent() != null && abstractDialog.getDialog().getParent().isShowing()) {
+                    return AbstractDialog.LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(abstractDialog);
+                }
                 GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
                 Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(gd.getDefaultConfiguration());
                 /* WARNING: this can cause deadlock under linux EDT/XAWT */
@@ -770,9 +778,15 @@ public class JDGui implements UpdaterListener, OwnerFinder {
                     try {
                         if (dialog.evaluateDontShowAgainFlag()) {
                             final int mask = dialog.getReturnmask();
-                            if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
-                            if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(mask); }
-                            if (!BinaryLogic.containsSome(mask, Dialog.RETURN_OK)) { throw new DialogCanceledException(mask | Dialog.RETURN_CLOSED); }
+                            if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) {
+                                throw new DialogClosedException(mask);
+                            }
+                            if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) {
+                                throw new DialogCanceledException(mask);
+                            }
+                            if (!BinaryLogic.containsSome(mask, Dialog.RETURN_OK)) {
+                                throw new DialogCanceledException(mask | Dialog.RETURN_CLOSED);
+                            }
                             return dialog.getReturnValue();
                         }
                     } catch (DialogNoAnswerException e) {
@@ -816,8 +830,12 @@ public class JDGui implements UpdaterListener, OwnerFinder {
                                     // clear interrupt
                                     Thread.interrupted();
                                     final int mask = dialog.getReturnmask();
-                                    if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
-                                    if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(mask); }
+                                    if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) {
+                                        throw new DialogClosedException(mask);
+                                    }
+                                    if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) {
+                                        throw new DialogCanceledException(mask);
+                                    }
                                     try {
                                         return dialog.getReturnValue();
 
@@ -1054,11 +1072,15 @@ public class JDGui implements UpdaterListener, OwnerFinder {
 
             @Override
             protected void runInEDT() {
-                if (finalLocation2 != null) mainFrame.setLocation(finalLocation2);
+                if (finalLocation2 != null) {
+                    mainFrame.setLocation(finalLocation2);
+                }
                 mainFrame.setMinimumSize(new Dimension(400, 100));
                 mainFrame.setSize(finalDim);
                 mainFrame.setPreferredSize(finalDim);
-                if (finalState != null) mainFrame.setExtendedState(finalState);
+                if (finalState != null) {
+                    mainFrame.setExtendedState(finalState);
+                }
                 if (tray == null || !tray.getSettings().isEnabled() || !tray.getSettings().isStartMinimizedEnabled()) {
                     WindowManager.getInstance().setVisible(mainFrame, true, FrameState.OS_DEFAULT);
                 }
@@ -1097,7 +1119,9 @@ public class JDGui implements UpdaterListener, OwnerFinder {
 
     protected void internalSetWaiting(final boolean b) {
 
-        if (busy == b) return;
+        if (busy == b) {
+            return;
+        }
         busy = b;
         new EDTHelper<Object>() {
             @Override
@@ -1199,7 +1223,9 @@ public class JDGui implements UpdaterListener, OwnerFinder {
         // at org.appwork.utils.logging2.sendlogs.AbstractLogAction.create(AbstractLogAction.java:132)
         // at org.appwork.utils.logging2.sendlogs.AbstractLogAction$1.run(AbstractLogAction.java:68)
         // at org.appwork.utils.swing.dialog.ProgressDialog$3.run(ProgressDialog.java:217)
-        if (ret == Boolean.TRUE) return true;
+        if (ret == Boolean.TRUE) {
+            return true;
+        }
         return false;
     }
 
@@ -1252,17 +1278,22 @@ public class JDGui implements UpdaterListener, OwnerFinder {
             }
         });
 
-        // new Thread("StatsDialog") {
-        // public void run() {
-        // try {
-        // Thread.sleep(10000);
-        // } catch (InterruptedException e) {
-        // e.printStackTrace();
-        // }
-        // showStatsDialog();
-        //
-        // }
-        // }.start();
+        SecondLevelLaunch.ACCOUNTLIST_LOADED.executeWhenReached(new Runnable() {
+
+            @Override
+            public void run() {
+                new EDTRunner() {
+
+                    @Override
+                    protected void runInEDT() {
+
+                        MainTabbedPane.getInstance().setTopRightPainter(OboomController.getInstance().start());
+                    }
+
+                };
+            }
+        });
+
         FileCreationManager.getInstance().mkdir(Application.getResource("/tmp/update/self/JDU"));
         new Thread() {
             public void run() {
@@ -1382,7 +1413,9 @@ public class JDGui implements UpdaterListener, OwnerFinder {
         if (!this.mainTabbedPane.contains(view)) {
             this.mainTabbedPane.addTab(view);
         }
-        if (setActive) this.mainTabbedPane.setSelectedComponent(view);
+        if (setActive) {
+            this.mainTabbedPane.setSelectedComponent(view);
+        }
     }
 
     public void setFrameState(FrameState toFrontFocused) {
@@ -1705,9 +1738,9 @@ public class JDGui implements UpdaterListener, OwnerFinder {
     }
 
     private String generateTitle(String title) {
-        String speedpattern = "\\|(.*?)\\#SPEED(.*?)\\|";
-        String titlepattern = "\\|(.*?)\\#TITLE(.*?)\\|";
-        String updatepattern = "\\|(.*?)\\#UPDATENOTIFY(.*?)\\|";
+        String speedpattern = "\\|([^\\|]*)\\#SPEED([^\\|]*)\\|";
+        String titlepattern = "\\|([^\\|]*)\\#TITLE([^\\|]*)\\|";
+        String updatepattern = "\\|([^\\|]*)\\#UPDATENOTIFY([^\\|]*)\\|";
         String pattern = CFG_GUI.CFG.getTitlePattern();
         pattern = pattern.replaceAll(titlepattern, "$1" + title + "$2");
 
@@ -1752,7 +1785,7 @@ public class JDGui implements UpdaterListener, OwnerFinder {
 
         }
 
-        return pattern;
+        return pattern.trim();
     }
 
     public static void init() {

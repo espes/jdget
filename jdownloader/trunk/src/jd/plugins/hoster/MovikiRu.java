@@ -17,6 +17,7 @@
 package jd.plugins.hoster;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 
 import jd.PluginWrapper;
 import jd.http.Browser;
@@ -53,7 +54,7 @@ public class MovikiRu extends PluginForHost {
         this.setBrowserExclusive();
         br.setFollowRedirects(true);
         br.getPage(downloadLink.getDownloadURL());
-        if (br.getURL().contains("404.php")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        if (br.getURL().contains("404.php") || br.containsHTML(">window\\.location=\\'/404\\.php\\'")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
         String filename = br.getRegex("class=\"block_header\">([^<>\"]*?)<").getMatch(0);
         if (filename == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         filename = Encoding.htmlDecode(filename.trim());
@@ -74,7 +75,11 @@ public class MovikiRu extends PluginForHost {
         br2.setFollowRedirects(true);
         URLConnectionAdapter con = null;
         try {
-            con = br2.openGetConnection(DLLINK);
+            try {
+                con = br2.openGetConnection(DLLINK);
+            } catch (final SocketTimeoutException e) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             if (!con.getContentType().contains("html"))
                 downloadLink.setDownloadSize(con.getLongContentLength());
             else

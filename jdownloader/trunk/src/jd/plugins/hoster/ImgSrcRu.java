@@ -16,12 +16,13 @@
 
 package jd.plugins.hoster;
 
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
 
 import jd.PluginWrapper;
 import jd.config.Property;
 import jd.http.Browser;
 import jd.http.URLConnectionAdapter;
+import jd.nutils.encoding.Encoding;
 import jd.parser.Regex;
 import jd.parser.html.Form;
 import jd.plugins.DownloadLink;
@@ -38,11 +39,10 @@ public class ImgSrcRu extends PluginForHost {
     // DEV NOTES
     // drop requests on too much traffic, I suspect at the firewall on connection.
 
-    private String  agent    = null;
-    private String  ddlink   = null;
-    private String  password = null;
-    private boolean loaded   = false;
-    private String  js       = null;
+    private String                  ddlink    = null;
+    private String                  password  = null;
+    private String                  js        = null;
+    private AtomicReference<String> userAgent = new AtomicReference<String>(null);
 
     public ImgSrcRu(PluginWrapper wrapper) {
         super(wrapper);
@@ -79,7 +79,7 @@ public class ImgSrcRu extends PluginForHost {
         return false;
     }
 
-    private Browser prepBrowser(Browser prepBr, Boolean neu) {
+    public Browser prepBrowser(Browser prepBr, Boolean neu) {
         if (neu) {
             String refer = prepBr.getHeaders().get("Referer");
             prepBr = new Browser();
@@ -88,15 +88,12 @@ public class ImgSrcRu extends PluginForHost {
         prepBr.setFollowRedirects(true);
         prepBr.setReadTimeout(180000);
         prepBr.setConnectTimeout(180000);
-        if (agent == null || neu) {
+        if (userAgent.get() == null || neu) {
             /* we first have to load the plugin, before we can reference it */
-            if (!loaded) {
-                JDUtilities.getPluginForHost("mediafire.com");
-                loaded = true;
-            }
-            agent = jd.plugins.hoster.MediafireCom.stringUserAgent();
+            JDUtilities.getPluginForHost("mediafire.com");
+            userAgent.set(jd.plugins.hoster.MediafireCom.stringUserAgent());
         }
-        prepBr.getHeaders().put("User-Agent", agent);
+        prepBr.getHeaders().put("User-Agent", userAgent.get());
         prepBr.getHeaders().put("Accept-Language", "en-gb, en;q=0.9");
         prepBr.setCookie(this.getHost(), "iamlegal", "yeah");
         prepBr.setCookie(this.getHost(), "lang", "en");
@@ -108,9 +105,11 @@ public class ImgSrcRu extends PluginForHost {
     public AvailableStatus requestFileInformation(DownloadLink downloadLink) throws Exception {
         prepBrowser(br, false);
         final String r = downloadLink.getStringProperty("Referer", null);
-        if (r != null) br.getHeaders().put("Referer", r);
+        if (r != null) {
+            br.getHeaders().put("Referer", r);
+        }
         getPage(downloadLink.getDownloadURL(), downloadLink);
-        js = br.getRegex("<script type=\"text/javascript\">([\r\n\t ]+var r='[a-zA-Z0-9]+';[\r\n\t ]+var o=[^<]+)</script>").getMatch(0);
+        js = br.getRegex("<script type=\"text/javascript\">([\r\n\t ]+var [a-z]='[a-zA-Z0-9]+';[\r\n\t ]+var [a-z]=[^<]+)</script>").getMatch(0);
         if (js != null) {
             getDllink();
             if (ddlink != null) {
@@ -130,18 +129,38 @@ public class ImgSrcRu extends PluginForHost {
         return AvailableStatus.TRUE;
     }
 
-    private String processJS() {
+    private String processJS() throws Exception {
         // process the javascript within rhino vs doing this!!
-
-        String r = new Regex(js, "r='(.*?)';").getMatch(0);
-        String o = new Regex(js, "o='(.*?)';").getMatch(0);
-        String n = "";
-        String notn = new Regex(js, "n=([^;]+)").getMatch(0);
+        // was
+        // <script type="text/javascript">
+        // var r='nca';
+        // var o='mink_blue';
+        // var n=r.charAt(2)+r.charAt(0)+r.charAt(1);
+        // document.getElementById('big_pic').src='http://b3.us.icdn.ru/'+o.charAt(0)+'/'+o+'/3/'+'37369043'+n+'.jpg';
+        // </script>
+        // String r = new Regex(js, "r='(.*?)';").getMatch(0);
+        // String o = new Regex(js, "o='(.*?)';").getMatch(0);
+        // String n = "";
+        // String notn = new Regex(js, "n=([^;]+)").getMatch(0);
+        // String[][] jn = new Regex(notn, "([a-z])\\.charAt\\((\\d+)\\)").getMatches();
+        // now
+        // <script type="text/javascript">
+        // var n='tdh';
+        // var e=n.charAt(2)+n.charAt(0)+n.charAt(1);
+        // var u='geragera';
+        // document.getElementById('big_pic').src='http://b2.eu.icdn.ru/'+u.charAt(0)+'/'+u+'/9/'+'37547279'+e+'.jpg';
+        // </script>
+        String n = new Regex(js, "n='(.*?)';").getMatch(0);
+        String u = new Regex(js, "u='(.*?)';").getMatch(0);
+        String e = "";
+        String notn = new Regex(js, "e=([^;]+)").getMatch(0);
         String[][] jn = new Regex(notn, "([a-z])\\.charAt\\((\\d+)\\)").getMatches();
-
+        if (jn == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         for (String[] a : jn) {
-            if ("r".equals(a[0])) {
-                n = n + r.charAt(Integer.parseInt(a[1]));
+            if ("n".equals(a[0])) {
+                e = e + n.charAt(Integer.parseInt(a[1]));
             }
         }
         String best = null;
@@ -155,28 +174,32 @@ public class ImgSrcRu extends PluginForHost {
             logger.warning("Error in finding JS pic!");
             return null;
         }
+        // was
         // document.getElementById('oripic').href='http://o8.su.imgsrc.ru/'+o.charAt(0)+'/'+o+'/9/31970729'+n+'.jpg';
         // document.getElementById('bigpic').src='http://b0.su.imgsrc.ru/'+o.charAt(0)+'/'+o+'/8/'+'463518'+n+'.jpg';
-        best = best.replace("'+o+'", o);
-        best = best.replace("'+n+'", n);
-        best = best.replace("'+o.charAt(0)+'", o.substring(0, 1));
+        // now
+        // document.getElementById('big_pic').src='http://b2.eu.icdn.ru/'+u.charAt(0)+'/'+u+'/9/'+'37547279'+e+'.jpg';
+        best = best.replace("'+u+'", u);
+        best = best.replace("'+e+'", e);
+        best = best.replace("'+u.charAt(0)+'", u.substring(0, 1));
         best = best.replaceAll("[ \\+']", "");
         ddlink = best;
-
         return best;
     }
 
-    private void getDllink() {
+    private void getDllink() throws Exception {
         processJS();
         if (ddlink == null) {
-            ddlink = br.getRegex("name=bb onclick=\\'select\\(\\);\\' type=text style=\\'\\{width:\\d+;\\}\\' value=\\'\\[URL=[^<>\"]+\\]\\[IMG\\](http://[^<>\"]*?)\\[/IMG\\]").getMatch(0);
+            ddlink = br.getRegex("name=bb onclick='select\\(\\);' type=text style='\\{width:\\d+;\\}' value='\\[URL=[^<>\"]+\\]\\[IMG\\](http://[^<>\"]*?)\\[/IMG\\]").getMatch(0);
         }
     }
 
     @Override
     public void handleFree(DownloadLink downloadLink) throws Exception, PluginException {
         requestFileInformation(downloadLink);
-        if (ddlink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (ddlink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         br.setFollowRedirects(true);
         dl = jd.plugins.BrowserAdapter.openDownload(br, downloadLink, ddlink, true, 1);
         if (dl.getConnection().getContentType().contains("html")) {
@@ -186,84 +209,65 @@ public class ImgSrcRu extends PluginForHost {
         dl.startDownload();
     }
 
-    private boolean getPage(String url, DownloadLink downloadLink) throws Exception {
-        // if (url == null || parameter == null) return false;
-        boolean failed = false;
-        int repeat = 4;
-        for (int i = 0; i <= repeat; i++) {
-            long meep = new Random().nextInt(4) * 1000;
-            if (failed) {
-                Thread.sleep(meep);
-                failed = false;
-            }
-            try {
-                br.getPage(url);
-                if (br.containsHTML(">This album has not been checked by the moderators yet\\.|<u>Proceed at your own risk</u>")) {
-                    br.getPage(br.getURL() + "?warned=yeah");
-                }
-                // needs to be before password
-                if (br.containsHTML(">Album foreword:.+Continue to album >></a>")) {
-                    final String newLink = br.getRegex(">shortcut\\.add\\(\"Right\",function\\(\\) \\{window\\.location=\\'(http://imgsrc\\.ru/[^<>\"\\'/]+/[a-z0-9]+\\.html(\\?pwd=([a-z0-9]{32})?)?)\\'").getMatch(0);
-                    if (newLink == null) {
-                        logger.warning("Couldn't process Album forward");
-                        throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
-                    }
-                    br.getPage(newLink);
-                }
-                if (br.containsHTML(">Album owner has protected his work from unauthorized access")) {
-                    Form pwForm = br.getFormbyProperty("name", "passchk");
-                    if (pwForm == null) {
-                        logger.warning("Password form finder failed!");
-                        throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
-                    }
-                    if (password == null) {
-                        password = downloadLink.getStringProperty("password");
-                        if (password == null) {
-                            password = getUserInput("Enter password for link:", downloadLink);
-                            if (password == null || password.equals("")) {
-                                logger.info("User abored/entered blank password");
-                                throw new PluginException(LinkStatus.ERROR_FATAL);
-                            }
-                        }
-                    }
-                    pwForm.put("pwd", password);
-                    br.submitForm(pwForm);
-                    pwForm = br.getFormbyProperty("name", "passchk");
-                    if (pwForm != null) {
-                        downloadLink.setProperty("password", Property.NULL);
-                        password = null;
-                        failed = true;
-                        continue;
-                    }
-                    downloadLink.setProperty("password", password);
-                    break;
-                }
-                if (br.getURL().equals("http://imgsrc.ru/")) {
-                    // link has been removed!
-                    throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
-                }
-                if (br.getURL().contains(url) || !failed) {
-                    // because one page grab could have multiple steps, you can not break after each if statement
-                    break;
-                }
-            } catch (PluginException e) {
-                failed = true;
-                throw e;
-            } catch (Throwable e) {
-                failed = true;
-                continue;
+    private void getPage(String url, DownloadLink downloadLink) throws Exception {
+        if (url == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
+        br.getPage(url);
+        if (br.containsHTML(">This album has not been checked by the moderators yet\\.|<u>Proceed at your own risk</u>")) {
+            // /main/passcheck.php?ad=\d+ links can not br.getURL + "?warned=yeah"
+            // lets look for the link
+            final String yeah = br.getRegex("/[^/]+/a\\d+\\.html\\?warned=yeah").getMatch(-1);
+            if (yeah != null) {
+                br.getPage(yeah);
+            } else {
+                // fail over
+                br.getPage(br.getURL() + "?warned=yeah");
             }
         }
-        if (failed) {
-            logger.warning("Exausted retry getPage count");
-            throw new PluginException(LinkStatus.ERROR_RETRY);
+        // needs to be before password
+        if (br.containsHTML(">Album foreword:.+Continue to album >></a>")) {
+            final String newLink = br.getRegex(">shortcut\\.add\\(\"Right\",function\\(\\) \\{window\\.location=\\'(http://imgsrc\\.ru/[^<>\"\\'/]+/[a-z0-9]+\\.html(\\?pwd=([a-z0-9]{32})?)?)\\'").getMatch(0);
+            if (newLink == null) {
+                logger.warning("Couldn't process Album forward");
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
+            br.getPage(newLink);
         }
-        return true;
+        if (br.containsHTML(">Album owner has protected his work from unauthorized access")) {
+            Form pwForm = br.getFormbyProperty("name", "passchk");
+            if (pwForm == null) {
+                logger.warning("Password form finder failed!");
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
+            if (password == null) {
+                password = downloadLink.getStringProperty("pass");
+                if (password == null) {
+                    password = getUserInput("Enter password for link:", downloadLink);
+                    if (password == null || password.equals("")) {
+                        logger.info("User abored/entered blank password");
+                        throw new PluginException(LinkStatus.ERROR_FATAL);
+                    }
+                }
+            }
+            pwForm.put("pwd", Encoding.urlEncode(password));
+            br.submitForm(pwForm);
+            pwForm = br.getFormbyProperty("name", "passchk");
+            if (pwForm != null) {
+                downloadLink.setProperty("pass", Property.NULL);
+                password = null;
+                throw new PluginException(LinkStatus.ERROR_RETRY);
+            }
+            downloadLink.setProperty("pass", password);
+        } else if (br.getURL().equals("http://imgsrc.ru/")) {
+            // link has been removed!
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
     }
 
     @Override
     public int getMaxSimultanFreeDownloadNum() {
-        return -1;
+        return 3;
     }
 
     @Override

@@ -1,22 +1,25 @@
 package org.jdownloader.gui.notify.downloads;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.WeakHashMap;
 
 import jd.controlling.downloadcontroller.DownloadLinkCandidate;
 import jd.controlling.downloadcontroller.DownloadLinkCandidateResult;
+import jd.controlling.downloadcontroller.DownloadSession;
 import jd.controlling.downloadcontroller.DownloadWatchDog;
+import jd.controlling.downloadcontroller.DownloadWatchDogJob;
 import jd.controlling.downloadcontroller.DownloadWatchDogProperty;
 import jd.controlling.downloadcontroller.SingleDownloadController;
 import jd.controlling.downloadcontroller.event.DownloadWatchdogListener;
 
-import org.appwork.utils.swing.EDTRunner;
+import org.appwork.storage.config.WeakHashSet;
 import org.jdownloader.gui.IconKey;
 import org.jdownloader.gui.notify.AbstractBubbleSupport;
+import org.jdownloader.gui.notify.BubbleNotify.AbstractNotifyWindowFactory;
 import org.jdownloader.gui.notify.Element;
+import org.jdownloader.gui.notify.gui.AbstractNotifyWindow;
 import org.jdownloader.gui.notify.gui.CFG_BUBBLE;
 import org.jdownloader.gui.translate._GUI;
 
@@ -42,13 +45,13 @@ public class StartDownloadsBubbleSupport extends AbstractBubbleSupport implement
             this.time = System.currentTimeMillis();
         }
 
-        private SingleDownloadController controller;
-        private long                     time;
+        private final SingleDownloadController controller;
+        private final long                     time;
     }
 
-    private LinkedList<QueuedStart>           queue   = new LinkedList<QueuedStart>();
-    private Thread                            queueWorker;
-    private HashSet<SingleDownloadController> started = new HashSet<SingleDownloadController>();
+    private final WeakHashMap<SingleDownloadController, QueuedStart> queue       = new WeakHashMap<SingleDownloadController, QueuedStart>();
+    private volatile Thread                                          queueWorker = null;
+    private final WeakHashSet<SingleDownloadController>              started     = new WeakHashSet<SingleDownloadController>();
 
     @Override
     public List<Element> getElements() {
@@ -56,74 +59,102 @@ public class StartDownloadsBubbleSupport extends AbstractBubbleSupport implement
     }
 
     @Override
-    public void onDownloadControllerStart(final SingleDownloadController downloadController, DownloadLinkCandidate candidate) {
-        if (!CFG_BUBBLE.BUBBLE_NOTIFY_START_STOP_DOWNLOADS_ENABLED.isEnabled()) {
+    public synchronized void onDownloadControllerStart(final SingleDownloadController downloadController, DownloadLinkCandidate candidate) {
+        if (!isEnabled()) {
             started.clear();
             queue.clear();
-            return;
-        }
-        synchronized (queue) {
-            queue.add(new QueuedStart(downloadController));
-            if (queueWorker == null) {
-                queueWorker = new Thread("BubbleNotofyDelayerQUeue") {
+        } else {
+            queue.put(downloadController, new QueuedStart(downloadController));
+            Thread thread = queueWorker;
+            if (thread == null || !thread.isAlive()) {
+                thread = new Thread("BubbleNotifyDelayerQUeue") {
                     public void run() {
-                        while (true) {
-                            try {
-                                Thread.sleep(500);
-                            } catch (InterruptedException e) {
-                                return;
-                            }
-                            synchronized (queue) {
-
-                                for (Iterator<QueuedStart> it = queue.iterator(); it.hasNext();) {
-                                    final QueuedStart next = it.next();
-                                    if (!next.controller.isActive()) {
-                                        it.remove();
-                                    } else if (System.currentTimeMillis() - next.time > CFG_BUBBLE.CFG.getDownloadStartEndNotifyDelay()) {
-                                        it.remove();
-                                        started.add(next.controller);
-                                        new EDTRunner() {
-                                            @Override
-                                            protected void runInEDT() {
-
-                                                DownloadStartedNotify no = new DownloadStartedNotify(StartDownloadsBubbleSupport.this, next.controller);
-                                                show(no);
-                                            }
-                                        };
+                        try {
+                            while (true) {
+                                try {
+                                    Thread.sleep(500);
+                                } catch (InterruptedException e) {
+                                    synchronized (StartDownloadsBubbleSupport.this) {
+                                        started.clear();
+                                        queue.clear();
+                                        queueWorker = null;
                                     }
-                                }
-                                if (queue.size() == 0) {
-                                    queueWorker = null;
                                     return;
                                 }
+                                synchronized (StartDownloadsBubbleSupport.this) {
+                                    for (Iterator<QueuedStart> it = queue.values().iterator(); it.hasNext();) {
+                                        final QueuedStart next = it.next();
+                                        if (next != null) {
+                                            final SingleDownloadController controller = next.controller;
+                                            if (!controller.isActive()) {
+                                                it.remove();
+                                            } else if (System.currentTimeMillis() - next.time > CFG_BUBBLE.CFG.getDownloadStartEndNotifyDelay()) {
+                                                it.remove();
+                                                DownloadWatchDog.getInstance().enqueueJob(new DownloadWatchDogJob() {
+
+                                                    @Override
+                                                    public void interrupt() {
+                                                    }
+
+                                                    @Override
+                                                    public void execute(DownloadSession currentSession) {
+                                                        if (controller.isActive()) {
+                                                            show(new AbstractNotifyWindowFactory() {
+
+                                                                @Override
+                                                                public AbstractNotifyWindow<?> buildAbstractNotifyWindow() {
+                                                                    if (controller.isActive()) {
+                                                                        synchronized (StartDownloadsBubbleSupport.this) {
+                                                                            started.add(controller);
+                                                                        }
+                                                                        return new DownloadStartedNotify(StartDownloadsBubbleSupport.this, controller);
+                                                                    } else {
+                                                                        return null;
+                                                                    }
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    }
+                                    if (queue.size() == 0) {
+                                        queueWorker = null;
+                                        return;
+                                    }
+                                }
+                            }
+                        } finally {
+                            synchronized (StartDownloadsBubbleSupport.this) {
+                                queueWorker = null;
                             }
                         }
                     }
                 };
-                queueWorker.start();
+                thread.setDaemon(true);
+                thread.start();
+                queueWorker = thread;
             }
         }
-
     }
 
     @Override
-    public void onDownloadControllerStopped(final SingleDownloadController downloadController, DownloadLinkCandidate candidate, DownloadLinkCandidateResult result) {
-        if (!CFG_BUBBLE.BUBBLE_NOTIFY_START_STOP_DOWNLOADS_ENABLED.isEnabled()) {
+    public synchronized void onDownloadControllerStopped(final SingleDownloadController downloadController, DownloadLinkCandidate candidate, DownloadLinkCandidateResult result) {
+        if (!isEnabled()) {
             started.clear();
             queue.clear();
-            return;
-        }
-        synchronized (queue) {
-            if (!started.contains(downloadController)) return;
-            started.remove(downloadController);
-        }
-        new EDTRunner() {
-            @Override
-            protected void runInEDT() {
-                DownloadStoppedNotify no = new DownloadStoppedNotify(StartDownloadsBubbleSupport.this, downloadController);
-                show(no);
+        } else {
+            if (started.remove(downloadController)) {
+                show(new AbstractNotifyWindowFactory() {
+
+                    @Override
+                    public AbstractNotifyWindow<?> buildAbstractNotifyWindow() {
+                        return new DownloadStoppedNotify(StartDownloadsBubbleSupport.this, downloadController);
+                    }
+                });
             }
-        };
+        }
     }
 
     @Override

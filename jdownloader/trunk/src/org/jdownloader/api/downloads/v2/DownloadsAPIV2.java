@@ -5,11 +5,16 @@ import java.util.List;
 import org.appwork.remoteapi.RemoteAPIInterface;
 import org.appwork.remoteapi.annotations.ApiNamespace;
 import org.appwork.remoteapi.exceptions.BadParameterException;
+import org.jdownloader.myjdownloader.client.bindings.PriorityStorable;
 
 @ApiNamespace("downloadsV2")
 public interface DownloadsAPIV2 extends RemoteAPIInterface {
 
     void setEnabled(boolean enabled, long[] linkIds, long[] packageIds);
+
+    void setStopMark(long linkId, long packageId);
+
+    void removeStopMark();
 
     int packageCount();
 
@@ -38,6 +43,8 @@ public interface DownloadsAPIV2 extends RemoteAPIInterface {
     void removeLinks(final long[] linkIds, final long[] packageIds);
 
     void renamePackage(Long packageId, String newName);
+
+    void renameLink(Long linkId, String newName);
 
     void resetLinks(long[] linkIds, long[] packageIds);
 
@@ -75,5 +82,11 @@ public interface DownloadsAPIV2 extends RemoteAPIInterface {
      * @return
      */
     List<DownloadLinkAPIStorableV2> queryLinks(LinkQueryStorable queryParams) throws BadParameterException;
+
+    void setPriority(PriorityStorable priority, long[] linkIds, long[] packageIds) throws BadParameterException;
+
+    void resumeLinks(long[] linkIds, long[] packageIds) throws BadParameterException;
+
+    void setDownloadDirectory(String directory, long[] packageIds);
 
 }

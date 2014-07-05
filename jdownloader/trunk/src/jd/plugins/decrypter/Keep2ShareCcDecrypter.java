@@ -20,7 +20,6 @@ import java.util.ArrayList;
 
 import jd.PluginWrapper;
 import jd.controlling.ProgressController;
-import jd.http.Browser;
 import jd.nutils.encoding.Encoding;
 import jd.parser.Regex;
 import jd.plugins.CryptedLink;
@@ -30,7 +29,7 @@ import jd.plugins.FilePackage;
 import jd.plugins.LinkStatus;
 import jd.plugins.PluginException;
 import jd.plugins.PluginForDecrypt;
-import jd.plugins.hoster.Keep2ShareCc.StringContainer;
+import jd.plugins.PluginForHost;
 import jd.utils.JDUtilities;
 
 import org.appwork.utils.formatter.SizeFormatter;
@@ -44,13 +43,19 @@ public class Keep2ShareCcDecrypter extends PluginForDecrypt {
 
     public ArrayList<DownloadLink> decryptIt(CryptedLink param, ProgressController progress) throws Exception {
         ArrayList<DownloadLink> decryptedLinks = new ArrayList<DownloadLink>();
-        final String parameter = param.toString();
-        prepBrowser(this.br);
-        br.getPage(parameter);
+        String parameter = param.toString();
+        parameter = parameter.replace("keep2share.cc/", "k2s.cc/");
+        final PluginForHost plugin = JDUtilities.getPluginForHost("keep2share.cc");
+        if (plugin == null) {
+            throw new IllegalStateException("keep2share plugin not found!");
+        }
+        // set cross browser support
+        ((jd.plugins.hoster.Keep2ShareCc) plugin).setBrowser(br);
+        ((jd.plugins.hoster.Keep2ShareCc) plugin).getPage(parameter);
         // Check if we have a single link or a folder
         if (br.containsHTML("class=\"summary\"")) {
             final String fpName = br.getRegex("<title>([^<>\"]*?)</title>").getMatch(0);
-            final String[] links = br.getRegex("target=\"_blank\" href=\"(/file/[a-z0-9]+)\"").getColumn(0);
+            final String[] links = br.getRegex("target=\"_blank\" href=\"([^\"]+)?(/file/[a-z0-9]+)").getColumn(1);
             if (links == null || links.length == 0) {
                 logger.warning("Decrypter broken for link: " + parameter);
                 return null;
@@ -65,53 +70,31 @@ public class Keep2ShareCcDecrypter extends PluginForDecrypt {
             }
         } else {
             final DownloadLink singlink = createDownloadlink("http://keep2sharedecrypted.cc/file/" + new Regex(parameter, "([a-z0-9]+)$").getMatch(0));
-            String filename = null, filesize = null;
-            // This might not be needed anymore but keeping it doesn't hurt either
-            if (br.containsHTML(jd.plugins.hoster.Keep2ShareCc.DOWNLOADPOSSIBLE)) {
-                filename = br.getRegex(">Downloading file:</span><br>[\t\n\r ]+<span class=\"c2\">.*?alt=\"\" style=\"\">([^<>\"]*?)</span>").getMatch(0);
-                filesize = br.getRegex("File size ([^<>\"]*?)</div>").getMatch(0);
+            final String filename = ((jd.plugins.hoster.Keep2ShareCc) plugin).getFileName();
+            final String filesize = ((jd.plugins.hoster.Keep2ShareCc) plugin).getFileSize();
+            if (filename != null) {
+                singlink.setName(Encoding.htmlDecode(filename.trim()));
+            }
+            if (filesize != null) {
+                singlink.setDownloadSize(SizeFormatter.getSize(filesize.trim()));
+            }
+            if (br.containsHTML("Downloading blocked due to")) {
+                throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "Downloading blocked: No JD bug, please contact the keep2share support", 10 * 60 * 1000l);
+            }
+            // you can set filename for offline links! handling should come here!
+            if (br.containsHTML("Sorry, an error occurred while processing your request|File not found or deleted|>Sorry, this file is blocked or deleted\\.</h5>|class=\"empty\"|>Displaying 1")) {
+                singlink.setAvailable(false);
             }
             if (filename == null) {
-                filename = br.getRegex("File: <span>([^<>\"]*?)</span>").getMatch(0);
-                if (filename == null) {
-                    // offline/deleted
-                    filename = br.getRegex("File name:</b>(.*?)<br>").getMatch(0);
-                }
+                singlink.setAvailable(false);
+            } else {
+                // prevent wasteful double linkchecks.
+                singlink.setAvailable(true);
             }
-            if (filesize == null) {
-                filesize = br.getRegex(">Size: ([^<>\"]*?)</div>").getMatch(0);
-                if (filesize == null) {
-                    // offline/deleted
-                    filesize = br.getRegex("<b>File size:</b>(.*?)<br>").getMatch(0);
-                }
-            }
-            if (filename != null) singlink.setName(Encoding.htmlDecode(filename.trim()));
-            if (filesize != null) singlink.setDownloadSize(SizeFormatter.getSize(filesize.trim()));
-            if (br.containsHTML("Downloading blocked due to")) throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "Downloading blocked: No JD bug, please contact the keep2share support", 10 * 60 * 1000l);
-            // you can set filename for offline links! handling should come here!
-            if (br.containsHTML("Sorry, an error occurred while processing your request|File not found or deleted|>Sorry, this file is blocked or deleted\\.</h5>|class=\"empty\"|>Displaying 1")) singlink.setAvailable(false);
-            if (filename == null) singlink.setAvailable(false);
             decryptedLinks.add(singlink);
         }
 
         return decryptedLinks;
     }
 
-    private static StringContainer agent = new StringContainer();
-
-    private Browser prepBrowser(final Browser prepBr) {
-        // define custom browser headers and language settings.
-        if (agent.string == null) {
-            /* we first have to load the plugin, before we can reference it */
-            JDUtilities.getPluginForHost("mediafire.com");
-            agent.string = jd.plugins.hoster.MediafireCom.stringUserAgent();
-        }
-        prepBr.getHeaders().put("User-Agent", agent.string);
-        prepBr.getHeaders().put("Accept-Language", "en-gb, en;q=0.8");
-        prepBr.getHeaders().put("Accept-Charset", null);
-        prepBr.getHeaders().put("Cache-Control", null);
-        prepBr.getHeaders().put("Pragma", null);
-        prepBr.setFollowRedirects(true);
-        return prepBr;
-    }
 }

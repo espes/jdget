@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,11 +52,12 @@ public class DlPrtcCom extends PluginForDecrypt {
         super(wrapper);
     }
 
-    private final String                   CAPTCHATEXT    = ">Security Code";
-    private final String                   CAPTCHAFAILED  = ">The security code is incorrect";
-    private final String                   PASSWORDTEXT   = ">Password :";
-    private final String                   PASSWORDFAILED = ">The password is incorrect";
-    private final String                   JDDETECTED     = "JDownloader is prohibited.";
+    private final String                   CAPTCHATEXT    = ">\\s*Security\\s*Code";
+    private final String                   CAPTCHAFAILED  = ">\\s*The\\s*security\\s*code\\s*is\\s*incorrect";
+    private final String                   PASSWORDTEXT   = ">\\s*Password\\s*:";
+    private final String                   PASSWORDFAILED = ">\\s*The\\s*password\\s*is\\s*incorrect";
+    private final String                   SECONDARY      = "Please\\s*click\\s*on\\s*continue\\s*to\\s*see\\s*the\\s*links";
+    private final String                   JDDETECTED     = "JDownloader\\s*is\\s*prohibited.";
     private static AtomicReference<String> agent          = new AtomicReference<String>(null);
     private static AtomicReference<Object> cookieMonster  = new AtomicReference<Object>();
     private static AtomicInteger           maxConProIns   = new AtomicInteger(1);
@@ -63,6 +65,8 @@ public class DlPrtcCom extends PluginForDecrypt {
     private boolean                        coLoaded       = false;
     private Browser                        cbr            = new Browser();
     private static Object                  ctrlLock       = new Object();
+
+    private boolean                        debug          = false;
 
     @SuppressWarnings("unchecked")
     private Browser prepBrowser(final Browser prepBr) {
@@ -86,10 +90,13 @@ public class DlPrtcCom extends PluginForDecrypt {
         prepBr.getHeaders().put("User-Agent", agent.get());
 
         // Prefer English language
-        if (!coLoaded) prepBr.setCookie(this.getHost(), "l", "en");
+        if (!coLoaded) {
+            prepBr.setCookie(this.getHost(), "l", "en");
+        }
         prepBr.getHeaders().put("Accept-Language", "en-gb, en;q=0.9");
         prepBr.getHeaders().put("Pragma", null);
         prepBr.getHeaders().put("Accept-Charset", null);
+        prepBr.setRequestIntervalLimit(this.getHost(), 1500);
         return prepBr;
     }
 
@@ -140,7 +147,11 @@ public class DlPrtcCom extends PluginForDecrypt {
                     if (cbr.containsHTML(CAPTCHATEXT)) {
                         String[] test = cbr.getRegex("<img[^>]+src=\"(/template/images/[^\"]+)").getColumn(0);
                         if (test != null) {
+                            HashSet<String> dupe = new HashSet<String>();
                             for (final String t : test) {
+                                if (!dupe.add(t)) {
+                                    continue;
+                                }
                                 final Browser brAds = br.cloneBrowser();
                                 try {
                                     brAds.openGetConnection(t);
@@ -187,7 +198,7 @@ public class DlPrtcCom extends PluginForDecrypt {
             // getPage(parameter);
             // }
 
-            if (cbr.containsHTML(">Please click on continue to see")) {
+            if (cbr.containsHTML(SECONDARY)) {
                 br.cloneBrowser().getPage("/pub_footer.html");
                 Form continueForm = getContinueForm();
                 if (continueForm == null) {
@@ -205,7 +216,7 @@ public class DlPrtcCom extends PluginForDecrypt {
                 throw new DecrypterException("D-TECTED!");
             }
             br.cloneBrowser().getPage("/pub_footer.html");
-            String linktext = cbr.getRegex("class=\"divlink link\"\\s+id=\"slinks\"><a(.*?)</table>").getMatch(0);
+            String linktext = cbr.getRegex("(class=\"divlink link\"\\s*id=\"slinks\"|id=\"slinks\"\\s*class=\"divlink link\")><a(.*?)</table>").getMatch(1);
             if (linktext == null) {
                 if (br.containsHTML(">Your link :</div>")) {
                     logger.info("Link offline: " + parameter);
@@ -214,13 +225,14 @@ public class DlPrtcCom extends PluginForDecrypt {
                 logger.warning("Decrypter broken 4 for link: " + parameter);
                 return null;
             }
-            final String[] links = new Regex(linktext, "href=\"([^\"\\']+)\"").getColumn(0);
+            final String[] links = new Regex(linktext, "href=(\"|')(.*?)\\1").getColumn(1);
             if (links == null || links.length == 0) {
                 logger.warning("Decrypter broken 5 for link: " + parameter);
                 return null;
             }
-            for (String dl : links)
+            for (String dl : links) {
                 decryptedLinks.add(createDownloadlink(dl));
+            }
 
             // saving session info can result in you not having to enter a captcha for each new link viewed!
             final HashMap<String, String> cookies = new HashMap<String, String>();
@@ -229,13 +241,22 @@ public class DlPrtcCom extends PluginForDecrypt {
                 cookies.put(c.getKey(), c.getValue());
             }
             synchronized (cookieMonster) {
-                cookieMonster.set((Object) cookies);
+                cookieMonster.set(cookies);
             }
 
             // rmCookie(parameter);
             lastUsed.set(System.currentTimeMillis());
 
-            return decryptedLinks;
+            if (debug) {
+                int i = 0;
+                while (i != 10) {
+                    logger.info(parameter + " == " + decryptedLinks.size());
+                    i++;
+                }
+                return new ArrayList<DownloadLink>();
+            } else {
+                return decryptedLinks;
+            }
         }
 
     }
@@ -256,14 +277,34 @@ public class DlPrtcCom extends PluginForDecrypt {
     }
 
     private Form getForm() {
-        Form theForm = cbr.getFormbyProperty("name", "ccerure");
-        if (theForm == null) theForm = cbr.getForm(0);
+        Form theForm = null;
+        for (Form f : cbr.getForms()) {
+            if (f.containsHTML(CAPTCHATEXT)) {
+                theForm = f;
+            }
+        }
+        if (theForm == null) {
+            theForm = cbr.getFormbyProperty("name", "ccerure");
+            if (theForm == null) {
+                theForm = cbr.getForm(0);
+            }
+        }
         return theForm;
     }
 
     private Form getContinueForm() {
-        Form theForm = cbr.getFormbyProperty("name", "submitform");
-        if (theForm == null) theForm = cbr.getForm(0);
+        Form theForm = null;
+        for (Form f : cbr.getForms()) {
+            if (f.containsHTML(SECONDARY)) {
+                theForm = f;
+            }
+        }
+        if (theForm == null) {
+            theForm = cbr.getFormbyProperty("name", "ccerure");
+            if (theForm == null) {
+                theForm = cbr.getForm(0);
+            }
+        }
         return theForm;
     }
 

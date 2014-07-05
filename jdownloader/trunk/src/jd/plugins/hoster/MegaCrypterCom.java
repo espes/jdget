@@ -75,6 +75,7 @@ public class MegaCrypterCom extends PluginForHost {
     // Encrpt stuff
     private final String USE_TMP   = "USE_TMP";
     private final String encrypted = ".encrypted";
+    private boolean      dl_start  = false;
 
     private static enum MegaCrypterComApiErrorCodes {
         FILE_NOT_FOUND(3),
@@ -115,7 +116,7 @@ public class MegaCrypterCom extends PluginForHost {
     }
 
     private void checkError(Browser br) throws PluginException {
-        String code = br.getRegex("\"error\"\\s*\\:\\s*(\\d+)").getMatch(0);
+        String code = br.getRegex("\"error\"\\s*\\:\\s*(\\-?\\d+)").getMatch(0);
         if (code != null) {
             int codeInt = Integer.parseInt(code);
             for (MegaCrypterComApiErrorCodes v : MegaCrypterComApiErrorCodes.values()) {
@@ -174,11 +175,20 @@ public class MegaCrypterCom extends PluginForHost {
         br.setFollowRedirects(true);
         LINKPART = new Regex(link.getDownloadURL(), "megacrypter\\.com/(.+)").getMatch(0);
         br.postPageRaw("http://megacrypter.com/api", "{\"m\": \"info\", \"link\":\"" + LINKPART + "\"}");
-        checkError(br);
+        try {
+            checkError(br);
+        } catch (final PluginException e) {
+            if (!dl_start && e.getLinkStatus() == LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE) {
+                return AvailableStatus.UNCHECKABLE;
+            }
+            throw e;
+        }
 
         final String filename = br.getRegex("\"name\":\"([^<>\"]*?)\"").getMatch(0);
         final String filesize = br.getRegex("\"size\":(\\d+)").getMatch(0);
-        if (filename == null || filesize == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (filename == null || filesize == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         link.setFinalFileName(Encoding.htmlDecode(filename.trim()));
         link.setDownloadSize(SizeFormatter.getSize(filesize));
         return AvailableStatus.TRUE;
@@ -186,14 +196,19 @@ public class MegaCrypterCom extends PluginForHost {
 
     @Override
     public void handleFree(final DownloadLink downloadLink) throws Exception, PluginException {
+        dl_start = true;
         requestFileInformation(downloadLink);
         final String key = br.getRegex("\"key\":\"([^<>\"]*?)\"").getMatch(0);
-        if (key == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (key == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         br.getHeaders().put("Content-Type", "application/json");
         br.postPageRaw("http://megacrypter.com/api", "{\"m\": \"dl\", \"link\":\"" + LINKPART + "\"}");
         checkError(br);
         String dllink = br.getRegex("\"url\":\"(http:[^<>\"]*?)\"").getMatch(0);
-        if (dllink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (dllink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         dllink = dllink.replace("\\", "");
         dl = jd.plugins.BrowserAdapter.openDownload(br, downloadLink, dllink, true, -10);
         if (dl.getConnection().getContentType().contains("html")) {
@@ -231,7 +246,9 @@ public class MegaCrypterCom extends PluginForHost {
 
     private boolean oldStyle() {
         String style = System.getProperty("ftpStyle", null);
-        if ("new".equalsIgnoreCase(style)) return false;
+        if ("new".equalsIgnoreCase(style)) {
+            return false;
+        }
         String prev = JDUtilities.getRevision();
         if (prev == null || prev.length() < 3) {
             prev = "0";
@@ -239,7 +256,9 @@ public class MegaCrypterCom extends PluginForHost {
             prev = prev.replaceAll(",|\\.", "");
         }
         int rev = Integer.parseInt(prev);
-        if (rev < 10000) return true;
+        if (rev < 10000) {
+            return true;
+        }
         return false;
     }
 
@@ -272,7 +291,9 @@ public class MegaCrypterCom extends PluginForHost {
                         continue;
                     }
                 }
-                if (maxRedirects <= 0) { throw new PluginException(LinkStatus.ERROR_FATAL, "Redirectloop"); }
+                if (maxRedirects <= 0) {
+                    throw new PluginException(LinkStatus.ERROR_FATAL, "Redirectloop");
+                }
 
             }
         }
@@ -312,16 +333,21 @@ public class MegaCrypterCom extends PluginForHost {
             dst = new File(path);
         }
         if (tmp != null) {
-            if (tmp.exists() && tmp.delete() == false) throw new IOException("Could not delete " + tmp);
+            if (tmp.exists() && tmp.delete() == false) {
+                throw new IOException("Could not delete " + tmp);
+            }
         } else {
-            if (dst.exists() && dst.delete() == false) throw new IOException("Could not delete " + dst);
+            if (dst.exists() && dst.delete() == false) {
+                throw new IOException("Could not delete " + dst);
+            }
         }
         FileInputStream fis = null;
         FileOutputStream fos = null;
         boolean deleteDst = true;
+        PluginProgress progress = null;
         try {
             long total = src.length();
-            final PluginProgress progress = new PluginProgress(0, total, null) {
+            progress = new PluginProgress(0, total, null) {
                 long lastCurrent    = -1;
                 long startTimeStamp = -1;
 
@@ -344,9 +370,13 @@ public class MegaCrypterCom extends PluginForHost {
                         return;
                     }
                     long currentTimeDifference = System.currentTimeMillis() - startTimeStamp;
-                    if (currentTimeDifference <= 0) return;
+                    if (currentTimeDifference <= 0) {
+                        return;
+                    }
                     long speed = (current * 10000) / currentTimeDifference;
-                    if (speed == 0) return;
+                    if (speed == 0) {
+                        return;
+                    }
                     long eta = ((total - current) * 10000) / speed;
                     this.setETA(eta);
                 }
@@ -355,7 +385,7 @@ public class MegaCrypterCom extends PluginForHost {
             progress.setProgressSource(this);
             // progress.setIcon(NewTheme.I().getIcon("lock", 16));
             link.getLinkStatus().setStatusText("Decrypting");
-            link.setPluginProgress(progress);
+            link.addPluginProgress(progress);
             fis = new FileInputStream(src);
             if (tmp != null) {
                 fos = new FileOutputStream(tmp);
@@ -386,9 +416,9 @@ public class MegaCrypterCom extends PluginForHost {
             deleteDst = false;
             link.getLinkStatus().setStatusText("Finished");
             try {
-                link.setFinalFileOutput(dst.getAbsolutePath());
-                link.setCustomFileOutputFilenameAppend(null);
-                link.setCustomFileOutputFilename(null);
+
+                link.setInternalTmpFilenameAppend(null);
+                link.setInternalTmpFilename(null);
             } catch (final Throwable e) {
             }
             if (tmp == null) {
@@ -398,7 +428,6 @@ public class MegaCrypterCom extends PluginForHost {
                 tmp.renameTo(dst);
             }
         } finally {
-            link.setPluginProgress(null);
             try {
                 fis.close();
             } catch (final Throwable e) {
@@ -407,6 +436,7 @@ public class MegaCrypterCom extends PluginForHost {
                 fos.close();
             } catch (final Throwable e) {
             }
+            link.removePluginProgress(progress);
             if (deleteDst) {
                 if (tmp != null) {
                     tmp.delete();

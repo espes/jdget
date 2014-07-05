@@ -20,9 +20,11 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import jd.PluginWrapper;
 import jd.config.Property;
+import jd.http.Browser;
 import jd.http.Cookie;
 import jd.http.Cookies;
 import jd.nutils.encoding.Encoding;
@@ -60,20 +62,38 @@ public class UltraMegaBitCom extends PluginForHost {
         link.setUrlDownload("https://ultramegabit.com/file/details/" + new Regex(link.getDownloadURL(), "([A-Za-z0-9\\-_]+)$").getMatch(0));
     }
 
+    private static AtomicReference<String> agent = new AtomicReference<String>(null);
+
+    private Browser prepBrowser(final Browser prepBr) {
+        if (agent.get() == null) {
+            /* we first have to load the plugin, before we can reference it */
+            JDUtilities.getPluginForHost("mediafire.com");
+            agent.set(jd.plugins.hoster.MediafireCom.stringUserAgent());
+        }
+        prepBr.getHeaders().put("User-Agent", agent.get());
+        prepBr.getHeaders().put("Accept-Language", "en-us;q=0.7,en;q=0.3");
+        prepBr.getHeaders().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        prepBr.getHeaders().put("Accept-Charset", null);
+        return prepBr;
+    }
+
     @Override
     public AvailableStatus requestFileInformation(final DownloadLink link) throws Exception {
-        this.setBrowserExclusive();
         correctDownloadLink(link);
+        this.setBrowserExclusive();
+        prepBrowser(br);
         br.setFollowRedirects(true);
-        br.getHeaders().put("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:28.0) Gecko/20100101 Firefox/28.0");
-        br.getHeaders().put("Accept-Language", "en-us;q=0.7,en;q=0.3");
-        br.getHeaders().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-        br.getHeaders().put("Accept-Charset", null);
         br.getPage(link.getDownloadURL());
-        if (br.getURL().contains("ultramegabit.com/folder/add/")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
-        if (br.containsHTML(">File not found<|>File restricted<|>File not available")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        if (br.getURL().contains("ultramegabit.com/folder/add/")) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
+        if (br.containsHTML(">File not found<|>File restricted<|>File not available")) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
         // Deleted because of inactivity
-        if (br.containsHTML(">File has been deleted|>We\\'re sorry\\. This file has been deleted due to inactivity\\.<")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        if (br.containsHTML(">File has been deleted|>We\\'re sorry\\. This file has been deleted due to inactivity\\.<")) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
         String filename = br.getRegex("<title>ULTRAMEGABIT\\.COM \\- ([^<>\"]*?)</title>").getMatch(0);
         if (filename == null) {
             filename = br.getRegex("<h4>(<img[^>]+>)?(.*?) \\(([^\\)]+)\\)</h4>").getMatch(1);
@@ -81,12 +101,18 @@ public class UltraMegaBitCom extends PluginForHost {
         String filesize = br.getRegex("data-toggle=\"modal\">Download \\(([^<>\"]*?)\\) <span").getMatch(0);
         if (filesize == null) {
             filesize = br.getRegex("id=\"download_button\" value=\"Free download \\(([^<>\"]*?)\\)\"").getMatch(0);
-            if (filesize == null) filesize = br.getRegex("<h4>(<img[^>]+>)?(.*?) \\(([^\\)]+)\\)</h4>").getMatch(2);
+            if (filesize == null) {
+                filesize = br.getRegex("<h4>(<img[^>]+>)?(.*?) \\(([^\\)]+)\\)</h4>").getMatch(2);
+            }
         }
 
-        if (filename == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (filename == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         link.setName(Encoding.htmlDecode(filename.trim()));
-        if (filesize != null) link.setDownloadSize(SizeFormatter.getSize(filesize));
+        if (filesize != null) {
+            link.setDownloadSize(SizeFormatter.getSize(filesize));
+        }
         return AvailableStatus.TRUE;
     }
 
@@ -102,17 +128,26 @@ public class UltraMegaBitCom extends PluginForHost {
             try {
                 throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_ONLY);
             } catch (final Throwable e) {
-                if (e instanceof PluginException) throw (PluginException) e;
+                if (e instanceof PluginException) {
+                    throw (PluginException) e;
+                }
             }
             throw new PluginException(LinkStatus.ERROR_FATAL, "This file can only be downloaded by premium users");
         }
         // Only seen in a log
-        if (br.containsHTML(">Download slot limit reached<")) throw new PluginException(LinkStatus.ERROR_IP_BLOCKED);
+        if (br.containsHTML(">Download slot limit reached<")) {
+            throw new PluginException(LinkStatus.ERROR_IP_BLOCKED);
+        }
         final String rcid = br.getRegex("\\?k=([^<>\"]*?)\"").getMatch(0);
         Form dlform = null;
-        for (final Form form : br.getForms())
-            if (form.containsHTML("ultramegabit\\.com/file/download")) dlform = form;
-        if (rcid == null || dlform == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        for (final Form form : br.getForms()) {
+            if (form.containsHTML("ultramegabit\\.com/file/download")) {
+                dlform = form;
+            }
+        }
+        if (rcid == null || dlform == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
 
         // final String encode = dlform.getInputField("encode").getValue();
         final String csrf_token = dlform.getInputField("csrf_token").getValue();
@@ -129,21 +164,30 @@ public class UltraMegaBitCom extends PluginForHost {
         waitTime(timeBefore, downloadLink);
         dl = jd.plugins.BrowserAdapter.openDownload(br, downloadLink, dlform, true, 1);
         if (dl.getConnection().getContentType().contains("html")) {
-            if (dl.getConnection().getResponseCode() == 500) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error 500");
+            if (dl.getConnection().getResponseCode() == 403) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND, "Hoster Issue, Please contact hoster for resolution");
+            } else if (dl.getConnection().getResponseCode() == 500) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error 500");
+            }
             br.followConnection();
-            if (br.containsHTML("<b>Fatal error</b>:")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Fatal server error");
-            if (br.containsHTML(">Download limit exceeded<|<div id=\"file_delay_carousel\"")) throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, 60 * 60 * 1001l);
-            if (br.containsHTML("guests are only able to download 1 file every")) throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, 30 * 60 * 1000l);
-            if (br.containsHTML(">Account limitation notice|files smaller than")) {
+            if (br.containsHTML("<b>Fatal error</b>:")) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Fatal server error");
+            } else if (br.containsHTML(">Download limit exceeded<|<div id=\"file_delay_carousel\"")) {
+                throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, 60 * 60 * 1001l);
+            } else if (br.containsHTML("guests are only able to download 1 file every")) {
+                throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, 30 * 60 * 1000l);
+            } else if (br.containsHTML(">Account limitation notice|files smaller than")) {
                 try {
                     throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_ONLY);
                 } catch (final Throwable e) {
-                    if (e instanceof PluginException) throw (PluginException) e;
+                    if (e instanceof PluginException) {
+                        throw (PluginException) e;
+                    }
                 }
                 throw new PluginException(LinkStatus.ERROR_FATAL, "This file can only be downloaded by premium users");
-            }
-            if (br.containsHTML("<h3 id=\"download_delay\">Please wait\\.\\.\\.</h3>")) throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, waitSum());
-            if (br.containsHTML("(api\\.recaptcha\\.net|google\\.com/recaptcha/api/)")) {
+            } else if (br.containsHTML("<h3 id=\"download_delay\">Please wait\\.\\.\\.</h3>")) {
+                throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, waitSum());
+            } else if (br.containsHTML("(api\\.recaptcha\\.net|google\\.com/recaptcha/api/)")) {
                 try {
                     invalidateLastChallengeResponse();
                 } catch (final Throwable e) {
@@ -186,9 +230,12 @@ public class UltraMegaBitCom extends PluginForHost {
             try {
                 // Load cookies
                 br.setCookiesExclusive(true);
+                prepBrowser(br);
                 final Object ret = account.getProperty("cookies", null);
                 boolean acmatch = Encoding.urlEncode(account.getUser()).equals(account.getStringProperty("name", Encoding.urlEncode(account.getUser())));
-                if (acmatch) acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                if (acmatch) {
+                    acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                }
                 if (acmatch && ret != null && ret instanceof HashMap<?, ?> && !force) {
                     final HashMap<String, String> cookies = (HashMap<String, String>) ret;
                     if (account.isValid()) {
@@ -239,24 +286,36 @@ public class UltraMegaBitCom extends PluginForHost {
     public AccountInfo fetchAccountInfo(final Account account) throws Exception {
         AccountInfo ai = new AccountInfo();
         try {
-            login(account, true);
+            if (System.getProperty("jd.revision.jdownloaderrevision") == null && System.getProperty("java.version").matches("1\\.[7-9].+")) {
+                throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nLogin sequence will not work in this version of JDownloader. You will need to use JDownloader 2.\r\nJDownloader 2 install instructions and download link: http://board.jdownloader.org/showthread.php?t=37365", PluginException.VALUE_ID_PREMIUM_DISABLE);
+            } else {
+                login(account, true);
+            }
         } catch (PluginException e) {
             account.setValid(false);
             throw e;
         }
         br.getPage("/user/details");
         String space = br.getRegex("<span class=\"glyphicon glyphicon-hdd\"></span> ([\\d\\.]+ [A-Za-z]+)").getMatch(0);
-        if (space == null) space = br.getRegex("<li title=\"Quota\"[^\r\n]+\">([\\d\\.]+ [A-Za-z]+) / [^\r\n]+</li>").getMatch(0);
-        if (space != null) ai.setUsedSpace(SizeFormatter.getSize(space));
+        if (space == null) {
+            space = br.getRegex("<li title=\"Quota\"[^\r\n]+\">([\\d\\.]+ [A-Za-z]+) / [^\r\n]+</li>").getMatch(0);
+        }
+        if (space != null) {
+            ai.setUsedSpace(SizeFormatter.getSize(space));
+        }
         String filesNum = br.getRegex("<span class=\"glyphicon glyphicon-file\"></span> ([\\d]+)").getMatch(0);
-        if (filesNum != null) ai.setFilesNum(Long.parseLong(filesNum));
+        if (filesNum != null) {
+            ai.setFilesNum(Long.parseLong(filesNum));
+        }
         ai.setUnlimitedTraffic();
         br.getPage("/user/billing");
 
         final boolean ispremium = (br.containsHTML("\"Premium Member\"") || br.containsHTML("premium subscription</h5>"));
         // some premiums have no expiration date, page shows only: Account status: Premium
         String expire = br.getRegex("<h5>Next rebill at (\\d+:\\d+(am|pm) \\d+/\\d+/\\d+)</h5>").getMatch(0);
-        if (expire == null) expire = br.getRegex("<h5>Account expires at (\\d+:\\d+(am|pm) \\d+/\\d+/\\d+)</h5>").getMatch(0);
+        if (expire == null) {
+            expire = br.getRegex("<h5>Account expires at (\\d+:\\d+(am|pm) \\d+/\\d+/\\d+)</h5>").getMatch(0);
+        }
         if (expire == null && !ispremium) {
             // "Member"
             account.setProperty("free", true);
@@ -289,16 +348,26 @@ public class UltraMegaBitCom extends PluginForHost {
             doFree(link);
         } else {
             final String token = br.getCookie(MAINPAGE, "csrf_cookie");
-            if (token == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (token == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             br.setFollowRedirects(false);
             br.postPage("https://ultramegabit.com/file/download", "csrf_token=" + token + "&encode=" + new Regex(link.getDownloadURL(), "([A-Za-z0-9\\-_]+)$").getMatch(0));
             final String finallink = br.getRedirectLocation();
-            if (finallink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (finallink == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             dl = jd.plugins.BrowserAdapter.openDownload(br, link, finallink, true, -15);
             if (dl.getConnection().getContentType().contains("html")) {
                 logger.warning("The final dllink seems not to be a file!");
                 br.followConnection();
-                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                if (dl.getConnection().getResponseCode() == 403) {
+                    // this error happens in browser also, this is not a JD issue...
+                    // seen it jump to multihoster and free when trying ERROR_FATAL, in my mind should not do this.
+                    throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND, "Hoster Issue, Please contact hoster for resolution");
+                } else {
+                    throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                }
             }
             link.setFinalFileName(Encoding.htmlDecode(getFileNameFromHeader(dl.getConnection())));
             dl.startDownload();

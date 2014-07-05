@@ -55,22 +55,45 @@ public class FiveSingCom extends PluginForHost {
         this.setBrowserExclusive();
         br.setFollowRedirects(true);
         br.getPage(link.getDownloadURL());
-        if (br.getURL().contains("FileNotFind")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
-        final String extension = br.getRegex("<em>格式：</em>([^<>\"]*?)<br").getMatch(0);
-        final String filename = br.getRegex("var SongName   = \"([^<>\"]*?)\"").getMatch(0);
-        final String filesize = br.getRegex("<em>大小：</em>([^<>\"]*?)<br").getMatch(0);
-        if (filename == null || filesize == null || extension == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
-        link.setFinalFileName(Encoding.htmlDecode(filename.trim()) + "." + Encoding.htmlDecode(extension.trim()));
-        link.setDownloadSize(SizeFormatter.getSize(filesize + "b"));
+        if (br.getURL().contains("FileNotFind") || br.getURL().contains("5sing.com/404.htm")) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
+        String extension = br.getRegex("(<em>)?格式：(</em>)?([^<>\"]*?)(<|&)").getMatch(2);
+        if (extension == null && br.containsHTML("<em>演唱：</em>")) {
+            extension = "mp3";
+        }
+        final String filename = br.getRegex("var SongName[^<>\"\t\n\r]*= \"([^<>\"]*?)\"").getMatch(0);
+        final String fileid = br.getRegex("var SongID[^<>\"\t\n\r]*= ([^<>\"]*?);").getMatch(0);
+        final String stype = br.getRegex("var SongType[^<>\"\t\n\r]*= \"([^<>\"]*?)\";").getMatch(0);
+        String filesize = br.getRegex("(<em>)?大小：(</em>)?([^<>\"]*?)(<|\")").getMatch(2);
+        if (filename == null || extension == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
+        link.setFinalFileName(stype + "-" + Encoding.htmlDecode(filename.trim()) + "-" + fileid + "." + Encoding.htmlDecode(extension.trim()));
+        if (filesize != null) {
+            link.setDownloadSize(SizeFormatter.getSize(filesize + "b"));
+        }
         return AvailableStatus.TRUE;
     }
 
     @Override
     public void handleFree(final DownloadLink downloadLink) throws Exception, PluginException {
         requestFileInformation(downloadLink);
+        // file: "http://data9.5sing.com/T1zbhLB4xT1R47IVrK.mp3"
         String dllink = br.getRegex("file: \"(http://[^<>\"]*?)\"").getMatch(0);
-        if (dllink == null) dllink = br.getRegex("\"(http://data\\d+\\.5sing\\.com/[^<>\"]*?)\"").getMatch(0);
-        if (dllink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (dllink == null) {
+            dllink = br.getRegex("(\"|\')(http://data\\d+?\\.5sing\\.com/[^<>\"]*?)(\"|\')").getMatch(1);
+            if (dllink == null) {
+                String down = br.getRegex("down\"><a href=\"(http://[a-z]+\\.5sing\\.com/down/\\d+)\"").getMatch(0);
+                if (down != null) {
+                    br.getPage(down);
+                    dllink = br.getRegex("(\"|\')(http://data\\d+?\\.5sing\\.com/[^<>\"]*?)(\"|\')").getMatch(1);
+                }
+            }
+        }
+        if (dllink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         dl = jd.plugins.BrowserAdapter.openDownload(br, downloadLink, dllink, true, 0);
         if (dl.getConnection().getContentType().contains("html")) {
             br.followConnection();

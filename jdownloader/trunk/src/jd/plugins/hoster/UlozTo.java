@@ -17,6 +17,7 @@
 package jd.plugins.hoster;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +26,7 @@ import jd.config.ConfigContainer;
 import jd.config.ConfigEntry;
 import jd.config.Property;
 import jd.http.Browser;
+import jd.http.Browser.BrowserException;
 import jd.http.URLConnectionAdapter;
 import jd.nutils.encoding.Encoding;
 import jd.parser.Regex;
@@ -44,12 +46,17 @@ import org.appwork.utils.formatter.SizeFormatter;
 @HostPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "uloz.to" }, urls = { "http://(www\\.)?(uloz\\.to|ulozto\\.sk|ulozto\\.cz|ulozto\\.net)/[a-zA-Z0-9]+/.+" }, flags = { 2 })
 public class UlozTo extends PluginForHost {
 
-    private static final String REPEAT_CAPTCHA      = "REPEAT_CAPTCHA";
-    private static final String CAPTCHA_TEXT        = "CAPTCHA_TEXT";
-    private static final String CAPTCHA_ID          = "CAPTCHA_ID";
-    private static final String QUICKDOWNLOAD       = "http://(www\\.)?uloz\\.to/quickDownload/\\d+";
-    private static final String PREMIUMONLYUSERTEXT = JDL.L("plugins.hoster.ulozto.premiumonly", "Only downloadable for premium users!");
-    private static final String PASSWORDPROTECTED   = ">Enter password please<";
+    private static final String  REPEAT_CAPTCHA               = "REPEAT_CAPTCHA";
+    private static final String  CAPTCHA_TEXT                 = "CAPTCHA_TEXT";
+    private static final String  CAPTCHA_ID                   = "CAPTCHA_ID";
+    private static final String  QUICKDOWNLOAD                = "http://(www\\.)?uloz\\.to/quickDownload/\\d+";
+    private static final String  PREMIUMONLYUSERTEXT          = JDL.L("plugins.hoster.ulozto.premiumonly", "Only downloadable for premium users!");
+    private static final String  PASSWORDPROTECTED            = ">Enter password please<";
+
+    /* note: CAN NOT be negative or zero! (ie. -1 or 0) Otherwise math sections fail. .:. use [1-20] */
+    private static AtomicInteger totalMaxSimultanFreeDownload = new AtomicInteger(20);
+    /* don't touch the following! */
+    private static AtomicInteger maxFree                      = new AtomicInteger(1);
 
     public UlozTo(PluginWrapper wrapper) {
         super(wrapper);
@@ -69,7 +76,7 @@ public class UlozTo extends PluginForHost {
 
     @Override
     public int getMaxSimultanFreeDownloadNum() {
-        return -1;
+        return maxFree.get();
     }
 
     @Override
@@ -87,7 +94,14 @@ public class UlozTo extends PluginForHost {
             downloadLink.getLinkStatus().setStatusText(PREMIUMONLYUSERTEXT);
             return AvailableStatus.TRUE;
         }
-        handleDownloadUrl(downloadLink);
+        try {
+            handleDownloadUrl(downloadLink);
+        } catch (final BrowserException e) {
+            if (br.getHttpConnection().getResponseCode() == 400) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
+            throw e;
+        }
         // not sure if this is still needed with 2012/02/01 changes
         handleRedirect(downloadLink);
         // For age restricted links
@@ -98,11 +112,17 @@ public class UlozTo extends PluginForHost {
         }
         // Wrong links show the mainpage so here we check if we got the mainpage
         // or not
-        if (br.containsHTML("(multipart/form\\-data|Chybka 404 \\- požadovaná stránka nebyla nalezena<br>|<title>Ulož\\.to</title>|<title>404 - Page not found</title>)")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        if (br.containsHTML("(multipart/form\\-data|Chybka 404 \\- požadovaná stránka nebyla nalezena<br>|<title>Ulož\\.to</title>|<title>404 - Page not found</title>)")) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
         if (br.containsHTML(PASSWORDPROTECTED)) {
             String filename = br.getRegex("<title>([^<>]+) \\| Uloz\\.to</title>").getMatch(0);
-            if (filename == null) filename = br.getRegex("<p>The <strong>([^<>\"]*?)</strong>").getMatch(0);
-            if (filename == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (filename == null) {
+                filename = br.getRegex("<p>The <strong>([^<>\"]*?)</strong>").getMatch(0);
+            }
+            if (filename == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             downloadLink.setFinalFileName(Encoding.htmlDecode(filename.trim()));
             downloadLink.getLinkStatus().setStatusText("This link is password protected");
         } else {
@@ -110,10 +130,16 @@ public class UlozTo extends PluginForHost {
             // For video links
             String filesize = br.getRegex("<span id=\"fileSize\">(\\d{2}:\\d{2}(:\\d{2})? \\| )?(\\d+(\\.\\d{2})? [A-Za-z]{1,5})</span>").getMatch(2);
             // For file links
-            if (filesize == null) filesize = br.getRegex("<span id=\"fileSize\">([^<>\"]*?)</span>").getMatch(0);
-            if (filename == null) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            if (filesize == null) {
+                filesize = br.getRegex("<span id=\"fileSize\">([^<>\"]*?)</span>").getMatch(0);
+            }
+            if (filename == null) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             downloadLink.setFinalFileName(Encoding.htmlDecode(filename.trim()));
-            if (filesize != null) downloadLink.setDownloadSize(SizeFormatter.getSize(filesize));
+            if (filesize != null) {
+                downloadLink.setDownloadSize(SizeFormatter.getSize(filesize));
+            }
         }
         return AvailableStatus.TRUE;
     }
@@ -138,7 +164,9 @@ public class UlozTo extends PluginForHost {
     public void handleFree(final DownloadLink downloadLink) throws Exception {
         this.getPluginConfig().setProperty(REPEAT_CAPTCHA, false);
         requestFileInformation(downloadLink);
-        if (downloadLink.getDownloadURL().matches(QUICKDOWNLOAD)) throw new PluginException(LinkStatus.ERROR_FATAL, PREMIUMONLYUSERTEXT);
+        if (downloadLink.getDownloadURL().matches(QUICKDOWNLOAD)) {
+            throw new PluginException(LinkStatus.ERROR_FATAL, PREMIUMONLYUSERTEXT);
+        }
         br.setFollowRedirects(true);
         String passCode = downloadLink.getStringProperty("pass", null);
         if (br.containsHTML(PASSWORDPROTECTED)) {
@@ -146,7 +174,9 @@ public class UlozTo extends PluginForHost {
                 passCode = getUserInput("Password?", downloadLink);
             }
             br.postPage(br.getURL() + "?do=passwordProtectedForm-submit", "password_send=Odeslat&password=" + Encoding.urlEncode(passCode));
-            if (br.containsHTML(PASSWORDPROTECTED)) throw new PluginException(LinkStatus.ERROR_RETRY, "Wrong password entered");
+            if (br.containsHTML(PASSWORDPROTECTED)) {
+                throw new PluginException(LinkStatus.ERROR_RETRY, "Wrong password entered");
+            }
             downloadLink.setProperty("pass", passCode);
         }
         String dllink = null;
@@ -156,13 +186,17 @@ public class UlozTo extends PluginForHost {
         final Browser cbr = br.cloneBrowser();
         for (int i = 0; i <= 5; i++) {
             cbr.getPage("http://ulozto.net/reloadXapca.php?rnd=" + System.currentTimeMillis());
-            if (cbr.getRequest().getHttpConnection().getResponseCode() == 404) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error", 5 * 60 * 1000l);
+            if (cbr.getRequest().getHttpConnection().getResponseCode() == 404) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error", 5 * 60 * 1000l);
+            }
             final String hash = cbr.getRegex("\"hash\":\"([a-f0-9]+)\"").getMatch(0);
             final String timestamp = cbr.getRegex("\"timestamp\":(\\d+)").getMatch(0);
             final String salt = cbr.getRegex("\"salt\":(\\d+)").getMatch(0);
             String captchaUrl = cbr.getRegex("\"image\":\"(http:[^<>\"]*?)\"").getMatch(0);
             Form captchaForm = br.getFormbyProperty("id", "frm-downloadDialog-freeDownloadForm");
-            if (captchaForm == null || captchaUrl == null || hash == null || timestamp == null || salt == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (captchaForm == null || captchaUrl == null || hash == null || timestamp == null || salt == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             captchaUrl = captchaUrl.replace("\\", "");
 
             String code = null, ts = null, sign = null, cid = null;
@@ -188,14 +222,22 @@ public class UlozTo extends PluginForHost {
             }
 
             // if something failed
-            if (code == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (code == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
 
             captchaForm.put("captcha_value", code);
             captchaForm.remove(null);
             captchaForm.remove("freeDownload");
-            if (ts != null) captchaForm.put("ts", ts);
-            if (cid != null) captchaForm.put("cid", cid);
-            if (sign != null) captchaForm.put("sign", sign);
+            if (ts != null) {
+                captchaForm.put("ts", ts);
+            }
+            if (cid != null) {
+                captchaForm.put("cid", cid);
+            }
+            if (sign != null) {
+                captchaForm.put("sign", sign);
+            }
             captchaForm.put("timestamp", timestamp);
             captchaForm.put("salt", salt);
             captchaForm.put("hash", hash);
@@ -203,7 +245,7 @@ public class UlozTo extends PluginForHost {
 
             // If captcha fails, throrotws exception
             // If in automatic mode, clears saved data
-            if (br.containsHTML("\"errors\":\\[\"Error rewriting the text")) {
+            if (br.containsHTML("\"errors\":\\[\"Error rewriting the text|Rewrite the text from the picture")) {
                 if (getPluginConfig().getBooleanProperty(REPEAT_CAPTCHA)) {
                     getPluginConfig().setProperty(CAPTCHA_ID, Property.NULL);
                     getPluginConfig().setProperty(CAPTCHA_TEXT, Property.NULL);
@@ -216,7 +258,9 @@ public class UlozTo extends PluginForHost {
             }
 
             dllink = br.getRegex("\"url\":\"(http:[^<>\"]*?)\"").getMatch(0);
-            if (dllink == null) break;
+            if (dllink == null) {
+                break;
+            }
             dllink = dllink.replace("\\", "");
             URLConnectionAdapter con = null;
             try {
@@ -227,8 +271,12 @@ public class UlozTo extends PluginForHost {
                     break;
                 } else {
                     br2.followConnection();
-                    if (br2.containsHTML("Stránka nenalezena")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
-                    if (br2.containsHTML("dla_backend/uloz\\.to\\.overloaded\\.html")) throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "No free slots available", 10 * 60 * 1000l);
+                    if (br2.containsHTML("Stránka nenalezena")) {
+                        throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                    }
+                    if (br2.containsHTML("dla_backend/uloz\\.to\\.overloaded\\.html")) {
+                        throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "No free slots available", 10 * 60 * 1000l);
+                    }
                     br.clearCookies("http://www.ulozto.net/");
                     handleDownloadUrl(downloadLink);
                     continue;
@@ -241,12 +289,16 @@ public class UlozTo extends PluginForHost {
             }
 
         }
-        if (dllink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (dllink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         if (dllink.contains("/error404/?fid=file_not_found")) {
             logger.info("The user entered the correct captcha but this file is offline...");
             throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
         }
-        if (failed) throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+        if (failed) {
+            throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+        }
         br.setDebug(true);
         dl = jd.plugins.BrowserAdapter.openDownload(br, downloadLink, dllink, true, 1);
         if (dl.getConnection().getContentType().contains("html")) {
@@ -258,7 +310,15 @@ public class UlozTo extends PluginForHost {
             br.followConnection();
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         }
-        dl.startDownload();
+        try {
+            /* add a download slot */
+            controlFree(+1);
+            /* start the dl */
+            dl.startDownload();
+        } finally {
+            /* remove download slot */
+            controlFree(-1);
+        }
     }
 
     public void handlePremium(final DownloadLink parameter, final Account account) throws Exception {
@@ -278,7 +338,9 @@ public class UlozTo extends PluginForHost {
                         passCode = getUserInput("Password?", parameter);
                     }
                     br.postPage(br.getURL() + "?do=passwordProtectedForm-submit", "password_send=Odeslat&password=" + Encoding.urlEncode(passCode));
-                    if (br.containsHTML(PASSWORDPROTECTED)) throw new PluginException(LinkStatus.ERROR_RETRY, "Wrong password entered");
+                    if (br.containsHTML(PASSWORDPROTECTED)) {
+                        throw new PluginException(LinkStatus.ERROR_RETRY, "Wrong password entered");
+                    }
                     parameter.setProperty("pass", passCode);
                 }
             }
@@ -325,7 +387,9 @@ public class UlozTo extends PluginForHost {
         br.getHeaders().put("Accept-Encoding", "identity");
         br.getHeaders().put("User-Agent", "UFM 1.5");
         br.getPage("http://api.uloz.to/login.php?kredit=1&uzivatel=" + Encoding.urlEncode(account.getUser()) + "&heslo=" + Encoding.urlEncode(account.getPass()));
-        if (br.containsHTML("ERROR")) throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+        if (br.containsHTML("ERROR")) {
+            throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+        }
         br.getHeaders().put("Authorization", "Basic " + Encoding.Base64Encode(account.getUser() + ":" + account.getPass()));
     }
 
@@ -339,10 +403,31 @@ public class UlozTo extends PluginForHost {
             return ai;
         }
         final String trafficleft = br.toString().trim();
-        if (trafficleft != null) ai.setTrafficLeft(SizeFormatter.getSize(trafficleft + " KB"));
+        if (trafficleft != null) {
+            ai.setTrafficLeft(SizeFormatter.getSize(trafficleft + " KB"));
+        }
         ai.setStatus("Premium User");
         account.setValid(true);
         return ai;
+    }
+
+    /**
+     * Prevents more than one free download from starting at a given time. One step prior to dl.startDownload(), it adds a slot to maxFree
+     * which allows the next singleton download to start, or at least try.
+     * 
+     * This is needed because xfileshare(website) only throws errors after a final dllink starts transferring or at a given step within pre
+     * download sequence. But this template(XfileSharingProBasic) allows multiple slots(when available) to commence the download sequence,
+     * this.setstartintival does not resolve this issue. Which results in x(20) captcha events all at once and only allows one download to
+     * start. This prevents wasting peoples time and effort on captcha solving and|or wasting captcha trading credits. Users will experience
+     * minimal harm to downloading as slots are freed up soon as current download begins.
+     * 
+     * @param controlFree
+     *            (+1|-1)
+     */
+    public synchronized void controlFree(final int num) {
+        logger.info("maxFree was = " + maxFree.get());
+        maxFree.set(Math.min(Math.max(1, maxFree.addAndGet(num)), totalMaxSimultanFreeDownload.get()));
+        logger.info("maxFree now = " + maxFree.get());
     }
 
     @Override

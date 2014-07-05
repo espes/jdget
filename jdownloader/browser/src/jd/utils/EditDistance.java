@@ -106,7 +106,7 @@ public final class EditDistance {
         if (t == null) { return sLength; }
         if (s.equals(t)) { return 0; }
         return 100 * EditDistance.getLevenshteinDistance(s, t) / Math.max(sLength, t.length());
-    }
+    } 
 
     /**
      * Gibt den Unterschied zwischen zwei Strings zurück gleicher Buchstabe +0

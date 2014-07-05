@@ -22,8 +22,6 @@ import java.io.File;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
@@ -36,21 +34,26 @@ import jd.PluginWrapper;
 import jd.config.ConfigContainer;
 import jd.config.SubConfiguration;
 import jd.controlling.downloadcontroller.SingleDownloadController;
+import jd.controlling.linkcrawler.LinkCrawler;
 import jd.controlling.linkcrawler.LinkCrawlerThread;
 import jd.http.Browser;
 import jd.http.URLConnectionAdapter;
 import jd.nutils.encoding.Encoding;
 import jd.utils.JDUtilities;
 
+import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.storage.config.ConfigInterface;
 // import org.appwork.uio.CloseReason;
 // import org.appwork.uio.UIOManager;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.net.httpconnection.HTTPConnectionUtils;
+import org.jdownloader.auth.Login;
 // import org.jdownloader.gui.dialog.AskCrawlerPasswordDialogInterface;
 // import org.jdownloader.gui.dialog.AskDownloadPasswordDialogInterface;
 // import org.jdownloader.gui.dialog.AskForCryptedLinkPasswordDialog;
 // import org.jdownloader.gui.dialog.AskForPasswordDialog;
+// import org.jdownloader.gui.dialog.AskForUserAndPasswordDialog;
+// import org.jdownloader.gui.dialog.AskUsernameAndPasswordDialogInterface;
 // import org.jdownloader.images.NewTheme;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.plugins.UserIOProgress;
@@ -64,22 +67,24 @@ import org.jdownloader.translate._JDT;
  */
 public abstract class Plugin implements ActionListener {
 
-    public static final String                   HTTP_LINKS_HOST     = "http links";
-    public static final String                   DIRECT_HTTP_HOST    = "DirectHTTP";
-    public static final String                   FTP_HOST            = "ftp";
+    public static final String                                    HTTP_LINKS_HOST     = "http links";
+    public static final String                                    DIRECT_HTTP_HOST    = "DirectHTTP";
+    public static final String                                    FTP_HOST            = "ftp";
 
     /* to keep 0.95xx comp */
     /* switch this on every stable update */
     // protected static Logger logger = jd.controlling.JDLogger.getLogger();
 
-    /* afer 0.95xx */
-    protected Logger                             logger              = LogController.TRASH;
+    /* after 0.95xx */
+    protected Logger                                              logger              = LogController.TRASH;
 
-    protected CopyOnWriteArrayList<File>         cleanUpCaptchaFiles = new CopyOnWriteArrayList<File>();
-    private static final HashMap<String, Object> CACHE               = new HashMap<String, Object>();
+    protected CopyOnWriteArrayList<File>                          cleanUpCaptchaFiles = new CopyOnWriteArrayList<File>();
+    private static final HashMap<String, HashMap<String, Object>> CACHE               = new HashMap<String, HashMap<String, Object>>();
 
     public void setLogger(Logger logger) {
-        if (logger == null) logger = LogController.TRASH;
+        if (logger == null) {
+            logger = LogController.TRASH;
+        }
         this.logger = logger;
     }
 
@@ -87,80 +92,80 @@ public abstract class Plugin implements ActionListener {
         return logger;
     }
 
+    public PluginCache getCache() {
+        return getCache(getHost());
+    }
+
+    public boolean isProxyRotationEnabled(boolean premiumDownload) {
+        return !premiumDownload;
+    }
+
     public static PluginCache getCache(final String id) {
+        final String ID = id + ".";
+        final HashMap<String, Object> cache;
+        synchronized (CACHE) {
+            if (CACHE.containsKey(ID)) {
+                cache = CACHE.get(ID);
+            } else {
+                cache = new HashMap<String, Object>();
+                CACHE.put(ID, cache);
+            }
+        }
         return new PluginCache() {
-            final String ID = id + ".";
-
             @Override
-            public void setCache(String key, Object value) {
-                synchronized (CACHE) {
-                    CACHE.put(ID + key, value);
+            public Object set(String key, Object value) {
+                synchronized (cache) {
+                    return cache.put(key, value);
                 }
             }
 
             @Override
-            public void removeCache(String key) {
-                synchronized (CACHE) {
-                    CACHE.remove(ID + key);
+            public Object remove(String key) {
+                synchronized (cache) {
+                    return cache.remove(key);
                 }
             }
 
             @Override
-            public <T> T getCache(String key, T defaultValue) {
-                synchronized (CACHE) {
-                    return (T) CACHE.get(ID + key);
+            public <T> T get(String key, T defaultValue) {
+                synchronized (cache) {
+                    return (T) cache.get(key);
                 }
             }
 
             @Override
-            public void clearCache() {
-                synchronized (CACHE) {
-                    Iterator<Entry<String, Object>> it = CACHE.entrySet().iterator();
-                    while (it.hasNext()) {
-                        if (it.next().getKey().startsWith(ID)) it.remove();
-                    }
+            public void clear() {
+                synchronized (cache) {
+                    cache.clear();
+                }
+            }
+
+            @Override
+            public String getID() {
+                return ID;
+
+            }
+
+            @Override
+            public boolean containsKey(String key) {
+                synchronized (cache) {
+                    return cache.containsKey(key);
                 }
             }
 
         };
     }
 
-    public void setCache(String key, Object value) {
-        synchronized (CACHE) {
-            CACHE.put(getHost() + "." + key, value);
-        }
-    }
-
-    public void removeCache(String key) {
-        synchronized (CACHE) {
-            CACHE.remove(getHost() + "." + key);
-        }
-    }
-
-    public <T> T getCache(String key, T defaultValue) {
-        synchronized (CACHE) {
-            return (T) CACHE.get(getHost() + "." + key);
-        }
-    }
-
-    public void clearCache() {
-        synchronized (CACHE) {
-            String ID = getHost() + ".";
-            Iterator<Entry<String, Object>> it = CACHE.entrySet().iterator();
-            while (it.hasNext()) {
-                if (it.next().getKey().startsWith(ID)) it.remove();
-            }
-        }
-    }
-
     /**
-     * Gibt nur den Dateinamen aus der URL extrahiert zurück. Um auf den dateinamen zuzugreifen sollte bis auf Ausnamen immer DownloadLink.getName() verwendet
-     * werden
+     * Gibt nur den Dateinamen aus der URL extrahiert zurück. Um auf den dateinamen zuzugreifen sollte bis auf Ausnamen immer
+     * DownloadLink.getName() verwendet werden
      * 
      * @return Datename des Downloads.
      */
     public static String extractFileNameFromURL(String filename) {
-        if (StringUtils.isEmpty(filename)) return null;
+        if (StringUtils.isEmpty(filename)) {
+            return null;
+        }
         int index = filename.indexOf("?");
         /*
          * cut off get url parameters
@@ -192,10 +197,11 @@ public abstract class Plugin implements ActionListener {
      * @return Filename aus dem header (content disposition) extrahiert
      */
     public static String getFileNameFromHeader(final URLConnectionAdapter urlConnection) {
-        if (urlConnection.getHeaderField("Content-Disposition") == null || urlConnection.getHeaderField("Content-Disposition").indexOf("filename") < 0) {
+        String contentDisposition = urlConnection.getHeaderField(HTTPConstants.HEADER_RESPONSE_CONTENT_DISPOSITION);
+        if (contentDisposition == null || contentDisposition.indexOf("filename") < 0) {
             return Plugin.getFileNameFromURL(urlConnection.getURL());
         } else {
-            return Plugin.getFileNameFromDispositionHeader(urlConnection.getHeaderField("Content-Disposition"));
+            return Plugin.getFileNameFromDispositionHeader(contentDisposition);
         }
     }
 
@@ -226,7 +232,9 @@ public abstract class Plugin implements ActionListener {
         //     if (handle.getCloseReason() == CloseReason.OK) {
         //         String password = handle.getText();
 
-        //         if (StringUtils.isEmpty(password)) { throw new DecrypterException(DecrypterException.PASSWORD); }
+        //         if (StringUtils.isEmpty(password)) {
+        //             throw new DecrypterException(DecrypterException.PASSWORD);
+        //         }
         //         return password;
         //     } else {
         //         throw new DecrypterException(DecrypterException.PASSWORD);
@@ -249,6 +257,57 @@ public abstract class Plugin implements ActionListener {
         return null;
     }
 
+    public boolean isAbort() {
+        final Thread currentThread = Thread.currentThread();
+        if (currentThread instanceof LinkCrawlerThread) {
+            final LinkCrawlerThread lct = (LinkCrawlerThread) currentThread;
+            final LinkCrawler lc = lct.getCurrentLinkCrawler();
+            return currentThread.isInterrupted() || lc != null && lc.isCrawlingAllowed();
+        } else if (currentThread instanceof SingleDownloadController) {
+            final SingleDownloadController sdc = (SingleDownloadController) currentThread;
+            return sdc.isAborting() || currentThread.isInterrupted();
+        }
+        return currentThread.isInterrupted();
+    }
+
+    /**
+     * Show a USername + password dialog
+     * 
+     * @param link
+     * @return
+     * @throws PluginException
+     */
+    protected Login requestLogins(String message, DownloadLink link) throws PluginException {
+        if (message == null) {
+            message = _JDT._.Plugin_requestLogins_message();
+        }
+        final UserIOProgress prg = new UserIOProgress(message);
+        prg.setProgressSource(this);
+        prg.setDisplayInProgressColumnEnabled(false);
+        try {
+            link.addPluginProgress(prg);
+            AskUsernameAndPasswordDialogInterface handle = UIOManager.I().show(AskUsernameAndPasswordDialogInterface.class, new AskForUserAndPasswordDialog(message, link));
+            if (handle.getCloseReason() == CloseReason.OK) {
+                String password = handle.getPassword();
+
+                if (StringUtils.isEmpty(password)) {
+                    throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword());
+                }
+
+                String username = handle.getUsername();
+                if (StringUtils.isEmpty(username)) {
+                    throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongusername());
+                }
+                return new Login(username, password);
+            } else {
+                throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword());
+            }
+
+        } finally {
+            link.removePluginProgress(prg);
+        }
+    }
+
     /**
      * 
      * @param message
@@ -259,24 +318,29 @@ public abstract class Plugin implements ActionListener {
      * @throws PluginException
      *             if the user aborts the input
      */
-    public static String getUserInput(final String message, final DownloadLink link) throws PluginException {
-        // UserIOProgress prg = new UserIOProgress(message);
+    public static String getUserInput(String message, final DownloadLink link) throws PluginException {
+        // if (message == null) {
+        //     message = "Please enter the password to continue...";
+        // }
+        // final UserIOProgress prg = new UserIOProgress(message);
         // prg.setProgressSource(getCurrentActivePlugin());
-        // PluginProgress old = null;
+        // prg.setDisplayInProgressColumnEnabled(false);
         // try {
-        //     old = link.setPluginProgress(prg);
+        //     link.addPluginProgress(prg);
         //     AskDownloadPasswordDialogInterface handle = UIOManager.I().show(AskDownloadPasswordDialogInterface.class, new AskForPasswordDialog(message, link));
         //     if (handle.getCloseReason() == CloseReason.OK) {
         //         String password = handle.getText();
 
-        //         if (StringUtils.isEmpty(password)) { throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword()); }
+        //         if (StringUtils.isEmpty(password)) {
+        //             throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword());
+        //         }
         //         return password;
         //     } else {
         //         throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword());
         //     }
 
         // } finally {
-        //     link.compareAndSetPluginProgress(prg, old);
+        //     link.removePluginProgress(prg);
         // }
         throw new UnsupportedOperationException("jdget TODO");
     }
@@ -297,18 +361,23 @@ public abstract class Plugin implements ActionListener {
     }
 
     /**
-     * Hier wird geprüft, ob das Plugin diesen Text oder einen Teil davon handhaben kann. Dazu wird einfach geprüft, ob ein Treffer des Patterns vorhanden ist.
+     * Hier wird geprüft, ob das Plugin diesen Text oder einen Teil davon handhaben kann. Dazu wird einfach geprüft, ob ein Treffer des
+     * Patterns vorhanden ist.
      * 
      * @param data
      *            der zu prüfende Text
      * @return wahr, falls ein Treffer gefunden wurde.
      */
     public boolean canHandle(final String data) {
-        if (data == null) { return false; }
+        if (data == null) {
+            return false;
+        }
         final Pattern pattern = this.getSupportedLinks();
         if (pattern != null) {
             final Matcher matcher = pattern.matcher(data);
-            if (matcher.find()) { return true; }
+            if (matcher.find()) {
+                return true;
+            }
         }
         return false;
     }
@@ -326,9 +395,13 @@ public abstract class Plugin implements ActionListener {
      * @return gibt die aktuelle Configuration Instanz zurück
      */
     public ConfigContainer getConfig() {
-        if (this.config != null) return config;
+        if (this.config != null) {
+            return config;
+        }
         synchronized (this) {
-            if (this.config != null) return config;
+            if (this.config != null) {
+                return config;
+            }
             this.config = new ConfigContainer(null) {
                 private static final long serialVersionUID = -30947319320765343L;
 
@@ -350,7 +423,9 @@ public abstract class Plugin implements ActionListener {
     }
 
     public boolean hasConfig() {
-        if (config != null && config.getEntries() != null && config.getEntries().size() > 0) { return true; }
+        if (config != null && config.getEntries() != null && config.getEntries().size() > 0) {
+            return true;
+        }
         return false;
     }
 
@@ -439,6 +514,12 @@ public abstract class Plugin implements ActionListener {
 
     public Class<? extends ConfigInterface> getConfigInterface() {
         return null;
+    }
+
+    public boolean isProxyRotationEnabledForLinkCrawler() {
+        // if (AccountController.getInstance().hasAccounts(plg.getHost())) {
+        // rly? are there many crawler that require an account?
+        return true;
     }
 
 }

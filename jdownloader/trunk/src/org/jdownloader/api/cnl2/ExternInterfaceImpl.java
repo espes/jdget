@@ -4,12 +4,11 @@ import java.awt.Dialog.ModalityType;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import javax.swing.ImageIcon;
 
 import jd.controlling.linkcollector.LinkCollectingJob;
@@ -33,6 +32,7 @@ import org.appwork.remoteapi.RemoteAPI;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
 import org.appwork.remoteapi.exceptions.InternalApiException;
+import org.appwork.storage.JSonStorage;
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.storage.simplejson.JSonObject;
 import org.appwork.storage.simplejson.JSonValue;
@@ -42,7 +42,6 @@ import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
-import org.appwork.utils.encoding.Base64;
 import org.appwork.utils.formatter.HexFormatter;
 import org.appwork.utils.images.IconIO;
 import org.appwork.utils.logging.Log;
@@ -56,15 +55,11 @@ import org.jdownloader.api.myjdownloader.MyJDownloaderSettings;
 import org.jdownloader.images.NewTheme;
 import org.jdownloader.plugins.controller.host.HostPluginController;
 import org.jdownloader.plugins.controller.host.LazyHostPlugin;
-import org.mozilla.javascript.ClassShutter;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ContextFactory;
-import org.mozilla.javascript.Scriptable;
 
 public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
-    
+
     private final static String jdpath = JDUtilities.getJDHomeDirectoryFromEnvironment().getAbsolutePath() + File.separator + "JDownloader.jar";
-    
+
     public void crossdomainxml(RemoteAPIResponse response) throws InternalApiException {
         StringBuilder sb = new StringBuilder();
         sb.append("<?xml version=\"1.0\"?>\r\n");
@@ -74,7 +69,7 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
         sb.append("</cross-domain-policy>\r\n");
         writeString(response, null, sb.toString(), false);
     }
-    
+
     /**
      * writes given String to response and sets content-type to text/html
      * 
@@ -88,7 +83,9 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text/html", false));
             out = RemoteAPI.getOutputStream(response, request, false, true);
             if (wrapCallback && request.getJqueryCallback() != null) {
-                if (string == null) string = "";
+                if (string == null) {
+                    string = "";
+                }
                 string = "{\"content\": \"" + string.trim() + "\"}";
             }
             out.write(string.getBytes("UTF-8"));
@@ -101,14 +98,14 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
             }
         }
     }
-    
+
     public void jdcheckjs(RemoteAPIResponse response) throws InternalApiException {
         StringBuilder sb = new StringBuilder();
         sb.append("jdownloader=true;\r\n");
         sb.append("var version='" + JDUtilities.getRevision() + "';\r\n");
         writeString(response, null, sb.toString(), false);
     }
-    
+
     public void jdcheckjson(RemoteAPIResponse response) throws InternalApiException {
         MyJDownloaderSettings set = JsonConfig.create(MyJDownloaderSettings.class);
         JSonObject obj = new JSonObject();
@@ -117,7 +114,7 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
         obj.put("name", new JSonValue(set.getDeviceName()));
         writeString(response, null, obj.toString(), false);
     }
-    
+
     public void addcrypted2(RemoteAPIResponse response, RemoteAPIRequest request) throws InternalApiException {
         try {
             askPermission(request);
@@ -135,15 +132,19 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
             writeString(response, request, "failed " + e.getMessage() + "\r\n", true);
         }
     }
-    
+
     // For My JD API
     public void addcrypted2Remote(String crypted, String jk, String source) {
-        String urls = decrypt(crypted, jk, null);
-        LinkCollectingJob job = new LinkCollectingJob(new LinkOriginDetails(LinkOrigin.CNL, null), urls);
-        job.setCustomSourceUrl(source);
-        LinkCollector.getInstance().addCrawlerJob(job);
+        try {
+            String urls = decrypt(crypted, jk, null);
+            LinkCollectingJob job = new LinkCollectingJob(new LinkOriginDetails(LinkOrigin.CNL, null), urls);
+            job.setCustomSourceUrl(source);
+            LinkCollector.getInstance().addCrawlerJob(job);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
-    
+
     private void clickAndLoad2Add(LinkOriginDetails origin, String urls, RemoteAPIRequest request) throws IOException {
         final String finalPasswords = request.getParameterbyKey("passwords");
         String source = request.getParameterbyKey("source");
@@ -160,15 +161,17 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
                     pws.add(finalPasswords);
                 }
             }
-            
+
             private PackageInfo getPackageInfo(CrawledLink link) {
                 PackageInfo packageInfo = link.getDesiredPackageInfo();
-                if (packageInfo != null) return packageInfo;
+                if (packageInfo != null) {
+                    return packageInfo;
+                }
                 packageInfo = new PackageInfo();
                 link.setDesiredPackageInfo(packageInfo);
                 return packageInfo;
             }
-            
+
             @Override
             public void modifyCrawledLink(CrawledLink link) {
                 if (StringUtils.isNotEmpty(finalDestination)) {
@@ -181,7 +184,9 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
                 }
                 DownloadLink dlLink = link.getDownloadLink();
                 if (dlLink != null) {
-                    if (StringUtils.isNotEmpty(finalComment)) dlLink.setComment(finalComment);
+                    if (StringUtils.isNotEmpty(finalComment)) {
+                        dlLink.setComment(finalComment);
+                    }
                 }
                 if (pws != null && pws.size() > 0) {
                     link.getArchiveInfo().getExtractionPasswords().addAll(pws);
@@ -190,61 +195,20 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
         });
         LinkCollector.getInstance().addCrawlerJob(job);
     }
-    
-    /* decrypt given bytearray with given aes key */
-    public static String decrypt(byte[] b, byte[] key) {
-        Cipher cipher;
-        try {
-            IvParameterSpec ivSpec = new IvParameterSpec(key);
-            SecretKeySpec skeySpec = new SecretKeySpec(key, "AES");
-            cipher = Cipher.getInstance("AES/CBC/NoPadding");
-            cipher.init(Cipher.DECRYPT_MODE, skeySpec, ivSpec);
-            return new String(cipher.doFinal(b), "UTF-8");
-        } catch (Throwable e) {
-            Log.exception(e);
-        }
-        return null;
-    }
-    
-    /* decrypt given crypted string with js encrypted aes key */
-    public static String decrypt(String crypted, final String jk, String k) {
-        byte[] key = null;
+
+    public String decrypt(String crypted, final String jk, String k) throws UnsupportedEncodingException {
+        final HashMap<String, String> infos = new HashMap<String, String>();
+        infos.put("crypted", crypted);
         if (jk != null) {
-            Context cx = null;
-            try {
-                try {
-                    cx = ContextFactory.getGlobal().enterContext();
-                    cx.setClassShutter(new ClassShutter() {
-                        public boolean visibleToScripts(String className) {
-                            if (className.startsWith("adapter")) {
-                                return true;
-                            } else {
-                                throw new RuntimeException("Security Violation");
-                            }
-                        }
-                    });
-                } catch (java.lang.SecurityException e) {
-                    /* in case classshutter already set */
-                }
-                Scriptable scope = cx.initStandardObjects();
-                String fun = jk + "  f()";
-                Object result = cx.evaluateString(scope, fun, "<cmd>", 1, null);
-                key = HexFormatter.hexToByteArray(Context.toString(result));
-            } finally {
-                try {
-                    Context.exit();
-                } catch (final Throwable e) {
-                }
-            }
-        } else {
-            key = HexFormatter.hexToByteArray(k);
+            infos.put("jk", jk);
         }
-        /* workaround for wrong relink post encoding! */
-        crypted = crypted.trim().replaceAll("\\s", "+");
-        byte[] baseDecoded = Base64.decode(crypted);
-        return decrypt(baseDecoded, key).trim();
+        if (k != null) {
+            infos.put("k", k);
+        }
+        final String json = JSonStorage.toString(infos);
+        return "http://dummycnl.jdownloader.org/" + HexFormatter.byteArrayToHex(json.getBytes("UTF-8"));
     }
-    
+
     public void add(RemoteAPIResponse response, RemoteAPIRequest request) throws InternalApiException {
         try {
             askPermission(request);
@@ -255,7 +219,7 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
             writeString(response, request, "failed " + e.getMessage() + "\r\n", true);
         }
     }
-    
+
     // For My JD API
     @Override
     public void add(String passwords, String source, String urls) throws InternalApiException {
@@ -267,12 +231,12 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
         job.setCustomSourceUrl(source);
         // job.setCustomComment(comment);
         // job.setPackageName(HttpRequest.getParameterbyKey(request, "package"));
-        
+
         if (StringUtils.isNotEmpty(passwords)) {
             final HashSet<String> pws = new HashSet<String>();
             pws.add(passwords);
             job.setCrawledLinkModifier(new CrawledLinkModifier() {
-                
+
                 @Override
                 public void modifyCrawledLink(CrawledLink link) {
                     if (pws != null && pws.size() > 0) {
@@ -283,12 +247,14 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
         }
         LinkCollector.getInstance().addCrawlerJob(job);
     }
-    
+
     public void addcrypted(RemoteAPIResponse response, RemoteAPIRequest request) throws InternalApiException {
         try {
             askPermission(request);
             String dlcContent = request.getParameterbyKey("crypted");
-            if (dlcContent == null) throw new IllegalArgumentException("no DLC Content available");
+            if (dlcContent == null) {
+                throw new IllegalArgumentException("no DLC Content available");
+            }
             String dlc = dlcContent.trim().replace(" ", "+");
             File tmp = Application.getTempResource("jd_" + System.currentTimeMillis() + ".dlc");
             IO.writeToFile(tmp, dlc.getBytes("UTF-8"));
@@ -299,7 +265,7 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
             writeString(response, request, "failed " + e.getMessage() + "\r\n", true);
         }
     }
-    
+
     private synchronized void askPermission(HttpRequestInterface request) throws IOException, DialogNoAnswerException {
         HTTPHeader jdrandomNumber = request.getRequestHeaders().get("jd.randomnumber");
         if (jdrandomNumber != null && jdrandomNumber.getValue() != null && jdrandomNumber.getValue().equalsIgnoreCase(System.getProperty("jd.randomNumber"))) {
@@ -355,17 +321,19 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
         }
         if (url != null) {
             /* we can only save permission if an url is available */
-            if (allowed == null) allowed = new ArrayList<String>();
+            if (allowed == null) {
+                allowed = new ArrayList<String>();
+            }
             allowed.add(url);
             JsonConfig.create(RemoteAPIConfig.class).setExternInterfaceAuth(allowed);
         }
-        
+
     }
-    
+
     public void alive(RemoteAPIResponse response, RemoteAPIRequest request) throws InternalApiException {
         writeString(response, request, "JDownloader\r\n", true);
     }
-    
+
     public void favicon(RemoteAPIResponse response) throws InternalApiException {
         OutputStream out = null;
         try {
@@ -382,7 +350,7 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
             }
         }
     }
-    
+
     public void flashgot(RemoteAPIResponse response, RemoteAPIRequest request) throws InternalApiException {
         try {
             askPermission(request);
@@ -405,27 +373,33 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
                 LinkCollectingJob job = new LinkCollectingJob(new LinkOriginDetails(LinkOrigin.FLASHGOT, request.getRequestHeaders().getValue("user-agent")), null);
                 final String finalPackageName = request.getParameterbyKey("package");
                 final String finalDestination = request.getParameterbyKey("dir");
-                
+
                 job.setCrawledLinkModifier(new CrawledLinkModifier() {
                     private HashSet<String> pws = null;
                     {
                         if (archivePasswords != null) {
                             pws = new HashSet<String>();
                             for (String p : archivePasswords) {
-                                if (StringUtils.isNotEmpty(p)) pws.add(p);
+                                if (StringUtils.isNotEmpty(p)) {
+                                    pws.add(p);
+                                }
                             }
-                            if (pws.size() == 0) pws = null;
+                            if (pws.size() == 0) {
+                                pws = null;
+                            }
                         }
                     }
-                    
+
                     private PackageInfo getPackageInfo(CrawledLink link) {
                         PackageInfo packageInfo = link.getDesiredPackageInfo();
-                        if (packageInfo != null) return packageInfo;
+                        if (packageInfo != null) {
+                            return packageInfo;
+                        }
                         packageInfo = new PackageInfo();
                         link.setDesiredPackageInfo(packageInfo);
                         return packageInfo;
                     }
-                    
+
                     @Override
                     public void modifyCrawledLink(CrawledLink link) {
                         if (StringUtils.isNotEmpty(finalPackageName)) {
@@ -445,10 +419,10 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
                         }
                     }
                 });
-                
+
                 LazyHostPlugin lazyp = HostPluginController.getInstance().get("DirectHTTP");
                 final PluginForHost defaultplg = lazyp.getPrototype(null);
-                
+
                 java.util.List<CrawledLink> links = new ArrayList<CrawledLink>();
                 for (int index = 0; index <= urls.length - 1; index++) {
                     CrawledLink link = new CrawledLink(urls[index]);
@@ -461,22 +435,28 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
                         }
                     }
                     final String downloadPassword = tmpDownloadPassword;
-                    
+
                     final int index2 = index;
                     link.setCustomCrawledLinkModifier(new CrawledLinkModifier() {
-                        
+
                         public void modifyCrawledLink(CrawledLink link) {
                             DownloadLink dl = link.getDownloadLink();
                             if (downloadPassword != null) {
                                 dl.setDownloadPassword(downloadPassword);
                             }
-                            if (!dl.gotBrowserUrl()) dl.setBrowserUrl(referer);
-                            if (index2 < desc.length) dl.setComment(desc[index2]);
-                            if (index2 < fnames.length) dl.forceFileName(fnames[index2]);
+                            if (!dl.gotBrowserUrl()) {
+                                dl.setBrowserUrl(referer);
+                            }
+                            if (index2 < desc.length) {
+                                dl.setComment(desc[index2]);
+                            }
+                            if (index2 < fnames.length) {
+                                dl.forceFileName(fnames[index2]);
+                            }
                         }
                     });
                     link.setUnknownHandler(new UnknownCrawledLinkHandler() {
-                        
+
                         /*
                          * this handler transforms unknown links into directhttp links with all information given by flashgot
                          */
@@ -492,11 +472,15 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
                             if (downloadPassword != null) {
                                 direct.setDownloadPassword(downloadPassword);
                             }
-                            if (index2 < desc.length) direct.setComment(desc[index2]);
+                            if (index2 < desc.length) {
+                                direct.setComment(desc[index2]);
+                            }
                             direct.setProperty("cookies", cookies);
                             direct.setProperty("post", post);
                             direct.setProperty("referer", referer);
-                            if (index2 < fnames.length) direct.setProperty("fixName", fnames[index2]);
+                            if (index2 < fnames.length) {
+                                direct.setProperty("fixName", fnames[index2]);
+                            }
                             try {
                                 defaultplg.correctDownloadLink(direct);
                             } catch (final Throwable e) {
@@ -505,10 +489,9 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
                             link.setDownloadLink(direct);
                         }
                     });
-                    link.setSourceJob(job);
                     links.add(link);
                 }
-                LinkCollector.getInstance().addCrawlerJob(links);
+                LinkCollector.getInstance().addCrawlerJob(links, job);
             }
             writeString(response, request, sb.toString(), true);
         } catch (final Throwable e) {
@@ -516,5 +499,5 @@ public class ExternInterfaceImpl implements Cnl2APIBasics, Cnl2APIFlash {
             throw new InternalApiException(e);
         }
     }
-    
+
 }

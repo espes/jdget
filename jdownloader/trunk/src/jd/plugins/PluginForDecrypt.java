@@ -17,7 +17,6 @@
 package jd.plugins;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
@@ -36,9 +35,9 @@ import jd.controlling.linkcrawler.LinkCrawlerThread;
 import jd.http.Browser;
 import jd.nutils.encoding.Encoding;
 
-import org.appwork.utils.Exceptions;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.logging2.LogSource;
+import org.jdownloader.captcha.blacklist.BlacklistEntry;
 import org.jdownloader.captcha.blacklist.BlockAllCrawlerCaptchasEntry;
 import org.jdownloader.captcha.blacklist.BlockCrawlerCaptchasByHost;
 import org.jdownloader.captcha.blacklist.BlockCrawlerCaptchasByPackage;
@@ -116,6 +115,9 @@ public abstract class PluginForDecrypt extends Plugin {
         this.lazyC = (LazyCrawlerPlugin) wrapper.getLazy();
     }
 
+    /**
+     * @since JD2
+     * */
     public void setBrowser(Browser br) {
         this.br = br;
     }
@@ -157,13 +159,62 @@ public abstract class PluginForDecrypt extends Plugin {
     }
 
     /**
+     * creates a offline link.
+     * 
+     * @parameter link
+     * 
+     * @since JD2
+     * @author raztoki
+     * */
+    protected DownloadLink createOfflinelink(final String link) {
+        return createOfflinelink(link, null);
+    }
+
+    /**
+     * creates a offline link, with logger and comment message.
+     * 
+     * @parameter link
+     * 
+     * @since JD2
+     * @author raztoki
+     * */
+    protected DownloadLink createOfflinelink(final String link, final String message) {
+        final DownloadLink dl = new DownloadLink(null, null, getHost(), "directhttp://" + Encoding.urlDecode(link, true), false);
+        dl.setProperty("OFFLINE", true);
+        if (message != null) {
+            dl.setComment(message);
+            logger.info("Offline Link: " + link + " :: " + message);
+        } else {
+            logger.info("Offline Link: " + link);
+        }
+        return dl;
+    }
+
+    /**
      * Die Methode entschlüsselt einen einzelnen Link.
      */
     public abstract ArrayList<DownloadLink> decryptIt(CryptedLink parameter, ProgressController progress) throws Exception;
 
+    private boolean processCaptchaException(Throwable e) {
+        if (e instanceof DecrypterException && DecrypterException.CAPTCHA.equals(e.getMessage())) {
+            invalidateLastChallengeResponse();
+            return true;
+        } else if (e instanceof RuntimeDecrypterException && DecrypterException.CAPTCHA.equals(e.getMessage())) {
+            invalidateLastChallengeResponse();
+            return true;
+        } else if (e instanceof CaptchaException) {
+            invalidateLastChallengeResponse();
+            return true;
+        } else if (e instanceof PluginException && ((PluginException) e).getLinkStatus() == LinkStatus.ERROR_CAPTCHA) {
+            invalidateLastChallengeResponse();
+            return true;
+        }
+        return false;
+    }
+
     /**
-     * Die Methode entschlüsselt einen einzelnen Link. Alle steps werden durchlaufen. Der letzte step muss als parameter einen Vector<String> mit den decoded
-     * Links setzen
+     * Die Methode entschlüsselt einen einzelnen Link. Alle steps werden durchlaufen. Der letzte step muss als parameter einen
+     * Vector<String> mit den decoded Links setzen
      * 
      * @param cryptedLink
      *            Ein einzelner verschlüsselter Link
@@ -171,9 +222,11 @@ public abstract class PluginForDecrypt extends Plugin {
      * @return Ein Vector mit Klartext-links
      */
     public ArrayList<DownloadLink> decryptLink(CrawledLink source) {
-        CryptedLink cryptLink = source.getCryptedLink();
-        if (cryptLink == null) return null;
-        ProgressController progress = new ProgressController();
+        final CryptedLink cryptLink = source.getCryptedLink();
+        if (cryptLink == null) {
+            return null;
+        }
+        final ProgressController progress = new ProgressController();
         cryptLink.setProgressController(progress);
         ArrayList<DownloadLink> tmpLinks = null;
         boolean showException = true;
@@ -190,40 +243,6 @@ public abstract class PluginForDecrypt extends Plugin {
             /* now we let the decrypter do its magic */
             tmpLinks = decryptIt(cryptLink, progress);
             validateLastChallengeResponse();
-        } catch (RuntimeDecrypterException e) {
-            if (DecrypterException.CAPTCHA.equals(e.getMessage())) {
-                invalidateLastChallengeResponse();
-                showException = false;
-            } else if (DecrypterException.PASSWORD.equals(e.getMessage())) {
-                showException = false;
-            } else if (DecrypterException.ACCOUNT.equals(e.getMessage())) {
-                showException = false;
-            }
-            /*
-             * we got a decrypter exception, clear log and note that something went wrong
-             */
-            if (logger instanceof LogSource) {
-                /* make sure we use the right logger */
-                ((LogSource) logger).clear();
-            }
-            LogSource.exception(logger, e);
-        } catch (DecrypterException e) {
-            if (DecrypterException.CAPTCHA.equals(e.getMessage())) {
-                invalidateLastChallengeResponse();
-                showException = false;
-            } else if (DecrypterException.PASSWORD.equals(e.getMessage())) {
-                showException = false;
-            } else if (DecrypterException.ACCOUNT.equals(e.getMessage())) {
-                showException = false;
-            }
-            /*
-             * we got a decrypter exception, clear log and note that something went wrong
-             */
-            if (logger instanceof LogSource) {
-                /* make sure we use the right logger */
-                ((LogSource) logger).clear();
-            }
-            LogSource.exception(logger, e);
         } catch (InterruptedException e) {
             /* plugin got interrupted, clear log and note what happened */
             if (logger instanceof LogSource) {
@@ -234,10 +253,24 @@ public abstract class PluginForDecrypt extends Plugin {
                 LogSource.exception(logger, e);
             }
         } catch (Throwable e) {
-            /*
-             * damn, something must have gone really really bad, lets keep the log
-             */
-            exception = e;
+            if (processCaptchaException(e)) {
+                showException = false;
+            } else if (DecrypterException.PASSWORD.equals(e.getMessage())) {
+                showException = false;
+            } else if (DecrypterException.ACCOUNT.equals(e.getMessage())) {
+                showException = false;
+            } else if (e instanceof DecrypterException || e.getCause() instanceof DecrypterException) {
+                showException = false;
+            } else {
+                /*
+                 * damn, something must have gone really really bad, lets keep the log
+                 */
+                exception = e;
+            }
+            if (showException == false && logger instanceof LogSource) {
+                /* make sure we use the right logger */
+                ((LogSource) logger).clear();
+            }
             LogSource.exception(logger, e);
         } finally {
             clean();
@@ -270,7 +303,9 @@ public abstract class PluginForDecrypt extends Plugin {
         try {
             errlogger.severe("CrawlerPlugin out of date: " + this + " :" + getVersion());
             errlogger.severe("URL was: " + link.getURL());
-            if (e != null) errlogger.log(e);
+            if (e != null) {
+                errlogger.log(e);
+            }
         } finally {
             errlogger.close();
         }
@@ -289,7 +324,9 @@ public abstract class PluginForDecrypt extends Plugin {
      */
     protected void distribute(DownloadLink... links) {
         LinkCrawlerDistributer dist = distributer;
-        if (dist == null || links == null || links.length == 0) return;
+        if (dist == null || links == null || links.length == 0) {
+            return;
+        }
         dist.distribute(links);
     }
 
@@ -301,43 +338,38 @@ public abstract class PluginForDecrypt extends Plugin {
         return 5000;
     }
 
-    protected String getCaptchaCode(String captchaAddress, CryptedLink param) throws IOException, DecrypterException {
+    protected String getCaptchaCode(String captchaAddress, CryptedLink param) throws Exception {
         return getCaptchaCode(getHost(), captchaAddress, param);
     }
 
-    protected String getCaptchaCode(LoadImage li, CryptedLink param) throws IOException, DecrypterException {
+    protected String getCaptchaCode(LoadImage li, CryptedLink param) throws Exception {
         return getCaptchaCode(getHost(), li.file, param);
     }
 
-    protected String getCaptchaCode(String method, String captchaAddress, CryptedLink param) throws IOException, DecrypterException {
+    protected String getCaptchaCode(String method, String captchaAddress, CryptedLink param) throws Exception {
         if (captchaAddress == null) {
             logger.severe("Captcha Adresse nicht definiert");
-            throw new DecrypterException(DecrypterException.CAPTCHA);
+            new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         }
         File captchaFile = this.getLocalCaptchaFile();
         try {
             Browser brc = br.cloneBrowser();
-            try {
-                brc.getDownload(captchaFile, captchaAddress);
-
-            } catch (Exception e) {
-
-                logger.severe("Captcha Download fehlgeschlagen: " + captchaAddress);
-                throw new DecrypterException(DecrypterException.CAPTCHA);
-            }
+            brc.getDownload(captchaFile, captchaAddress);
             // erst im Nachhinein das der Bilddownload nicht gestört wird
             String captchaCode = getCaptchaCode(method, captchaFile, param);
             return captchaCode;
         } finally {
-            if (captchaFile != null) FileCreationManager.getInstance().delete(captchaFile, null);
+            if (captchaFile != null) {
+                FileCreationManager.getInstance().delete(captchaFile, null);
+            }
         }
     }
 
-    protected String getCaptchaCode(File captchaFile, CryptedLink param) throws DecrypterException {
+    protected String getCaptchaCode(File captchaFile, CryptedLink param) throws Exception {
         return getCaptchaCode(getHost(), captchaFile, param);
     }
 
-    protected String getCaptchaCode(String methodname, File captchaFile, CryptedLink param) throws DecrypterException {
+    protected String getCaptchaCode(String methodname, File captchaFile, CryptedLink param) throws Exception {
         return getCaptchaCode(methodname, captchaFile, 0, param, null, null);
     }
 
@@ -406,7 +438,7 @@ public abstract class PluginForDecrypt extends Plugin {
      * @return
      * @throws DecrypterException
      */
-    protected String getCaptchaCode(String method, File file, int flag, final CryptedLink link, String defaultValue, String explain) throws DecrypterException {
+    protected String getCaptchaCode(String method, File file, int flag, final CryptedLink link, String defaultValue, String explain) throws Exception {
         String orgCaptchaImage = link.getStringProperty("orgCaptchaFile", null);
         if (orgCaptchaImage != null && new File(orgCaptchaImage).exists()) {
             file = new File(orgCaptchaImage);
@@ -447,16 +479,18 @@ public abstract class PluginForDecrypt extends Plugin {
         int ct = getCaptchaTimeout();
         c.setTimeout(ct);
         invalidateLastChallengeResponse();
-        if (CaptchaBlackList.getInstance().matches(c)) {
+        final BlacklistEntry blackListEntry = CaptchaBlackList.getInstance().matches(c);
+        if (blackListEntry != null) {
             logger.warning("Cancel. Blacklist Matching");
-            throw new DecrypterException(DecrypterException.CAPTCHA);
+            throw new CaptchaException(blackListEntry);
         }
         try {
             ChallengeResponseController.getInstance().handle(c);
         } catch (InterruptedException e) {
-            logger.warning(Exceptions.getStackTrace(e));
-            throw new DecrypterException(DecrypterException.CAPTCHA);
+            LogSource.exception(logger, e);
+            throw e;
         } catch (SkipException e) {
+            LogSource.exception(logger, e);
             switch (e.getSkipRequest()) {
             case BLOCK_ALL_CAPTCHAS:
                 CaptchaBlackList.getInstance().add(new BlockAllCrawlerCaptchasEntry(getCrawler()));
@@ -469,7 +503,7 @@ public abstract class PluginForDecrypt extends Plugin {
                 break;
             case REFRESH:
                 // refresh is not supported from the pluginsystem right now.
-                return "GiveMeANewCaptcha!";
+                return "";
             case STOP_CURRENT_ACTION:
                 LinkCollector.getInstance().abort();
                 // Just to be sure
@@ -478,16 +512,20 @@ public abstract class PluginForDecrypt extends Plugin {
             default:
                 break;
             }
+            throw new CaptchaException(e.getSkipRequest());
+        }
+        if (!c.isSolved()) {
             throw new DecrypterException(DecrypterException.CAPTCHA);
         }
-        if (!c.isSolved()) throw new DecrypterException(DecrypterException.CAPTCHA);
         setLastChallengeResponse(c.getResult());
         return c.getResult().getValue();
 
     }
 
     protected void setBrowserExclusive() {
-        if (br == null) return;
+        if (br == null) {
+            return;
+        }
         br.setCookiesExclusive(true);
         br.clearCookies(getHost());
     }
@@ -526,9 +564,11 @@ public abstract class PluginForDecrypt extends Plugin {
      * @return
      */
     public boolean isAbort() {
-        LinkCrawlerAbort llinkCrawlerAbort = linkCrawlerAbort;
-        if (llinkCrawlerAbort != null) return llinkCrawlerAbort.isAbort();
-        return Thread.currentThread().isInterrupted();
+        final LinkCrawlerAbort llinkCrawlerAbort = linkCrawlerAbort;
+        if (llinkCrawlerAbort != null) {
+            return llinkCrawlerAbort.isAbort() || Thread.currentThread().isInterrupted();
+        }
+        return super.isAbort();
     }
 
     public void setCrawler(LinkCrawler linkCrawler) {
@@ -539,7 +579,9 @@ public abstract class PluginForDecrypt extends Plugin {
         if (Thread.currentThread() instanceof LinkCrawlerThread) {
             /* not sure why we have this here? */
             LinkCrawler ret = ((LinkCrawlerThread) Thread.currentThread()).getCurrentLinkCrawler();
-            if (ret != null) return ret;
+            if (ret != null) {
+                return ret;
+            }
         }
         return crawler;
     }

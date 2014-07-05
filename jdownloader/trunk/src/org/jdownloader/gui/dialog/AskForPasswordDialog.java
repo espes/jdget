@@ -78,8 +78,10 @@ public class AskForPasswordDialog extends InputDialog implements AskDownloadPass
         String packagename = downloadLink.getParentNode().getName();
         p.add(SwingUtils.toBold(new JLabel(_GUI._.lit_filename())), "split 2,sizegroup left,alignx left");
         p.add(leftLabel(downloadLink.getView().getDisplayName()));
-        p.add(SwingUtils.toBold(new JLabel(_GUI._.IfFileExistsDialog_layoutDialogContent_package())), "split 2,sizegroup left,alignx left");
-        p.add(leftLabel(packagename));
+        if (downloadLink.getParentNode() != FilePackage.getDefaultFilePackage()) {
+            p.add(SwingUtils.toBold(new JLabel(_GUI._.IfFileExistsDialog_layoutDialogContent_package())), "split 2,sizegroup left,alignx left");
+            p.add(leftLabel(packagename));
+        }
         p.add(SwingUtils.toBold(new JLabel(_GUI._.lit_hoster())), "split 2,sizegroup left,alignx left");
         DomainInfo di = downloadLink.getDomainInfo();
         JLabel ret = new JLabel(di.getTld());
@@ -143,11 +145,14 @@ public class AskForPasswordDialog extends InputDialog implements AskDownloadPass
 
     @Override
     public String getLinkHost() {
-        return downloadLink.getHost();
+        return downloadLink.getDomainInfo().getTld();
     }
 
     @Override
     public String getPackageName() {
+        if (downloadLink.getParentNode() == FilePackage.getDefaultFilePackage()) {
+            return null;
+        }
         return downloadLink.getParentNode().getName();
     }
 }

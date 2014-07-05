@@ -30,19 +30,19 @@ import jd.plugins.DownloadLink;
 import jd.plugins.FilePackage;
 import jd.plugins.PluginForDecrypt;
 
-@DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "general-files.com" }, urls = { "http://(www\\.)?(general\\-files\\.com|generalfiles\\.org|generalfiles\\.me|general\\-files\\.org|generalfiles\\.biz|generalfiles\\.pw|general\\-file\\.com)/download/[a-z0-9]+/[^<>\"/]*?\\.html" }, flags = { 0 })
+@DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "general-files.org" }, urls = { "http://(www\\.)?(general\\-files\\.com|generalfiles\\.org|generalfiles\\.me|general\\-files\\.org|generalfiles\\.biz|generalfiles\\.pw|general\\-file\\.com|general\\-fil\\.es)/download/[a-z0-9]+/[^<>\"/]*?\\.html" }, flags = { 0 })
 public class GeneralFilesCom extends PluginForDecrypt {
 
     public GeneralFilesCom(PluginWrapper wrapper) {
         super(wrapper);
     }
 
-    private static final String currenthost = "general-file.com";
+    private static final String currenthost = "general-fil.es";
 
     public ArrayList<DownloadLink> decryptIt(CryptedLink param, ProgressController progress) throws Exception {
         ArrayList<DownloadLink> decryptedLinks = new ArrayList<DownloadLink>();
         br.setFollowRedirects(true);
-        final String parameter = param.toString().replaceAll("(general\\-files\\.com|generalfiles\\.org|generalfiles\\.me|general\\-files\\.org|general\\-files\\.biz|generalfiles\\.biz)/", currenthost + "/");
+        final String parameter = param.toString().replaceAll("(general\\-files\\.com|generalfiles\\.org|generalfiles\\.me|general\\-files\\.org|generalfiles\\.biz|generalfiles\\.pw|general\\-file\\.com|general\\-fil\\.es)/", currenthost + "/");
         try {
             br.getPage(parameter);
         } catch (final UnknownHostException e) {
@@ -50,7 +50,7 @@ public class GeneralFilesCom extends PluginForDecrypt {
             return decryptedLinks;
         }
 
-        if (br.containsHTML(">File was removed from filehosting<|>The file no longer exists at this location")) {
+        if (br.containsHTML(">File was removed from filehosting<|>The file no longer exists at this location|class=\"gf\\-removed\\-h\"|class=\"deleted\"") || br.getHttpConnection().getResponseCode() == 404) {
             logger.info("Link offline: " + parameter);
             return decryptedLinks;
         }
@@ -65,9 +65,14 @@ public class GeneralFilesCom extends PluginForDecrypt {
 
         br.setFollowRedirects(false);
         String fpName = br.getRegex("<h4 class=\"file\\-header\\-2\">([^<>\"]*?)</h4>").getMatch(0);
-        if (fpName == null) fpName = new Regex(parameter, "/download/[a-z0-9]+/([^<>\"/]*?)\\.html").getMatch(0);
+        if (fpName == null) {
+            fpName = new Regex(parameter, "/download/[a-z0-9]+/([^<>\"/]*?)\\.html").getMatch(0);
+        }
         fpName = Encoding.htmlDecode(fpName.trim());
-        final String goLink = br.getRegex("\"(/go/\\d+)\"").getMatch(0);
+        String goLink = br.getRegex("\\'/go/(\\d+)(\\?ajax=1)?\\'").getMatch(0);
+        if (goLink == null) {
+            goLink = br.getRegex("/rate/2/(\\d+)\\'\\)").getMatch(0);
+        }
         if (goLink == null) {
             logger.warning("Decrypter broken for link: " + parameter);
             return null;
@@ -78,24 +83,35 @@ public class GeneralFilesCom extends PluginForDecrypt {
                 return null;
             }
             for (int i = 1; i <= 3; i++) {
-                final String c = getCaptchaCode("http://www." + currenthost + "/captcha/" + new Regex(goLink, "(\\d+)$").getMatch(0), param);
-                br.postPage(goLink, "captcha=" + Encoding.urlEncode(c));
+                final String c = getCaptchaCode("http://www." + currenthost + "/captcha/" + goLink, param);
+                br.postPage("http://www." + currenthost + "/go/" + goLink, "captcha=" + Encoding.urlEncode(c));
                 if (br.getRedirectLocation() != null && br.getRedirectLocation().matches("http://(www\\.)?" + currenthost + "/download/[a-z0-9]+/[^<>\"/]*?\\.html")) {
                     br.getPage(br.getRedirectLocation());
                     continue;
-                } else if (br.containsHTML(">Please enter captcha and")) continue;
+                } else if (br.containsHTML(">Please enter captcha and")) {
+                    continue;
+                }
                 break;
             }
-            if (br.containsHTML(">Please enter captcha and")) throw new DecrypterException(DecrypterException.CAPTCHA);
+            if (br.containsHTML(">Please enter captcha and")) {
+                throw new DecrypterException(DecrypterException.CAPTCHA);
+            }
         } else {
-            br.getPage("http://www." + currenthost + goLink);
+            br.getPage("http://www." + currenthost + "/go/" + goLink + "?ajax=1");
         }
-        String finallink = br.getRegex("window\\.location\\.replace\\(\\'(http[^<>\"]*?)\\'\\)").getMatch(0);
-        if (finallink == null) finallink = br.getRedirectLocation();
+        /* First try ajax regex */
+        String finallink = br.getRegex("\"link\":\"(http:[^<>\"]*?)\"").getMatch(0);
+        if (finallink == null) {
+            finallink = br.getRegex("window\\.location\\.replace\\(\\'(http[^<>\"]*?)\\'\\)").getMatch(0);
+        }
+        if (finallink == null) {
+            finallink = br.getRedirectLocation();
+        }
         if (finallink == null || finallink.contains(currenthost)) {
             logger.warning("Decrypter broken for link: " + parameter);
             return null;
         }
+        finallink = finallink.replace("\\", "");
         final DownloadLink dl = createDownloadlink(finallink);
         decryptedLinks.add(dl);
 

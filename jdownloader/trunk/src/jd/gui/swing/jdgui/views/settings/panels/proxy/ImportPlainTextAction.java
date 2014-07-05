@@ -1,7 +1,6 @@
 package jd.gui.swing.jdgui.views.settings.panels.proxy;
 
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
 
 import jd.controlling.TaskQueue;
 import jd.controlling.proxy.ProxyController;
@@ -31,16 +30,15 @@ public class ImportPlainTextAction extends AppAction {
 
                 @Override
                 protected Void run() throws RuntimeException {
-                    final java.util.List<HTTPProxy> list = new ArrayList<HTTPProxy>();
                     for (String s : Regex.getLines(txt)) {
                         try {
-                            HTTPProxy ret = HTTPProxy.parseHTTPProxy(s);
-                            if (ret != null) list.add(ret);
+                            final HTTPProxy proxy = HTTPProxy.parseHTTPProxy(s);
+                            ProxyController.getInstance().addProxy(ProxyController.getInstance().convert(proxy));
                         } catch (Throwable e2) {
                             e2.printStackTrace();
                         }
                     }
-                    ProxyController.getInstance().addProxy(list);
+
                     return null;
                 }
             });

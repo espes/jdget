@@ -6,13 +6,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class LinkCrawlerRunnable implements Runnable {
 
-    private final LinkCrawler                              crawler;
-    private final int                                      generation;
-    static HashMap<Object, java.util.List<LinkCrawlerRunnable>> SEQ_RUNNABLES = new HashMap<Object, java.util.List<LinkCrawlerRunnable>>();
-    static HashMap<Object, AtomicInteger>                  SEQ_COUNTER   = new HashMap<Object, AtomicInteger>();
+    private final LinkCrawler                                         crawler;
+    private final int                                                 generation;
+    static final HashMap<Object, java.util.List<LinkCrawlerRunnable>> SEQ_RUNNABLES = new HashMap<Object, java.util.List<LinkCrawlerRunnable>>();
+    static final HashMap<Object, AtomicInteger>                       SEQ_COUNTER   = new HashMap<Object, AtomicInteger>();
 
     protected LinkCrawlerRunnable(LinkCrawler crawler, int generation) {
-        if (crawler == null) throw new IllegalArgumentException("crawler==null?");
+        if (crawler == null) {
+            throw new IllegalArgumentException("crawler==null?");
+        }
         this.crawler = crawler;
         this.generation = generation;
     }
@@ -51,7 +53,9 @@ public abstract class LinkCrawlerRunnable implements Runnable {
             }
             seqs.add(this);
         }
-        if (startRunnable == null) return;
+        if (startRunnable == null) {
+            return;
+        }
         try {
             this.run_now();
         } finally {
@@ -81,7 +85,7 @@ public abstract class LinkCrawlerRunnable implements Runnable {
      */
     protected void run_now() {
         try {
-            if (crawler.getCrawlerGeneration(false) == this.generation) {
+            if (crawler.getCrawlerGeneration(false) == this.generation || !crawler.isCrawlingAllowed()) {
                 crawling();
             }
         } finally {

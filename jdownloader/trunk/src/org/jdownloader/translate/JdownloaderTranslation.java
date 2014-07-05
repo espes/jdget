@@ -126,6 +126,9 @@ public interface JdownloaderTranslation extends TranslateInterface {
     @Default(lngs = { "en" }, values = { "[%s1] CRC running" })
     String system_download_doCRC2(Object s1);
 
+    @Default(lngs = { "en" }, values = { "Waiting for Hashcheck" })
+    String system_download_doCRC2_waiting();
+
     @Default(lngs = { "en" }, values = { "File exists" })
     String jd_controlling_SingleDownloadController_askexists_title();
 
@@ -391,6 +394,9 @@ public interface JdownloaderTranslation extends TranslateInterface {
     @Default(lngs = { "en" }, values = { "Skipped - Too many retries" })
     String DownloadLink_setSkipped_statusmessage_toomanyretries();
 
+    @Default(lngs = { "en" }, values = { "Skipped - No connection available" })
+    String DownloadLink_setSkipped_statusmessage_noconnectionavailable();
+
     @Default(lngs = { "en" }, values = { "Proxy Authentication failed" })
     String plugins_errors_proxy_auth();
 
@@ -513,5 +519,64 @@ public interface JdownloaderTranslation extends TranslateInterface {
 
     @Default(lngs = { "en" }, values = { "Any Extension" })
     String LinkSource_EXTENSION();
+
+    @Default(lngs = { "en" }, values = { "Proxy connection failed" })
+    String plugins_errors_proxy_connection();
+
+    @Default(lngs = { "en" }, values = { "Proxy authentication is required to connect to %s1" })
+    String ProxyController_updateProxy_proxy_auth_required_msg(String url);
+
+    @Default(lngs = { "en" }, values = { "Proxy authentication is required!" })
+    String ProxyController_updateProxy_proxy_auth_required_title();
+
+    // TODO Remove unused code found by UCDetector
+    // @Default(lngs = { "en", "de" }, values = {
+    // "JDownloader cannot connect to %s1! Your Proxy Server requires authentication. \r\nCheck your credentials...",
+    // "JDownloader kann nicht nach %s1 verbinden! Dein Proxyserver benötigt Anmeldedaten.\r\nBitte überprüfe die Zugangsdaten..." })
+    // String ProxyController_updateProxy_proxy_auth_required_msg_updater(String host);
+
+    // TODO Remove unused code found by UCDetector
+    // @Default(lngs = { "en" }, values = { "Authentication failed" })
+    // String ProxyController_updateProxy_baned_auth();
+
+    @Default(lngs = { "en" }, values = { "How to use the Connection Manager: \r\nYou can add several proxies or gateways to this list. Use the filter option to enable or disable a proxy for a certain domain only. For Free Downloads, JDownloader will try to use all available proxies simultanous. For Premium Downloads, the first available Proxy will be used." })
+    String gui_settings_proxy_description_new();
+
+    // TODO Remove unused code found by UCDetector
+    // @Default(lngs = { "en" }, values = { "No Gateway or Proxy found." })
+    // String plugins_errors_proxy_connection_nogateway();
+
+    @Default(lngs = { "en" }, values = { "No Gateway or Proxy found." })
+    String AccountController_updateAccountInfo_no_gateway();
+
+    @Default(lngs = { "en" }, values = { "Authentication missing for %s1" })
+    String AuthExceptionGenericBan_toString(String proxy);
+
+    @Default(lngs = { "en" }, values = { "Connection to %s1 failed" })
+    String ConnectExceptionInPluginBan(String proxy);
+
+    @Default(lngs = { "en" }, values = { "%s2: Authentication missing for %s1" })
+    String AuthExceptionGenericBan_toString_plugin(String proxy, String plugin);
+
+    @Default(lngs = { "en" }, values = { "%s2: Connection to %s1 failed" })
+    String ConnectExceptionInPluginBan_plugin(String proxy, String plugin);
+
+    @Default(lngs = { "en" }, values = { "Authentication is required!" })
+    String Plugin_requestLogins_message();
+
+    @Default(lngs = { "en" }, values = { "Wrong username!" })
+    String plugins_errors_wrongusername();
+
+    @Default(lngs = { "en" }, values = { "A username and a password is required to download this file. Please enter the credentials below." })
+    String DirectHTTP_getBasicAuth_message();
+
+    @Default(lngs = { "en" }, values = { "Moving file to %s1" })
+    String MovePluginProgress(String string);
+
+    @Default(lngs = { "en" }, values = { "Hide" })
+    String lit_hide();
+
+    @Default(lngs = { "en" }, values = { "Please wait..." })
+    String lit_please_wait();
 
 }

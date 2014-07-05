@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import jd.PluginWrapper;
 import jd.controlling.ProgressController;
 import jd.http.Browser;
+import jd.http.Browser.BrowserException;
 import jd.nutils.encoding.Encoding;
 import jd.nutils.encoding.HTMLEntities;
 import jd.parser.Regex;
@@ -117,7 +118,7 @@ public class TbCmV2 extends PluginForDecrypt {
     private YoutubeConfig   cfg;
     private YoutubeHelper   cachedHelper;
 
-    public class VariantInfo implements Comparable<VariantInfo> {
+    public static class VariantInfo implements Comparable<VariantInfo> {
 
         protected final YoutubeVariantInterface variant;
         private final YoutubeStreamData         audioStream;
@@ -201,6 +202,11 @@ public class TbCmV2 extends PluginForDecrypt {
                     @Override
                     public ModalityType getModalityType() {
                         return ModalityType.MODELESS;
+                    }
+
+                    @Override
+                    public boolean isRemoteAPIEnabled() {
+                        return true;
                     }
                 };
                 try {
@@ -287,7 +293,7 @@ public class TbCmV2 extends PluginForDecrypt {
                 } catch (NullPointerException npe) {
                     // e.message can be null...
                 }
-                if (emsg != null && emsg.contains("Rental Video")) {
+                if (emsg != null && emsg.contains(YoutubeHelper.PAID_VIDEO)) {
                     vid.error = emsg;
                 } else {
                     throw e;
@@ -301,7 +307,9 @@ public class TbCmV2 extends PluginForDecrypt {
                 // as you can not set getLinkStatus().setStatusText within decrypter best bet is to add filename as error??
                 e.setName("Error " + vid.videoID + " - " + vid.error);
                 decryptedLinks.add(e);
-                if (vc == null) continue;
+                if (vc == null) {
+                    continue;
+                }
             }
 
             YoutubeITAG bestVideoResolution = null;
@@ -333,15 +341,21 @@ public class TbCmV2 extends PluginForDecrypt {
 
                 if (v.getiTagVideo() != null) {
                     video = vc.get(v.getiTagVideo());
-                    if (video == null) valid = false;
+                    if (video == null) {
+                        valid = false;
+                    }
                 }
                 if (v.getiTagAudio() != null) {
                     audio = vc.get(v.getiTagAudio());
-                    if (audio == null) valid = false;
+                    if (audio == null) {
+                        valid = false;
+                    }
                 }
                 if (v.getiTagData() != null) {
                     data = vc.get(v.getiTagData());
-                    if (data == null) valid = false;
+                    if (data == null) {
+                        valid = false;
+                    }
                 }
 
                 if (valid) {
@@ -367,7 +381,9 @@ public class TbCmV2 extends PluginForDecrypt {
                                 getLogger().info("Removed Type Dupe: " + mapped);
                                 String mappedGroupID = getGroupID(mapped.variant);
                                 List<VariantInfo> list = groups.get(mappedGroupID);
-                                if (list != null) list.remove(mapped);
+                                if (list != null) {
+                                    list.remove(mapped);
+                                }
 
                                 allVariants.remove(mapped.variant);
                             }
@@ -479,7 +495,9 @@ public class TbCmV2 extends PluginForDecrypt {
             }
 
             main: for (Entry<String, List<VariantInfo>> e : groups.entrySet()) {
-                if (e.getValue().size() == 0) continue;
+                if (e.getValue().size() == 0) {
+                    continue;
+                }
                 Collections.sort(e.getValue());
 
                 if (e.getKey().equals(YoutubeVariantInterface.VariantGroup.SUBTITLES.name()) || e.getKey().equalsIgnoreCase("srt")) {
@@ -605,7 +623,9 @@ public class TbCmV2 extends PluginForDecrypt {
             int page = 1;
             int counter = 1;
             while (true) {
-                if (this.isAbort()) { throw new InterruptedException(); }
+                if (this.isAbort()) {
+                    throw new InterruptedException();
+                }
 
                 // br.getHeaders().put("Cookie", "");
                 br.getPage(cryptedUrl);
@@ -753,7 +773,9 @@ public class TbCmV2 extends PluginForDecrypt {
                     // }
                 }
 
-                if (!has) variants.add(0, variantInfo.variant.getUniqueId());
+                if (!has) {
+                    variants.add(0, variantInfo.variant.getUniqueId());
+                }
             }
 
             thislink.setVariantSupport(variants.size() > 1);
@@ -821,7 +843,9 @@ public class TbCmV2 extends PluginForDecrypt {
             pbr = br.cloneBrowser();
             int counter = 1;
             while (true) {
-                if (this.isAbort()) { throw new InterruptedException(); }
+                if (this.isAbort()) {
+                    throw new InterruptedException();
+                }
 
                 checkErrors(pbr);
                 String[] videos = pbr.getRegex("href=(\"|')(/watch\\?v=[A-Za-z0-9\\-_]+.*?)\\1").getColumn(1);
@@ -841,8 +865,12 @@ public class TbCmV2 extends PluginForDecrypt {
                 if (jsonPage != null) {
                     jsonPage = HTMLEntities.unhtmlentities(jsonPage);
                     pbr = br.cloneBrowser();
-                    if (yt_page_cl != null) pbr.getHeaders().put("X-YouTube-Page-CL", yt_page_cl);
-                    if (yt_page_ts != null) pbr.getHeaders().put("X-YouTube-Page-Timestamp", yt_page_ts);
+                    if (yt_page_cl != null) {
+                        pbr.getHeaders().put("X-YouTube-Page-CL", yt_page_cl);
+                    }
+                    if (yt_page_ts != null) {
+                        pbr.getHeaders().put("X-YouTube-Page-Timestamp", yt_page_ts);
+                    }
                     // anti ddos
                     Thread.sleep(1000);
                     pbr.getPage(jsonPage);
@@ -873,7 +901,9 @@ public class TbCmV2 extends PluginForDecrypt {
         if (StringUtils.isNotEmpty(channelID)) {
             String pageUrl = null;
             while (true) {
-                if (this.isAbort()) { throw new InterruptedException(); }
+                if (this.isAbort()) {
+                    throw new InterruptedException();
+                }
                 String content = null;
                 if (pageUrl == null) {
                     // this returns the html5 player
@@ -921,7 +951,9 @@ public class TbCmV2 extends PluginForDecrypt {
         if (StringUtils.isNotEmpty(userID)) {
             String pageUrl = null;
             while (true) {
-                if (this.isAbort()) { throw new InterruptedException(); }
+                if (this.isAbort()) {
+                    throw new InterruptedException();
+                }
                 String content = null;
                 if (pageUrl == null) {
                     // this returns the html5 player
@@ -930,7 +962,16 @@ public class TbCmV2 extends PluginForDecrypt {
                     checkErrors(br);
                     content = br.toString();
                 } else {
-                    br.getPage(pageUrl);
+                    try {
+                        br.getPage(pageUrl);
+                    } catch (final BrowserException b) {
+                        if (br.getHttpConnection() != null && br.getHttpConnection().getResponseCode() == 400) {
+                            logger.warning("Youtube issue!");
+                            return ret;
+                        } else {
+                            throw b;
+                        }
+                    }
                     checkErrors(br);
                     content = jd.plugins.hoster.Youtube.unescape(br.toString());
                 }
@@ -982,8 +1023,13 @@ public class TbCmV2 extends PluginForDecrypt {
     }
 
     private void checkErrors(Browser br) throws InterruptedException {
-        if (br.containsHTML(">404 Not Found<")) { throw new InterruptedException("404 Not Found"); }
-        if (br.containsHTML("iframe style=\"display:block;border:0;\" src=\"/error")) { throw new InterruptedException("Unknown Error"); }
+        if (br.containsHTML(">404 Not Found<")) {
+            throw new InterruptedException("404 Not Found");
+        } else if (br.containsHTML("iframe style=\"display:block;border:0;\" src=\"/error")) {
+            throw new InterruptedException("Unknown Error");
+        } else if (br.containsHTML("<h2>\\s*This channel does not exist\\.\\s*</h2>")) {
+            throw new InterruptedException("Channel does not exist.");
+        }
 
     }
 

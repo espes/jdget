@@ -16,15 +16,12 @@
 
 package jd.plugins.hoster;
 
-import static java.util.Arrays.asList;
-
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 import jd.PluginWrapper;
-import jd.config.Property;
 import jd.nutils.encoding.Encoding;
 import jd.plugins.Account;
 import jd.plugins.AccountInfo;
@@ -41,7 +38,6 @@ import org.appwork.utils.formatter.TimeFormatter;
 public class Tb7Pl extends PluginForHost {
 
     private static HashMap<Account, HashMap<String, Long>> hostUnavailableMap = new HashMap<Account, HashMap<String, Long>>();
-    private String                                         Info               = null;
     private String                                         validUntil         = null;
     private boolean                                        expired            = false;
     private String                                         MAINPAGE           = "http://tb7.pl/";
@@ -56,9 +52,9 @@ public class Tb7Pl extends PluginForHost {
         try {
             String username = Encoding.urlEncode(account.getUser());
             br.postPage(MAINPAGE + "login", "login=" + username + "&password=" + account.getPass());
-            if (br.containsHTML("<div id=\"message\">Hasło jest nieprawidłowe</div>"))
+            if (br.containsHTML("<div id=\"message\">Hasło jest nieprawidłowe</div>")) {
                 invalid = true;
-            else {
+            } else {
                 br.getPage(MAINPAGE + "mojekonto");
             }
 
@@ -69,10 +65,14 @@ public class Tb7Pl extends PluginForHost {
         } else {
             validUntil = br.getRegex("<div class=\"textPremium\">Dostęp Premium ważny do (.*?)<br>").getMatch(0);
             validUntil = validUntil.replace(" | ", " ");
-            if (validUntil != null) expired = false;
+            if (validUntil != null) {
+                expired = false;
+            }
         }
         if (invalid) {
-            if (invalid) { throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE); }
+            if (invalid) {
+                throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+            }
         }
 
     }
@@ -82,15 +82,9 @@ public class Tb7Pl extends PluginForHost {
         AccountInfo ai = new AccountInfo();
         br.setConnectTimeout(60 * 1000);
         br.setReadTimeout(60 * 1000);
-        br.setDebug(true);
-        ai.setSpecialTraffic(true);
-        String hosts = null;
-        ai.setProperty("multiHostSupport", Property.NULL);
         try {
             login(account, true);
-
         } catch (Exception e) {
-            account.setTempDisabled(true);
             account.setValid(false);
             ai.setStatus("Invalid account. Wrong password?");
             return ai;
@@ -98,19 +92,12 @@ public class Tb7Pl extends PluginForHost {
 
         // unfortunatelly there is no list with supported hosts anywhere on the page
         // only PNG image at the main page
-        final List<String> supportedHostsList = asList("egofiles.com", "catshare.net", "turbobit.net", "rapidgator.net", "rg.to", "netload.in", "uploaded.to", "uploaded.net", "ul.to", "bitshare.com", "freakshare.net", "freakshare.com", "rapidu.net");
-        final ArrayList<String> supportedHosts = new ArrayList<String>(supportedHostsList.size());
-        supportedHosts.addAll(supportedHostsList);
-
+        final ArrayList<String> supportedHosts = new ArrayList<String>(Arrays.asList("turbobit.net", "catshare.net", "rapidu.net", "rapidgator.net", "rg.to", "uploaded.to", "uploaded.net", "ul.to", "oboom.com", "fileparadox.in", "netload.in", "bitshare.com", "freakshare.net", "freakshare.com", "filesaur.com", "filemonkey.in", "uploadable.ch"));
         if (expired) {
             ai.setExpired(true);
             ai.setStatus("Account expired");
-            ai.setValidUntil(0);
             return ai;
         } else {
-            ai.setStatus("Premium User");
-            ai.setExpired(false);
-
             try {
                 long expireTime = TimeFormatter.getMilliSeconds(validUntil, "dd.MM.yyyy HH:mm", null);
                 ai.setValidUntil(expireTime);
@@ -119,7 +106,8 @@ public class Tb7Pl extends PluginForHost {
             }
         }
         account.setValid(true);
-        ai.setProperty("multiHostSupport", supportedHosts);
+        ai.setMultiHostSupport(supportedHosts);
+        ai.setStatus("Premium User");
         return ai;
     }
 
@@ -152,7 +140,6 @@ public class Tb7Pl extends PluginForHost {
         }
         br.setConnectTimeout(90 * 1000);
         br.setReadTimeout(90 * 1000);
-        br.setDebug(true);
         dl = null;
         /* generate new downloadlink */
         String username = Encoding.urlEncode(acc.getUser());
@@ -205,7 +192,9 @@ public class Tb7Pl extends PluginForHost {
                 acc.setValid(false);
                 throw new PluginException(LinkStatus.ERROR_RETRY, "Invalid username or password.");
             }
-            if (br.getBaseURL().contains("notfound")) { throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND, "File not found."); }
+            if (br.getBaseURL().contains("notfound")) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND, "File not found.");
+            }
         }
 
         if (dl.getConnection().getResponseCode() == 404) {
@@ -223,7 +212,9 @@ public class Tb7Pl extends PluginForHost {
     }
 
     private void tempUnavailableHoster(Account account, DownloadLink downloadLink, long timeout) throws PluginException {
-        if (downloadLink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        if (downloadLink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap == null) {
@@ -246,7 +237,9 @@ public class Tb7Pl extends PluginForHost {
                     return false;
                 } else if (lastUnavailable != null) {
                     unavailableMap.remove(downloadLink.getHost());
-                    if (unavailableMap.size() == 0) hostUnavailableMap.remove(account);
+                    if (unavailableMap.size() == 0) {
+                        hostUnavailableMap.remove(account);
+                    }
                 }
             }
         }

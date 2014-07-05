@@ -16,6 +16,8 @@ import org.jdownloader.gui.views.components.packagetable.PackageControllerTableM
 import org.jdownloader.gui.views.components.packagetable.columns.ChecksumColumn;
 import org.jdownloader.gui.views.components.packagetable.columns.CommentColumn;
 import org.jdownloader.gui.views.components.packagetable.columns.DownloadPasswordColumn;
+import org.jdownloader.gui.views.components.packagetable.columns.FileTypeColumn;
+import org.jdownloader.gui.views.components.packagetable.columns.HasCaptchaColumn;
 import org.jdownloader.gui.views.downloads.columns.AddedDateColumn;
 import org.jdownloader.gui.views.downloads.columns.AvailabilityColumn;
 import org.jdownloader.gui.views.downloads.columns.FileColumn;
@@ -51,31 +53,25 @@ public class LinkGrabberTableModel extends PackageControllerTableModel<CrawledPa
         try {
             return super.refreshSort(data);
         } finally {
-            if (!isTristateSorterEnabled()) sortColumn = null;
+            if (!isTristateSorterEnabled()) {
+                sortColumn = null;
+            }
         }
     }
 
     public java.util.List<AbstractNode> sort(final java.util.List<AbstractNode> data, ExtColumn<AbstractNode> column) {
         PackageControllerTableModelData<CrawledPackage, CrawledLink> ret = (PackageControllerTableModelData<CrawledPackage, CrawledLink>) super.sort(data, column);
-        System.out.println("AutoConfirm=false");
         boolean autoConfirm = ret.size() > 0 && org.jdownloader.settings.staticreferences.CFG_LINKGRABBER.LINKGRABBER_AUTO_CONFIRM_ENABLED.getValue();
         if (!autoConfirm) {
             for (CrawledLink l : ret.getAllChildrenNodes()) {
-                if (l.getLinkState() != AvailableLinkState.OFFLINE) {
-                    if (l.isAutoConfirmEnabled()) {
-                        autoConfirm = true;
-                        System.out.println("AutoConfirm=true");
-                        break;
-                    }
+                if (l.isAutoConfirmEnabled() && l.getLinkState() != AvailableLinkState.OFFLINE) {
+                    autoConfirm = true;
+                    break;
                 }
             }
         }
-        // if (autoConfirm) {
         this.autoConfirm = autoConfirm;
-
-        // }
         return ret;
-
     }
 
     public boolean isAutoConfirm() {
@@ -110,7 +106,8 @@ public class LinkGrabberTableModel extends PackageControllerTableModel<CrawledPa
         });
         this.addColumn(new AddedDateColumn());
         this.addColumn(new ChecksumColumn());
-
+        this.addColumn(new FileTypeColumn());
+        this.addColumn(new HasCaptchaColumn());
     }
 
     protected void setVariantsSupport(final boolean vs) {
@@ -142,7 +139,9 @@ public class LinkGrabberTableModel extends PackageControllerTableModel<CrawledPa
     }
 
     public void setPriorityColumnVisible(boolean b) {
-        if (priorityColumn != null) this.setColumnVisible(priorityColumn, b);
+        if (priorityColumn != null) {
+            this.setColumnVisible(priorityColumn, b);
+        }
     }
 
 }

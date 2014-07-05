@@ -435,6 +435,7 @@ public class TbCm extends PluginForDecrypt {
                 return;
             }
         }
+
         br.setProxy(br.getThreadProxy());
     }
 

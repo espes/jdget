@@ -236,8 +236,8 @@ public class FileGoOrg extends PluginForHost {
         newTab.getPage("/skin/stylish/js/javawraper.js");
         String joc = newTab.getRegex("(function joc\\(.*?\\})").getMatch(0);
         if (square == null || joc == null) return null;
-        final ScriptEngineManager manager = new ScriptEngineManager();
-        final ScriptEngine engine = manager.getEngineByName("ECMAScript");
+        final ScriptEngineManager manager = jd.plugins.hoster.DummyScriptEnginePlugin.getScriptEngineManager(this);
+        final ScriptEngine engine = manager.getEngineByName("javascript");
         try {
             engine.eval(joc);
             engine.eval(square);

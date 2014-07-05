@@ -8,6 +8,8 @@ import org.jdownloader.gui.views.components.packagetable.PackageControllerTableM
 import org.jdownloader.gui.views.components.packagetable.columns.ChecksumColumn;
 import org.jdownloader.gui.views.components.packagetable.columns.CommentColumn;
 import org.jdownloader.gui.views.components.packagetable.columns.DownloadPasswordColumn;
+import org.jdownloader.gui.views.components.packagetable.columns.FileTypeColumn;
+import org.jdownloader.gui.views.components.packagetable.columns.HasCaptchaColumn;
 import org.jdownloader.gui.views.downloads.columns.AddedDateColumn;
 import org.jdownloader.gui.views.downloads.columns.AvailabilityColumn;
 import org.jdownloader.gui.views.downloads.columns.ConnectionColumn;
@@ -37,13 +39,15 @@ public class DownloadsTableModel extends PackageControllerTableModel<FilePackage
         return INSTANCE;
     }
 
-    private StopSignColumn stopSignColumn;
+    private StopSignColumn     stopSignColumn;
 
-    protected FileColumn   expandCollapse;
+    protected FileColumn       expandCollapse;
 
-    private PriorityColumn priorityColumn;
+    private PriorityColumn     priorityColumn;
 
-    private TaskColumn     taskColumn;
+    private TaskColumn         taskColumn;
+
+    private AvailabilityColumn available;
 
     private DownloadsTableModel() {
         super(DownloadController.getInstance(), "downloadstable3");
@@ -71,12 +75,13 @@ public class DownloadsTableModel extends PackageControllerTableModel<FilePackage
         this.addColumn(new ProgressColumn());
 
         this.addColumn(priorityColumn = new PriorityColumn());
-        this.addColumn(new AvailabilityColumn());
+        this.addColumn(available = new AvailabilityColumn());
         this.addColumn(new DownloadFolderColumn());
         this.addColumn(new CommentColumn());
         this.addColumn(new DownloadPasswordColumn());
         this.addColumn(new ChecksumColumn());
-
+        this.addColumn(new FileTypeColumn());
+        this.addColumn(new HasCaptchaColumn());
         this.addColumn(stopSignColumn = new StopSignColumn());
 
         // reset sort
@@ -87,12 +92,22 @@ public class DownloadsTableModel extends PackageControllerTableModel<FilePackage
         return taskColumn;
     }
 
+    public void setAvailableColumnVisible(boolean b) {
+        if (available != null) {
+            this.setColumnVisible(available, b);
+        }
+    }
+
     public void setStopSignColumnVisible(boolean b) {
-        if (stopSignColumn != null) this.setColumnVisible(stopSignColumn, b);
+        if (stopSignColumn != null) {
+            this.setColumnVisible(stopSignColumn, b);
+        }
     }
 
     public void setPriorityColumnVisible(boolean b) {
-        if (priorityColumn != null) this.setColumnVisible(priorityColumn, b);
+        if (priorityColumn != null) {
+            this.setColumnVisible(priorityColumn, b);
+        }
     }
 
 }

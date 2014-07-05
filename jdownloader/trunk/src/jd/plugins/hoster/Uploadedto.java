@@ -24,7 +24,6 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -77,7 +76,7 @@ public class Uploadedto extends PluginForHost {
     }
 
     private static AtomicInteger   maxPrem                      = new AtomicInteger(1);
-    private char[]                 FILENAMEREPLACES             = new char[] { '_' };
+    private char[]                 FILENAMEREPLACES             = new char[] { '_', '[', ']' };
     private final String           ACTIVATEACCOUNTERRORHANDLING = "ACTIVATEACCOUNTERRORHANDLING";
     private final String           EXPERIMENTALHANDLING         = "EXPERIMENTALHANDLING";
     private Pattern                IPREGEX                      = Pattern.compile("(([1-2])?([0-9])?([0-9])\\.([1-2])?([0-9])?([0-9])\\.([1-2])?([0-9])?([0-9])\\.([1-2])?([0-9])?([0-9]))", Pattern.CASE_INSENSITIVE);
@@ -97,7 +96,9 @@ public class Uploadedto extends PluginForHost {
     private boolean                avoidHTTPS                   = false;
 
     private String getProtocol() {
-        if (avoidHTTPS) return "http://";
+        if (avoidHTTPS) {
+            return "http://";
+        }
         if (getPluginConfig().getBooleanProperty(SSL_CONNECTION, PREFERSSL)) {
             return "https://";
         } else {
@@ -122,7 +123,9 @@ public class Uploadedto extends PluginForHost {
             getPage(br, getProtocol() + "uploaded.net/file/" + id + "/status");
             String ret = br.getRedirectLocation();
             if (ret != null) {
-                if (ret.contains("/404")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                if (ret.contains("/404")) {
+                    throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                }
                 if (ret.contains("/410")) {
                     if (dmcaDlEnabled()) {
                         return AvailableStatus.UNCHECKABLE;
@@ -135,8 +138,15 @@ public class Uploadedto extends PluginForHost {
             String name = br.getRegex("(.*?)(\r|\n)").getMatch(0);
             String size = br.getRegex("[\r\n]([0-9\\, TGBMK]+)").getMatch(0);
             if (name == null || size == null) {
-                if (br.containsHTML("<title>uploaded.net - Maintenance")) { throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server in maintenance", 20 * 60 * 1000l); }
+                if (br.containsHTML("<title>uploaded.net - Maintenance")) {
+                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server in maintenance", 20 * 60 * 1000l);
+                }
                 return AvailableStatus.UNCHECKABLE;
+            }
+            name = name.trim();
+            try {
+                name = URLDecoder.decode(name, "UTF-8");
+            } catch (final Throwable e) {
             }
             downloadLink.setFinalFileName(name.trim());
             downloadLink.setDownloadSize(SizeFormatter.getSize(size));
@@ -168,14 +178,17 @@ public class Uploadedto extends PluginForHost {
                 return;
             }
         }
-        if (br.getRedirectLocation() != null) throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "API Error. Please contact Uploaded.to Support.", 5 * 60 * 1000l);
+        if (br.getRedirectLocation() != null) {
+            throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "API Error. Please contact Uploaded.to Support.", 5 * 60 * 1000l);
+        }
     }
 
     public boolean canHandle(DownloadLink downloadLink, Account account) {
-        if ((account == null || account.getBooleanProperty("free", false)) && downloadLink.getVerifiedFileSize() > 1073741824)
+        if ((account == null || account.getBooleanProperty("free", false)) && downloadLink.getVerifiedFileSize() > 1073741824) {
             return false;
-        else
+        } else {
             return true;
+        }
     }
 
     static class Sec {
@@ -261,7 +274,9 @@ public class Uploadedto extends PluginForHost {
         //                 }
         //                 if (CrossSystem.isOpenBrowserSupported()) {
         //                     int result = JOptionPane.showConfirmDialog(jd.gui.swing.jdgui.JDGui.getInstance().getMainFrame(), message, title, JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
-        //                     if (JOptionPane.OK_OPTION == result) CrossSystem.openURL(new URL("http://update3.jdownloader.org/jdserv/BuyPremiumInterface/redirect?ul.to&freedialog"));
+        //                     if (JOptionPane.OK_OPTION == result) {
+        //                         CrossSystem.openURL(new URL("http://update3.jdownloader.org/jdserv/BuyPremiumInterface/redirect?ul.to&freedialog"));
+        //                     }
         //                 }
         //             } catch (Throwable e) {
         //             }
@@ -277,7 +292,19 @@ public class Uploadedto extends PluginForHost {
         super(wrapper);
         setConfigElements();
         this.enablePremium("http://uploaded.to/");
-        this.setStartIntervall(2000l);
+    }
+
+    protected long getStartIntervall(DownloadLink downloadLink, Account account) {
+        if (downloadLink != null) {
+            final long verifiedFileSize = downloadLink.getVerifiedFileSize();
+            if (account != null) {
+                if (verifiedFileSize >= 50 * 1000 * 1000l) {
+                    return 1000;
+                }
+                return 150;
+            }
+        }
+        return 0;
     }
 
     public String filterPackageID(String packageIdentifier) {
@@ -294,7 +321,9 @@ public class Uploadedto extends PluginForHost {
 
     @Override
     public boolean checkLinks(final DownloadLink[] urls) {
-        if (urls == null || urls.length == 0) { return false; }
+        if (urls == null || urls.length == 0) {
+            return false;
+        }
         for (DownloadLink link : urls) {
             correctDownloadLink(link);
         }
@@ -309,7 +338,9 @@ public class Uploadedto extends PluginForHost {
                 links.clear();
                 while (true) {
                     /* we test 80 links at once */
-                    if (index == urls.length || links.size() > 80) break;
+                    if (index == urls.length || links.size() > 80) {
+                        break;
+                    }
                     links.add(urls[index]);
                     index++;
                 }
@@ -325,8 +356,13 @@ public class Uploadedto extends PluginForHost {
                     /*
                      * workaround for api issues, retry 5 times when content length is only 20 bytes
                      */
-                    if (retry == 5) return false;
+                    if (retry == 5) {
+                        return false;
+                    }
                     postPage(br, getProtocol() + "uploaded.net/api/filemultiple", sb.toString());
+                    if (br.containsHTML("<title>uploaded.net - Maintenance")) {
+                        return false;
+                    }
                     if (br.getHttpConnection().getLongContentLength() != 20) {
                         break;
                     } else {
@@ -353,7 +389,12 @@ public class Uploadedto extends PluginForHost {
                         /* id not in response, so its offline */
                         dl.setAvailable(false);
                     } else {
-                        dl.setFinalFileName(infos[hit][4].trim());
+                        String name = infos[hit][4].trim();
+                        try {
+                            name = URLDecoder.decode(name, "UTF-8");
+                        } catch (final Throwable e) {
+                        }
+                        dl.setFinalFileName(name);
                         long size = SizeFormatter.getSize(infos[hit][2]);
                         dl.setDownloadSize(size);
                         if (size > 0) {
@@ -362,15 +403,21 @@ public class Uploadedto extends PluginForHost {
                         if ("online".equalsIgnoreCase(infos[hit][0].trim())) {
                             dl.setAvailable(true);
                             String sha1 = infos[hit][3].trim();
-                            if (sha1.length() == 0) sha1 = null;
+                            if (sha1.length() == 0) {
+                                sha1 = null;
+                            }
                             dl.setSha1Hash(sha1);
                             dl.setMD5Hash(null);
                         } else {
-                            if (!dmcaDlEnabled()) dl.setAvailable(false);
+                            if (!dmcaDlEnabled()) {
+                                dl.setAvailable(false);
+                            }
                         }
                     }
                 }
-                if (index == urls.length) break;
+                if (index == urls.length) {
+                    break;
+                }
             }
         } catch (Exception e) {
             return false;
@@ -434,7 +481,9 @@ public class Uploadedto extends PluginForHost {
                     }
                     ai.setStatus("Premium account");
                     account.setProperty("free", false);
-                    if (!ai.isExpired()) account.setValid(true);
+                    if (!ai.isExpired()) {
+                        account.setValid(true);
+                    }
                 } else {
                     usePremiumAPI.set(false);
                     throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
@@ -483,7 +532,9 @@ public class Uploadedto extends PluginForHost {
         } else {
             String traffic = br.getMatch("traffic: (\\d+)");
             String expire = br.getMatch("expire: (\\d+)");
-            if (expire != null) ai.setValidUntil(Long.parseLong(expire) * 1000);
+            if (expire != null) {
+                ai.setValidUntil(Long.parseLong(expire) * 1000);
+            }
             ai.setStatus("Premium account");
             account.setValid(true);
             long max = 100 * 1024 * 1024 * 1024l;
@@ -524,7 +575,9 @@ public class Uploadedto extends PluginForHost {
                 return;
             }
         }
-        if (br.getRedirectLocation() != null) throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "API Error. Please contact Uploaded.to Support.", 5 * 60 * 1000l);
+        if (br.getRedirectLocation() != null) {
+            throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "API Error. Please contact Uploaded.to Support.", 5 * 60 * 1000l);
+        }
     }
 
     @Override
@@ -534,9 +587,13 @@ public class Uploadedto extends PluginForHost {
 
     private String getID(final DownloadLink downloadLink) {
         String id = new Regex(downloadLink.getDownloadURL(), "/file/([\\w]+)/?").getMatch(0);
-        if (id != null) return id;
+        if (id != null) {
+            return id;
+        }
         id = new Regex(downloadLink.getDownloadURL(), "\\?id=([\\w]+)/?").getMatch(0);
-        if (id != null) return id;
+        if (id != null) {
+            return id;
+        }
         id = new Regex(downloadLink.getDownloadURL(), "(\\.net|\\.to)/([\\w]+)/?").getMatch(1);
         return id;
     }
@@ -548,7 +605,9 @@ public class Uploadedto extends PluginForHost {
 
     private String getPassword(final DownloadLink downloadLink) throws Exception {
         String passCode = downloadLink.getStringProperty("pass", null);
-        if (passCode == null) passCode = getUserInput(null, downloadLink);
+        if (passCode == null) {
+            passCode = getUserInput(null, downloadLink);
+        }
         return passCode;
     }
 
@@ -631,7 +690,9 @@ public class Uploadedto extends PluginForHost {
                 logger.info("New Download: currentIP = " + currentIP);
                 if (hasDled.get() && ipChanged(currentIP, downloadLink) == false) {
                     long result = System.currentTimeMillis() - timeBefore.get();
-                    if (result < RECONNECTWAIT && result > 0) throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, RECONNECTWAIT - result);
+                    if (result < RECONNECTWAIT && result > 0) {
+                        throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, RECONNECTWAIT - result);
+                    }
                 }
             }
 
@@ -640,7 +701,9 @@ public class Uploadedto extends PluginForHost {
             String dllink = null;
             String redirect = br.getRedirectLocation();
             if (redirect != null) {
-                if (redirect.contains("/404")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                if (redirect.contains("/404")) {
+                    throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                }
                 dllink = redirect;
                 logger.info("Maybe direct download");
             }
@@ -650,7 +713,9 @@ public class Uploadedto extends PluginForHost {
                 if (br.containsHTML("<h2>Authentification</h2>")) {
                     logger.info("Password protected link");
                     passCode = getPassword(downloadLink);
-                    if (passCode == null || passCode.equals("")) { throw new PluginException(LinkStatus.ERROR_RETRY, "Password wrong!"); }
+                    if (passCode == null || passCode.equals("")) {
+                        throw new PluginException(LinkStatus.ERROR_RETRY, "Password wrong!");
+                    }
                     postPage(br, br.getURL(), "pw=" + Encoding.urlEncode(passCode));
                     if (br.containsHTML("<h2>Authentification</h2>")) {
                         downloadLink.setProperty("pass", null);
@@ -667,14 +732,20 @@ public class Uploadedto extends PluginForHost {
                 final String rcID = brc.getRegex("Recaptcha\\.create\\(\"([^<>\"]*?)\"").getMatch(0);
                 int wait = 30;
                 final String waitTime = br.getRegex("<span>Current waiting period: <span>(\\d+)</span> seconds</span>").getMatch(0);
-                if (waitTime != null) wait = Integer.parseInt(waitTime);
+                if (waitTime != null) {
+                    wait = Integer.parseInt(waitTime);
+                }
                 if (rcID == null) {
-                    if (brc.containsHTML("<title></title>")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error", 5 * 60 * 1000l);
+                    if (brc.containsHTML("<title></title>")) {
+                        throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error", 5 * 60 * 1000l);
+                    }
                     throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
                 }
                 br.getHeaders().put("X-Requested-With", "XMLHttpRequest");
                 postPage(br, baseURL + "io/ticket/slot/" + getID(downloadLink), "");
-                if (!br.containsHTML("\\{succ:true\\}")) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                if (!br.containsHTML("\\{succ:true\\}")) {
+                    throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                }
                 final long timebefore = System.currentTimeMillis();
                 final PluginForHost recplug = JDUtilities.getPluginForHost("DirectHTTP");
                 final jd.plugins.hoster.DirectHTTP.Recaptcha rc = ((DirectHTTP) recplug).getReCaptcha(br);
@@ -704,13 +775,17 @@ public class Uploadedto extends PluginForHost {
                     break;
                 }
                 generalFreeErrorhandling(account);
-                if (br.containsHTML("limit\\-parallel")) throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, "You're already downloading", RECONNECTWAIT);
+                if (br.containsHTML("limit\\-parallel")) {
+                    throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, "You're already downloading", RECONNECTWAIT);
+                }
                 dllink = br.getRegex("url:\\'(http.*?)\\'").getMatch(0);
                 if (dllink == null) {
                     dllink = br.getRegex("url:\\'(dl/.*?)\\'").getMatch(0);
                     if (dllink == null) {
                         dllink = br.getRegex("(\"|\\')(https?://[a-z0-9\\-]+\\.(uploaded\\.net|uploaded\\.to)/dl/[a-z0-9\\-]+)(\"|\\')").getMatch(1);
-                        if (dllink == null) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+                        if (dllink == null) {
+                            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                        }
                     }
                 }
             }
@@ -729,22 +804,40 @@ public class Uploadedto extends PluginForHost {
                     logger.severe(e.getMessage());
                 }
                 logger.info(br.toString());
-                if (dl.getConnection().getResponseCode() == 404) { throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND); }
+                if (dl.getConnection().getResponseCode() == 404) {
+                    throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                }
                 generalFreeErrorhandling(account);
-                if (br.containsHTML("please try again in an hour or purchase one of our")) throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, RECONNECTWAIT);
-                if (dl.getConnection().getResponseCode() == 508) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError(508)", 30 * 60 * 1000l);
-                if (br.containsHTML("try again later")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
-                if (br.containsHTML("All of our free\\-download capacities are")) throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "All of our free-download capacities are exhausted currently", 10 * 60 * 1000l);
-                if (br.containsHTML("File not found!")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
-                if (br.getURL().contains("view=error")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 10 * 60 * 1000l);
-                if ("No htmlCode read".equalsIgnoreCase(br.toString())) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+                if (br.containsHTML("please try again in an hour or purchase one of our")) {
+                    throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, RECONNECTWAIT);
+                }
+                if (dl.getConnection().getResponseCode() == 508) {
+                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError(508)", 30 * 60 * 1000l);
+                }
+                if (br.containsHTML("try again later")) {
+                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+                }
+                if (br.containsHTML("All of our free\\-download capacities are")) {
+                    throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "All of our free-download capacities are exhausted currently", 10 * 60 * 1000l);
+                }
+                if (br.containsHTML("File not found!")) {
+                    throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                }
+                if (br.getURL().contains("view=error")) {
+                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 10 * 60 * 1000l);
+                }
+                if ("No htmlCode read".equalsIgnoreCase(br.toString())) {
+                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+                }
                 throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
             }
             if (dl.getConnection().getResponseCode() == 404) {
                 br.followConnection();
                 throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
             }
-            if (account != null) account.setProperty("LASTDOWNLOAD2", "" + System.currentTimeMillis());
+            if (account != null) {
+                account.setProperty("LASTDOWNLOAD2", "" + System.currentTimeMillis());
+            }
             dl.startDownload();
             hasDled.set(true);
         } catch (Exception e) {
@@ -758,12 +851,16 @@ public class Uploadedto extends PluginForHost {
     }
 
     private void generalFreeErrorhandling(final Account account) throws PluginException {
-        if (br.containsHTML("No connection to database")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+        if (br.containsHTML("No connection to database")) {
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+        }
         if (br.containsHTML("\"err\":\"This file exceeds the max")) {
             try {
                 throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_ONLY);
             } catch (final Throwable e) {
-                if (e instanceof PluginException) throw (PluginException) e;
+                if (e instanceof PluginException) {
+                    throw (PluginException) e;
+                }
             }
             throw new PluginException(LinkStatus.ERROR_FATAL, "Only downloadable for premium users");
         }
@@ -781,7 +878,9 @@ public class Uploadedto extends PluginForHost {
                 throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_TEMP_DISABLE);
             }
         }
-        if (br.containsHTML("<title>uploaded.net - Maintenance")) { throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server in maintenance", 20 * 60 * 1000l); }
+        if (br.containsHTML("<title>uploaded.net - Maintenance")) {
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server in maintenance", 20 * 60 * 1000l);
+        }
 
     }
 
@@ -789,9 +888,13 @@ public class Uploadedto extends PluginForHost {
     private void handleErrorCode(Browser br, Account acc, String usedToken, boolean throwPluginDefect) throws Exception {
         final String lang = System.getProperty("user.language");
         String errCode = br.getRegex("code\":\\s*?\"?(\\d+)").getMatch(0);
-        if (errCode == null) errCode = br.getRegex("errCode\":\\s*?\"?(\\d+)").getMatch(0);
+        if (errCode == null) {
+            errCode = br.getRegex("errCode\":\\s*?\"?(\\d+)").getMatch(0);
+        }
         String message = br.getRegex("message\":\"([^\"]+)").getMatch(0);
-        if (message == null) message = br.getRegex("err\":\\[\"([^\"]+)\"\\]").getMatch(0);
+        if (message == null) {
+            message = br.getRegex("err\":\\[\"([^\"]+)\"\\]").getMatch(0);
+        }
         if (message != null) {
             message = unescape(message);
         }
@@ -867,8 +970,13 @@ public class Uploadedto extends PluginForHost {
                 throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
             }
         }
+        if (br.containsHTML("No connection to database")) {
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server in maintenance", 20 * 60 * 1000l);
+        }
         if (throwPluginDefect) {
-            if (usePremiumDownloadAPI && usePremiumAPI.get()) usePremiumAPI.set(false);
+            if (usePremiumDownloadAPI && usePremiumAPI.get()) {
+                usePremiumAPI.set(false);
+            }
             logger.info("ErrorCode: unknown\r\n" + br);
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         }
@@ -886,7 +994,9 @@ public class Uploadedto extends PluginForHost {
             try {
                 // DANGER: Even after user changed password this token is still valid->Uploaded.to was contacted by psp but no response!
                 String token = account.getStringProperty("token", null);
-                if (token != null && liveToken == false) return token;
+                if (token != null && liveToken == false) {
+                    return token;
+                }
                 /** URLDecoder can make the password invalid or throw an IllegalArgumentException */
                 // JDHash.getSHA1(URLDecoder.decode(account.getPass(), "UTF-8").toLowerCase(Locale.ENGLISH))
                 postPage(br, getProtocol() + "api.uploaded.net/api/user/login", "name=" + Encoding.urlEncode(account.getUser()) + "&pass=" + getLoginSHA1Hash(account.getPass()) + "&ishash=1&app=JDownloader");
@@ -907,10 +1017,19 @@ public class Uploadedto extends PluginForHost {
 
     public static String getLoginSHA1Hash(String arg) throws PluginException {
         try {
+            arg = arg.replaceAll("(\\\\|\\\"|\0|')", "\\\\$1");
             arg = URLDecoder.decode(arg, "ISO-8859-1");
-            arg = arg.toLowerCase(Locale.ENGLISH);
+            arg = arg.replaceAll("[ \t\n\r\0\u000B]", "");
+            while (arg.startsWith("%20")) {
+                arg = arg.substring(3);
+            }
+            while (arg.endsWith("%20")) {
+                arg = arg.substring(0, arg.length() - 3);
+            }
+            arg = arg.replaceAll("(\\\\|\\\"|\0|')", "\\\\$1");
+            arg = asciiToLower(arg);
             final MessageDigest md = MessageDigest.getInstance("SHA1");
-            final byte[] digest = md.digest(arg.getBytes("UTF-8"));
+            final byte[] digest = md.digest(arg.getBytes("latin1"));
             return HexFormatter.byteArrayToHex(digest);
         } catch (final Throwable e) {
             e.printStackTrace();
@@ -918,15 +1037,30 @@ public class Uploadedto extends PluginForHost {
         }
     }
 
+    private static String asciiToLower(String s) {
+        char[] c = new char[s.length()];
+        s.getChars(0, s.length(), c, 0);
+        int d = 'a' - 'A';
+        for (int i = 0; i < c.length; i++) {
+            if (c[i] >= 'A' && c[i] <= 'Z') {
+                c[i] = (char) (c[i] + d);
+            }
+        }
+        return new String(c);
+    }
+
     private String api_getTokenType(Account account, String token, boolean liveToken) throws Exception {
         synchronized (account) {
             try {
                 String tokenType = account.getStringProperty("tokenType", null);
-                if (tokenType != null && liveToken == false) return tokenType;
+                if (tokenType != null && liveToken == false) {
+                    return tokenType;
+                }
                 getPage(br, getProtocol() + "api.uploaded.net/api/user/jdownloader?access_token=" + token);
                 tokenType = br.getRegex("account_type\":\\s*?\"(premium|free)").getMatch(0);
 
-                if (tokenType == null) { throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "API Error. Please contact Uploaded.to Support.", 5 * 60 * 1000l);
+                if (tokenType == null) {
+                    throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "API Error. Please contact Uploaded.to Support.", 5 * 60 * 1000l);
 
                 }
                 account.setProperty("tokenType", tokenType);
@@ -977,11 +1111,15 @@ public class Uploadedto extends PluginForHost {
                 } else {
                     getPage(br, baseURL + "file/" + id + "/ddl");
                 }
-                if (br.containsHTML("<title>uploaded.net - Maintenance")) { throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server in maintenance", 20 * 60 * 1000l); }
+                if (br.containsHTML("<title>uploaded.net - Maintenance")) {
+                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server in maintenance", 20 * 60 * 1000l);
+                }
                 if (br.containsHTML("<h2>Authentification</h2>")) {
                     logger.info("Password protected link");
                     passCode = getPassword(downloadLink);
-                    if (passCode == null || passCode.equals("")) { throw new PluginException(LinkStatus.ERROR_RETRY, "Password wrong!"); }
+                    if (passCode == null || passCode.equals("")) {
+                        throw new PluginException(LinkStatus.ERROR_RETRY, "Password wrong!");
+                    }
                     postPage(br, br.getURL(), "pw=" + Encoding.urlEncode(passCode));
                     if (br.containsHTML("<h2>Authentification</h2>")) {
                         downloadLink.setProperty("pass", null);
@@ -994,7 +1132,9 @@ public class Uploadedto extends PluginForHost {
                     error = new Regex(br.getRedirectLocation(), "\\?view=(.*?)&i").getMatch(0);
                 }
                 if (error != null) {
-                    if (error.contains("error_traffic")) throw new PluginException(LinkStatus.ERROR_PREMIUM, JDL.L("plugins.hoster.uploadedto.errorso.premiumtrafficreached", "Traffic limit reached"), PluginException.VALUE_ID_PREMIUM_TEMP_DISABLE);
+                    if (error.contains("error_traffic")) {
+                        throw new PluginException(LinkStatus.ERROR_PREMIUM, JDL.L("plugins.hoster.uploadedto.errorso.premiumtrafficreached", "Traffic limit reached"), PluginException.VALUE_ID_PREMIUM_TEMP_DISABLE);
+                    }
                     throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
                 }
                 if (br.containsHTML(">Download Blocked \\(ip\\)<") || br.containsHTML("Leider haben wir Zugriffe von zu vielen verschiedenen IPs auf Ihren Account feststellen k\\&#246;nnen, Account-Sharing ist laut unseren AGB strengstens untersagt")) {
@@ -1020,9 +1160,15 @@ public class Uploadedto extends PluginForHost {
                     }
                     logger.info("InDirect Downloads active");
                     Form form = br.getForm(0);
-                    if (form == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
-                    if (form.getAction() != null && form.getAction().contains("register")) { throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE); }
-                    if (form.getAction() == null || form.getAction().contains("access")) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+                    if (form == null) {
+                        throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                    }
+                    if (form.getAction() != null && form.getAction().contains("register")) {
+                        throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+                    }
+                    if (form.getAction() == null || form.getAction().contains("access")) {
+                        throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                    }
                     logger.info("Download from:" + form.getAction());
                     form.setMethod(MethodType.GET);
                     dl = jd.plugins.BrowserAdapter.openDownload(br, downloadLink, form, true, chunks);
@@ -1045,13 +1191,27 @@ public class Uploadedto extends PluginForHost {
                     } catch (final Throwable e) {
                         logger.severe(e.getMessage());
                     }
-                    if (dl.getConnection().getResponseCode() == 404) { throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND); }
-                    if (dl.getConnection().getResponseCode() == 508) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError(508)", 30 * 60 * 1000l);
-                    if (br.containsHTML("try again later")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
-                    if (br.containsHTML("File not found!")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
-                    if (br.containsHTML("No connection to database")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 10 * 60 * 1000l);
-                    if ((br.containsHTML("Aus technischen Gr") && br.containsHTML("ist ein Download momentan nicht m")) || br.containsHTML("download this file due to technical issues at the moment")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
-                    if (br.getURL().contains("view=error")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 10 * 60 * 1000l);
+                    if (dl.getConnection().getResponseCode() == 404) {
+                        throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                    }
+                    if (dl.getConnection().getResponseCode() == 508) {
+                        throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError(508)", 30 * 60 * 1000l);
+                    }
+                    if (br.containsHTML("try again later")) {
+                        throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+                    }
+                    if (br.containsHTML("File not found!")) {
+                        throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                    }
+                    if (br.containsHTML("No connection to database")) {
+                        throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 10 * 60 * 1000l);
+                    }
+                    if ((br.containsHTML("Aus technischen Gr") && br.containsHTML("ist ein Download momentan nicht m")) || br.containsHTML("download this file due to technical issues at the moment")) {
+                        throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+                    }
+                    if (br.getURL().contains("view=error")) {
+                        throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 10 * 60 * 1000l);
+                    }
                     try {
                         logger.info(br.toString());
                     } catch (final Throwable e) {
@@ -1060,7 +1220,9 @@ public class Uploadedto extends PluginForHost {
                         logger.info(dl.getConnection().toString());
                     } catch (final Throwable e) {
                     }
-                    if ("No htmlCode read".equalsIgnoreCase(br.toString())) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+                    if ("No htmlCode read".equalsIgnoreCase(br.toString())) {
+                        throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+                    }
                     throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
                 }
                 if (dl.getConnection().getResponseCode() == 404) {
@@ -1069,7 +1231,9 @@ public class Uploadedto extends PluginForHost {
                 }
                 if (!this.dl.startDownload()) {
                     try {
-                        if (dl.externalDownloadStop()) return;
+                        if (dl.externalDownloadStop()) {
+                            return;
+                        }
                     } catch (final Throwable e) {
                     }
                     if (downloadLink.getLinkStatus().getErrorMessage() != null && downloadLink.getLinkStatus().getErrorMessage().startsWith(JDL.L("download.error.message.rangeheaders", "Server does not support chunkload"))) {
@@ -1109,15 +1273,23 @@ public class Uploadedto extends PluginForHost {
         String url = br.getRegex("link\":\\s*?\"(http.*?)\"").getMatch(0);
         if (url == null) {
             url = br.getRegex("link\":\\s*?\"(\\\\/dl.*?)\"").getMatch(0);
-            if (url != null) { throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Download currently not possible", 20 * 60 * 1000l); }
+            if (url != null) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Download currently not possible", 20 * 60 * 1000l);
+            }
         }
         String sha1 = br.getRegex("sha1\":\\s*?\"([0-9a-fA-F]+)\"").getMatch(0);
         String name = br.getRegex("name\":\\s*?\"(.*?)\"").getMatch(0);
         String size = br.getRegex("size\":\\s*?\"?(\\d+)\"").getMatch(0);
         String concurrent = br.getRegex("concurrent\":\\s*?\"?(\\d+)").getMatch(0);
-        if (url == null) handleErrorCode(br, account, token, true);
-        if (sha1 != null) downloadLink.setSha1Hash(sha1);
-        if (downloadLink.getFinalFileName() == null) downloadLink.setFinalFileName(name);
+        if (url == null) {
+            handleErrorCode(br, account, token, true);
+        }
+        if (sha1 != null) {
+            downloadLink.setSha1Hash(sha1);
+        }
+        if (downloadLink.getFinalFileName() == null) {
+            downloadLink.setFinalFileName(name);
+        }
         if (size != null) {
             try {
                 downloadLink.setVerifiedFileSize(Long.parseLong(size));
@@ -1153,13 +1325,30 @@ public class Uploadedto extends PluginForHost {
                 logger.severe(e.getMessage());
             }
             handleErrorCode(br, account, token, false);
-            if (dl.getConnection().getResponseCode() == 404) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
-            if (dl.getConnection().getResponseCode() == 508) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError(508)", 30 * 60 * 1000l);
-            if (br.containsHTML("try again later")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
-            if (br.containsHTML("File not found!")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
-            if (br.containsHTML("No connection to database")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 10 * 60 * 1000l);
-            if ((br.containsHTML("Aus technischen Gr") && br.containsHTML("ist ein Download momentan nicht m")) || br.containsHTML("download this file due to technical issues at the moment")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
-            if (br.getURL().contains("view=error")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 10 * 60 * 1000l);
+            if (dl.getConnection().getResponseCode() == 404) {
+                // this does not mean that the file is offline. This is most likly a server error. try again. if the file is really offline,
+                // the linkcheck will set the corrects status
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError(404)", 1 * 60 * 1000l);
+
+            }
+            if (dl.getConnection().getResponseCode() == 508) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError(508)", 30 * 60 * 1000l);
+            }
+            if (br.containsHTML("try again later")) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+            }
+            if (br.containsHTML("File not found!")) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
+            if (br.containsHTML("No connection to database")) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 10 * 60 * 1000l);
+            }
+            if ((br.containsHTML("Aus technischen Gr") && br.containsHTML("ist ein Download momentan nicht m")) || br.containsHTML("download this file due to technical issues at the moment")) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+            }
+            if (br.getURL().contains("view=error")) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 10 * 60 * 1000l);
+            }
             try {
                 logger.info(br.toString());
             } catch (final Throwable e) {
@@ -1168,12 +1357,16 @@ public class Uploadedto extends PluginForHost {
                 logger.info(dl.getConnection().toString());
             } catch (final Throwable e) {
             }
-            if ("No htmlCode read".equalsIgnoreCase(br.toString())) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+            if ("No htmlCode read".equalsIgnoreCase(br.toString())) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 30 * 60 * 1000l);
+            }
             if (br.containsHTML("You used too many different IPs, Downloads have been blocked for today\\.")) {
                 // shown in html of the download server, 'You used too many different IPs, Downloads have been blocked for today.'
                 logger.warning("Your account has been disabled due account access from too many different IP addresses, Please contact " + this.getHost() + " support for resolution.");
                 throw new PluginException(LinkStatus.ERROR_PREMIUM, "Your account has been disabled due account access from too many different IP addresses, Please contact " + this.getHost() + " support for resolution.", PluginException.VALUE_ID_PREMIUM_DISABLE);
-            } else if (br.containsHTML("We\\'re sorry but your download ticket couldn\\'t have been found")) { throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 5 * 60 * 1000l); }
+            } else if (br.containsHTML("We\\'re sorry but your download ticket couldn\\'t have been found")) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError", 5 * 60 * 1000l);
+            }
             // unknown error/defect, lets try next time with web method!
             usePremiumAPI.set(false);
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
@@ -1184,7 +1377,9 @@ public class Uploadedto extends PluginForHost {
             } catch (final Throwable e) {
                 logger.severe(e.getMessage());
             }
-            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            // this does not mean that the file is offline. This is most likly a server error. try again. if the file is really offline, the
+            // linkcheck will set the corrects status
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "ServerError(404)", 1 * 60 * 1000l);
         }
         dl.startDownload();
     }
@@ -1195,7 +1390,9 @@ public class Uploadedto extends PluginForHost {
             /* no account, yes we can expect captcha */
             return true;
         }
-        if (!"premium".equalsIgnoreCase(acc.getStringProperty("tokenType", null))) return true;
+        if (!"premium".equalsIgnoreCase(acc.getStringProperty("tokenType", null))) {
+            return true;
+        }
         if (Boolean.TRUE.equals(acc.getBooleanProperty("free"))) {
             /* free accounts also have captchas */
             return true;
@@ -1228,11 +1425,17 @@ public class Uploadedto extends PluginForHost {
                 postPage(br, getProtocol() + "uploaded.net/io/login", "id=" + Encoding.urlEncode(account.getUser()) + "&pw=" + Encoding.urlEncode(account.getPass()));
                 if (br.containsHTML("User and password do not match")) {
                     final AccountInfo ai = account.getAccountInfo();
-                    if (ai != null) ai.setStatus("User and password do not match");
+                    if (ai != null) {
+                        ai.setStatus("User and password do not match");
+                    }
                     throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
                 }
-                if (br.containsHTML("<title>uploaded.net - Maintenance")) { throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server in maintenance", 20 * 60 * 1000l); }
-                if (br.getCookie("http://uploaded.net", "auth") == null && br.getCookie("https://uploaded.net", "auth") == null) throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+                if (br.containsHTML("<title>uploaded.net - Maintenance")) {
+                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server in maintenance", 20 * 60 * 1000l);
+                }
+                if (br.getCookie("http://uploaded.net", "auth") == null && br.getCookie("https://uploaded.net", "auth") == null) {
+                    throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+                }
                 changeToEnglish(br);
             } catch (PluginException e) {
                 account.setProperty("token", null);
@@ -1278,7 +1481,9 @@ public class Uploadedto extends PluginForHost {
                 try {
                     ip.getPage(ipServer);
                     currentIP = ip.getRegex(IPREGEX).getMatch(0);
-                    if (currentIP != null) break;
+                    if (currentIP != null) {
+                        break;
+                    }
                 } catch (Throwable e) {
                 }
             }
@@ -1292,7 +1497,9 @@ public class Uploadedto extends PluginForHost {
 
     private boolean setIP(String IP, final DownloadLink link, final Account account) throws PluginException {
         synchronized (IPCHECK) {
-            if (IP != null && !new Regex(IP, IPREGEX).matches()) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (IP != null && !new Regex(IP, IPREGEX).matches()) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             if (ipChanged(IP, link) == false) {
                 // Static IP or failure to reconnect! We don't change lastIP
                 logger.warning("Your IP hasn't changed since last download");
@@ -1314,9 +1521,13 @@ public class Uploadedto extends PluginForHost {
         } else {
             currentIP = getIP();
         }
-        if (currentIP == null) return false;
+        if (currentIP == null) {
+            return false;
+        }
         String lastIP = link.getStringProperty(LASTIP, null);
-        if (lastIP == null) lastIP = Uploadedto.lastIP.string;
+        if (lastIP == null) {
+            lastIP = Uploadedto.lastIP.string;
+        }
         return !currentIP.equals(lastIP);
     }
 

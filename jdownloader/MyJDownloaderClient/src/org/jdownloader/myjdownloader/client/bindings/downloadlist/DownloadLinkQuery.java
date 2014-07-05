@@ -2,8 +2,7 @@ package org.jdownloader.myjdownloader.client.bindings.downloadlist;
 
 import org.jdownloader.myjdownloader.client.bindings.AbstractLinkQuery;
 
-
-public class DownloadLinkQuery extends AbstractLinkQuery{
+public class DownloadLinkQuery extends AbstractLinkQuery {
     public boolean isBytesLoaded() {
         return bytesLoaded;
     }
@@ -60,10 +59,19 @@ public class DownloadLinkQuery extends AbstractLinkQuery{
         this.extractionStatus = extractionStatus;
     }
 
-    private boolean bytesLoaded      = false;
-    private boolean speed            = false;
-    private boolean eta              = false;
-    private boolean finished         = false;
+    private boolean bytesLoaded = false;
+    private boolean speed       = false;
+    private boolean eta         = false;
+    private boolean finished    = false;
+    private boolean priority    = false;
+
+    public boolean isPriority() {
+        return priority;
+    }
+
+    public void setPriority(boolean priority) {
+        this.priority = priority;
+    }
 
     private boolean running          = false;
     private boolean skipped          = false;

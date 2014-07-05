@@ -69,8 +69,10 @@ public class InputField extends HashMap<String, String> {
         final InputField ret = new InputField();
         
         ArrayList<String> input = new ArrayList<String>();
-        input.add("[\"' ](\\w+?)\\s*=\\s*\"(.*?)\"");
-        input.add("[\"' ](\\w+?)\\s*=\\s*([^ >\"']+)");
+        // end of a " or ' (we corrected above so they are all ") is end of value of key, space before next key name isn't required. 
+        input.add("[\"']{0,1}\\s*(\\w+)\\s*=\\s*\"(.*?)\"");
+        // for key and value without use of " or ', the delimiter needs to be: whitespace, end of inputfield >, and NOT ' or " since they shouldn't be present. Rhetorically should not contain empty value
+        input.add("[\"']{0,1}\\s*(\\w+)\\s*=\\s*([^\\s\"'>]+)");
         for (String reg : input) {
             String[][] results = new Regex(data, reg).getMatches();
             for (final String[] match : results) {

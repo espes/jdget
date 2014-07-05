@@ -43,7 +43,9 @@ public interface GeneralSettings extends ConfigInterface {
             String old = JDUtilities.getConfiguration().getStringProperty("DOWNLOAD_DIRECTORY", null);
             if (!StringUtils.isEmpty(old)) {
                 File file = new File(old);
-                if (file.exists() && file.isDirectory()) return old;
+                if (file.exists() && file.isDirectory()) {
+                    return old;
+                }
             }
             String home = System.getProperty("user.home");
             if (home != null && new File(home).exists() && new File(home).isDirectory()) {
@@ -61,7 +63,9 @@ public interface GeneralSettings extends ConfigInterface {
         @Override
         public String getValue(String value) {
             if (StringUtils.isEmpty(value)) {
-                if (defaultFolder != null) return defaultFolder;
+                if (defaultFolder != null) {
+                    return defaultFolder;
+                }
                 defaultFolder = new DefaultDownloadFolder().getDefaultValue();
                 return defaultFolder;
             }
@@ -126,7 +130,7 @@ public interface GeneralSettings extends ConfigInterface {
     @AboutConfig
     @DescriptionForConfigEntry("Download Speed limit in bytes.")
     @DefaultIntValue(50 * 1024)
-    @SpinnerValidator(min = 0, max = Integer.MAX_VALUE)
+    @SpinnerValidator(min = 1, max = Integer.MAX_VALUE)
     int getDownloadSpeedLimit();
 
     @AboutConfig
@@ -142,15 +146,15 @@ public interface GeneralSettings extends ConfigInterface {
     public void setDownloadHostUnavailableRetryWaittime(long r);
 
     @AboutConfig
+    @DefaultLongValue(15 * 60 * 1000l)
+    long getProxyHostBanTimeout();
+
+    public void setProxyHostBanTimeout(long r);
+
+    @AboutConfig
     @DefaultLongValue(10 * 60 * 1000l)
     @DescriptionForConfigEntry("Waittime in ms if a Download had unknown IOException")
     long getDownloadUnknownIOExceptionWaittime();
-
-    @AboutConfig
-    @DescriptionForConfigEntry("flush download buffers when filled up to x percent (1-100)")
-    @DefaultIntValue(80)
-    @SpinnerValidator(min = 1, max = 100)
-    int getFlushBufferLevel();
 
     @AboutConfig
     @DescriptionForConfigEntry("flush download buffers after x ms")
@@ -159,7 +163,7 @@ public interface GeneralSettings extends ConfigInterface {
 
     @AboutConfig
     @DescriptionForConfigEntry("Force Jdownloader to always keep a certain amount of MB Diskspace free")
-    @DefaultIntValue(512)
+    @DefaultIntValue(128)
     @SpinnerValidator(min = 0, max = Integer.MAX_VALUE)
     int getForcedFreeSpaceOnDisk();
 
@@ -341,8 +345,6 @@ public interface GeneralSettings extends ConfigInterface {
 
     void setFilterRegex(boolean b);
 
-    void setFlushBufferLevel(int level);
-
     void setFlushBufferTimeout(int ms);
 
     void setForcedFreeSpaceOnDisk(int mb);
@@ -483,7 +485,13 @@ public interface GeneralSettings extends ConfigInterface {
             public String getLabel() {
                 return _GUI._.OnSkipDueToAlreadyExistsAction_mark_successful();
             }
-        };
+        },
+
+        SET_FILE_TO_SUCCESSFUL_MIRROR {
+            public String getLabel() {
+                return _GUI._.OnSkipDueToAlreadyExistsAction_mark_successful_mirror();
+            }
+        }
 
     }
 
@@ -499,4 +507,11 @@ public interface GeneralSettings extends ConfigInterface {
     boolean isWindowsJNAIdleDetectorEnabled();
 
     void setWindowsJNAIdleDetectorEnabled(boolean b);
+
+    @AboutConfig
+    @DescriptionForConfigEntry("Load balance free downloads over all possible connections")
+    @DefaultBooleanValue(false)
+    boolean isFreeDownloadLoadBalancingEnabled();
+
+    void setFreeDownloadLoadBalancingEnabled(boolean b);
 }

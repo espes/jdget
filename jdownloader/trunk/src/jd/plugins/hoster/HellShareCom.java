@@ -59,6 +59,37 @@ public class HellShareCom extends PluginForHost {
         }
     }
 
+    private boolean isPremium() {
+        String premiumActive = br.getRegex("<div class=\"icon-timecredit icon\">[\n\t\r]+<h4>Premium account</h4>[\n\t\r]+(.*)[\n\t\r]+<br />[\n\t\r]+<a href=\"/credit/time\">Buy</a>").getMatch(0);
+
+        if (premiumActive == null) {
+            // Premium User
+            premiumActive = br.getRegex("<div class=\"icon-timecredit icon\">[\n\t\r]+<h4>Premium account</h4>[\n\t\r]+(.*)<br />[\n\t\r]+<a href=\"/credit/time\">Buy</a>").getMatch(0);
+        }
+
+        if (premiumActive == null) {
+            // User with Credits
+            premiumActive = br.getRegex("<div class=\"icon-credit icon\">[\n\t\r]+<h4>(.*)</h4>[\n\t\r]+<table>+[\n\t\r]+<tr>[\n\t\r]+<th>Current:</th>[\n\t\r]+<td>(.*?)</td>[\n\t\r]+</tr>").getMatch(0);
+        }
+
+        if (premiumActive == null) {
+            return false;
+        } else if (premiumActive.contains("Inactive")) {
+            return false;
+        } else if (premiumActive.contains("Active")) {
+
+            String validUntil = premiumActive.substring(premiumActive.indexOf(":") + 1);
+            // page only displays full day, so JD fails in the last day of Premium
+            // added time as if the account is Premium until the midnight
+            validUntil += " 23:59:59";
+            return TimeFormatter.getMilliSeconds(validUntil, "dd.MM.yyyy HH:mm:ss", null) > System.currentTimeMillis();
+        } else if (premiumActive.contains("Download credit")) {
+            final String trafficleft = br.getRegex("id=\"info_credit\" class=\"va-middle\">[\n\t\r ]+<strong>(.*?)</strong>").getMatch(0);
+            return trafficleft != null && SizeFormatter.getSize(trafficleft) > 0;
+        }
+        return false;
+    }
+
     @Override
     public AccountInfo fetchAccountInfo(final Account account) throws Exception {
         final AccountInfo ai = new AccountInfo();
@@ -71,7 +102,7 @@ public class HellShareCom extends PluginForHost {
             account.setValid(false);
             return ai;
         }
-        final String hostedFiles = br.getRegex(">Number of your files:</label></th>.*?<td id=\"info_files_counter\"><strong>(\\d+)</strong></td>").getMatch(0);
+        final String hostedFiles = br.getRegex(">Number of your files:</label></th>.*?<td id=\"info_files_counter\">.*?>(\\d+)</").getMatch(0);
         if (hostedFiles != null) {
             ai.setFilesNum(Long.parseLong(hostedFiles));
         }
@@ -116,6 +147,7 @@ public class HellShareCom extends PluginForHost {
             if (trafficleft != null) {
                 ai.setTrafficLeft(SizeFormatter.getSize(trafficleft));
             }
+            ai.setValidUntil(-1);
             ai.setStatus("User with Credits");
             account.setValid(true);
 
@@ -131,7 +163,9 @@ public class HellShareCom extends PluginForHost {
 
     private String getDownloadOverview(final String fileID) {
         String freePage = br.getRegex("\"(/[^/\"\\'<>]+/[^/\"\\'<>]+/" + fileID + "/\\?do=relatedFileDownloadButton\\-" + fileID + ".*?)\"").getMatch(0);
-        if (freePage == null) freePage = br.getRegex("\"(/([^/\"\\'<>]+/)?[^/\"\\'<>]+/" + fileID + "/\\?do=relatedFileDownloadButton\\-" + fileID + ".*?)\"").getMatch(0);
+        if (freePage == null) {
+            freePage = br.getRegex("\"(/([^/\"\\'<>]+/)?[^/\"\\'<>]+/" + fileID + "/\\?do=relatedFileDownloadButton\\-" + fileID + ".*?)\"").getMatch(0);
+        }
         if (freePage == null) {
             freePage = br.getRegex("\"(/[^/\"\\'<>]+/" + fileID + "/\\?do=fileDownloadButton\\-showDownloadWindow)\"").getMatch(0);
             if (freePage == null) {
@@ -159,6 +193,9 @@ public class HellShareCom extends PluginForHost {
     @Override
     public void handleFree(final DownloadLink downloadLink) throws Exception, PluginException {
         requestFileInformation(downloadLink);
+        if (br.getHttpConnection().getResponseCode() == 502) {
+            throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "We are sorry, but HellShare is unavailable in your country", 4 * 60 * 60 * 1000l);
+        }
         // edt: added more logging info
         if (br.containsHTML(LIMITREACHED)) {
             // edt: to support bug when server load = 100% and daily limit
@@ -186,11 +223,17 @@ public class HellShareCom extends PluginForHost {
         }
         br.setDebug(true);
         // edt: new string for server 100% load
-        if (br.containsHTML("Current load 100%") || br.containsHTML("Server load: 100%")) { throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, JDL.L("plugins.hoster.HellShareCom.error.CurrentLoadIs100Percent", "The current serverload is 100%"), WAITTIME100PERCENT); }
+        if (br.containsHTML("Current load 100%") || br.containsHTML("Server load: 100%")) {
+            throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, JDL.L("plugins.hoster.HellShareCom.error.CurrentLoadIs100Percent", "The current serverload is 100%"), WAITTIME100PERCENT);
+        }
         // edt: added more logging info
-        if (br.containsHTML(LIMITREACHED)) { throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, JDL.L("plugins.hoster.HellShareCom.error.DailyLimitReached", "Daily Limit for free downloads reached"), WAITTIMEDAILYLIMIT); }
+        if (br.containsHTML(LIMITREACHED)) {
+            throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, JDL.L("plugins.hoster.HellShareCom.error.DailyLimitReached", "Daily Limit for free downloads reached"), WAITTIMEDAILYLIMIT);
+        }
         final String fileId = new Regex(downloadLink.getDownloadURL(), "/(\\d+)(/)?$").getMatch(0);
-        if (fileId == null) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+        if (fileId == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         boolean secondWay = true;
         String freePage = getDownloadOverview(fileId);
         if (freePage == null) {
@@ -217,8 +260,12 @@ public class HellShareCom extends PluginForHost {
             throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, 10 * 60 * 1000l);
         }
         // edt: added more logging info
-        if (br.containsHTML(LIMITREACHED)) { throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, JDL.L("plugins.hoster.HellShareCom.error.DailyLimitReached", "Daily Limit for free downloads reached"), WAITTIMEDAILYLIMIT); }
-        if (br.containsHTML("<h1>File not found</h1>")) { throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND); }
+        if (br.containsHTML(LIMITREACHED)) {
+            throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, JDL.L("plugins.hoster.HellShareCom.error.DailyLimitReached", "Daily Limit for free downloads reached"), WAITTIMEDAILYLIMIT);
+        }
+        if (br.containsHTML("<h1>File not found</h1>")) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
 
         if (secondWay) {
             Form captchaForm = null;
@@ -240,7 +287,9 @@ public class HellShareCom extends PluginForHost {
             if (captchaLink == null) {
                 captchaLink = br.getRegex("\"(http://(www\\.)?hellshare\\.com/captcha\\?sv=.*?)\"").getMatch(0);
             }
-            if (captchaLink == null) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+            if (captchaLink == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
 
             try {
                 final String code = getCaptchaCode(Encoding.htmlDecode(captchaLink), downloadLink);
@@ -264,14 +313,20 @@ public class HellShareCom extends PluginForHost {
         }
         if (!dl.getConnection().isContentDisposition()) {
             br.followConnection();
-            if (br.getURL().contains("errno=404")) { throw new PluginException(LinkStatus.ERROR_FATAL, JDL.L("plugins.hoster.HellShareCom.error.404", "404 Server error. File might not be available for your country!")); }
-            if (br.containsHTML("<h1>File not found</h1>")) { throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND); }
+            if (br.getURL().contains("errno=404")) {
+                throw new PluginException(LinkStatus.ERROR_FATAL, JDL.L("plugins.hoster.HellShareCom.error.404", "404 Server error. File might not be available for your country!"));
+            }
+            if (br.containsHTML("<h1>File not found</h1>")) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             // edt: new string for server 100% load
             if (br.containsHTML("The server is under the maximum load") || br.containsHTML("Server load: 100%")) {
                 logger.info(JDL.L("plugins.hoster.HellShareCom.error.ServerUnterMaximumLoad", "Server is under maximum load"));
                 throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, JDL.L("plugins.hoster.HellShareCom.error.ServerUnterMaximumLoad", "Server is under maximum load"), WAITTIME100PERCENT);
             }
-            if (br.containsHTML("(Incorrectly copied code from the image|Opište barevný kód z obrázku)") || br.getURL().contains("error=405")) { throw new PluginException(LinkStatus.ERROR_CAPTCHA); }
+            if (br.containsHTML("(Incorrectly copied code from the image|Opište barevný kód z obrázku)") || br.getURL().contains("error=405")) {
+                throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+            }
             if (br.containsHTML("You are exceeding the limitations on this download")) {
                 logger.info("You are exceeding the limitations on this download");
                 throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, 10 * 60 * 1000l);
@@ -284,19 +339,24 @@ public class HellShareCom extends PluginForHost {
     @Override
     public void handlePremium(final DownloadLink downloadLink, final Account account) throws Exception {
         requestFileInformation(downloadLink);
+        if (br.getHttpConnection().getResponseCode() == 502) {
+            throw new PluginException(LinkStatus.ERROR_HOSTER_TEMPORARILY_UNAVAILABLE, "We are sorry, but HellShare is unavailable in your country", 4 * 60 * 60 * 1000l);
+        }
         login(account);
 
         // edt
         // checking if the account is "Free User", if so then download as Free
         AccountInfo ai = account.getAccountInfo();
-        if (ai.getStatus().equals("Free User") & ai.getTrafficLeft() == 0l) {
+        if (isPremium() == false) {
             handleFree(downloadLink);
             return;
         }
 
         br.getPage(downloadLink.getDownloadURL());
         final String fileId = new Regex(downloadLink.getDownloadURL(), "/(\\d+)(/)?$").getMatch(0);
-        if (fileId == null) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+        if (fileId == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         final String downloadOverview = getDownloadOverview(fileId);
         if (downloadOverview != null) {
             br.getPage(downloadOverview);
@@ -366,24 +426,37 @@ public class HellShareCom extends PluginForHost {
     public void login(final Account account) throws Exception {
         setBrowserExclusive();
         /* to prefer english page */
-        br.getHeaders().put("Accept-Language", "en-gb;q=0.9, en;q=0.8");
-        br.setFollowRedirects(false);
-        br.setDebug(true);
         br.setFollowRedirects(true);
-        br.postPage("http://www.hellshare.com/login?do=loginForm-submit", "username=" + Encoding.urlEncode(account.getUser()) + "&password=" + Encoding.urlEncode(account.getPass()) + "&login=odeslat&DownloadRedirect=");
+        br.setDebug(true);
+        br.getPage("http://www.hellshare.com/login?do=loginForm-submit");
+        final String domain = br.getHost();
+        Form loginForm = null;
+        for (Form form : br.getForms()) {
+            if (form.getAction() != null && form.getAction().contains("loginForm")) {
+                loginForm = form;
+                break;
+            }
+        }
+        if (loginForm == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
+        loginForm.put("username", Encoding.urlEncode(account.getUser()));
+        loginForm.put("password", Encoding.urlEncode(account.getPass()));
+        loginForm.put("perm_login", "on");
+        br.submitForm(loginForm);
 
         /*
          * this will change account language to eng,needed because language is saved in profile
          */
-        final String changetoeng = br.getRegex("\"(http://www\\.en\\.hellshare\\.com/--.*?profile.*?)\"").getMatch(0);
-        if (changetoeng == null) {
-            // Do NOT throw an exeption here as this part isn't that important
-            // but it's bad that the plugin breaks just because of this regex
-            logger.warning("Language couldn't be changed. This will probably cause trouble...");
-        } else {
-            br.getPage(changetoeng);
+        String cookie = br.getCookie(br.getURL(), "PHPSESSID");
+        String permLogin = br.getCookie(br.getURL(), "permlogin");
+        if (permLogin == null || br.containsHTML("zadal jsi špatné uživatelské")) {
+            throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
         }
-        if (br.containsHTML("Wrong user name or wrong password.") || !br.containsHTML("credit for downloads") || br.containsHTML("Špatně zadaný login nebo heslo uživatele")) { throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE); }
+        br.getPage("http://www.hellshare.com/--" + cookie + "-/members/");
+        if (br.containsHTML("Wrong user name or wrong password.") || !br.containsHTML("credit for downloads") || br.containsHTML("Špatně zadaný login nebo heslo uživatele") || br.containsHTML("zadal jsi špatné uživatelské")) {
+            throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+        }
 
     }
 
@@ -401,16 +474,24 @@ public class HellShareCom extends PluginForHost {
             } catch (final Throwable e) {
             }
             br.getPage(link.getDownloadURL());
-            if (this.br.containsHTML(">We are sorry, but HellShare is unavailable in \\w+\\.?<")) {
-                logger.warning(">We are sorry, but HellShare is unavailable in your Country");
-                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND, JDL.L("plugins.hoster.HellShareCom.error.CountryBlock", "We are sorry, but HellShare is unavailable in your Country"));
+            if (br.getHttpConnection().getResponseCode() == 502) {
+                link.getLinkStatus().setStatusText("We are sorry, but HellShare is unavailable in your country");
+                return AvailableStatus.UNCHECKABLE;
             }
         } catch (final Exception e) {
-            if (e instanceof PluginException) throw (PluginException) e;
+            if (e instanceof PluginException) {
+                throw (PluginException) e;
+            }
             // for stable: we assume that 502 == country block.
-            if (e.getMessage().contains("502 Bad Gateway")) { throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND, JDL.L("plugins.hoster.HellShareCom.error.CountryBlock", "We are sorry, but HellShare is unavailable in your Country")); }
+            if (e.getMessage().contains("502 Bad Gateway")) {
+                link.getLinkStatus().setStatusText(">We are sorry, but HellShare is unavailable in");
+                link.getLinkStatus().setStatusText("We are sorry, but HellShare is unavailable in your country");
+                return AvailableStatus.UNCHECKABLE;
+            }
         }
-        if (br.containsHTML("<h1>File not found</h1>") || br.containsHTML("<h1>Soubor nenalezen</h1>")) { throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND); }
+        if (br.containsHTML("<h1>File not found</h1>") || br.containsHTML("<h1>Soubor nenalezen</h1>")) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
         String filesize = br.getRegex("FileSize_master\">(.*?)</strong>").getMatch(0);
         if (filesize == null) {
             filesize = br.getRegex("\"The content.*?with a size of (.*?) has been uploaded").getMatch(0);
@@ -428,7 +509,9 @@ public class HellShareCom extends PluginForHost {
                 }
             }
         }
-        if (filename == null || filesize == null) { throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND); }
+        if (filename == null || filesize == null) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
         link.setName(filename.trim());
         link.setDownloadSize(SizeFormatter.getSize(filesize.replace("&nbsp;", "")));
         link.setUrlDownload(br.getURL());

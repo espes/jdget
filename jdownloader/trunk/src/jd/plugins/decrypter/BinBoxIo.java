@@ -120,8 +120,8 @@ public class BinBoxIo extends PluginForDecrypt {
 
     private String[] decryptLinks(final String salt, final String paste) throws Exception {
         String result = null;
-        final ScriptEngineManager manager = new ScriptEngineManager();
-        final ScriptEngine engine = manager.getEngineByName("ECMAScript");
+        final ScriptEngineManager manager = jd.plugins.hoster.DummyScriptEnginePlugin.getScriptEngineManager(this);
+        final ScriptEngine engine = manager.getEngineByName("javascript");
         final Invocable inv = (Invocable) engine;
         try {
             engine.eval(sjcl);

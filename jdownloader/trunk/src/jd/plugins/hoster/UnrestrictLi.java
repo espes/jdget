@@ -45,9 +45,13 @@ import jd.utils.JDUtilities;
 @HostPlugin(revision = "$Revision$", interfaceVersion = 3, names = { "unrestrict.li" }, urls = { "http://\\w+\\.(unrestrict|unr)\\.li/dl/\\w+/.+" }, flags = { 2 })
 public class UnrestrictLi extends PluginForHost {
 
-    private static Object                                  LOCK               = new Object();
-    private static HashMap<Account, HashMap<String, Long>> hostUnavailableMap = new HashMap<Account, HashMap<String, Long>>();
-    private static final long                              MAXRETRY_503_ERROR = 50;
+    private static Object                                  LOCK                  = new Object();
+    private static HashMap<Account, HashMap<String, Long>> hostUnavailableMap    = new HashMap<Account, HashMap<String, Long>>();
+    private static final int                               MAXRETRY_503_ERROR    = 50;
+    private static final int                               MAXRETRY_OTHER_ERRORS = 5;
+    private static final String                            MAINPAGE              = "http://unrestrict.li";
+    private static final String                            NICE_HOST             = MAINPAGE.replaceAll("(https://|http://)", "");
+    private static final String                            NICE_HOSTproperty     = MAINPAGE.replaceAll("(https://|http://|\\.|\\-)", "");
 
     public UnrestrictLi(PluginWrapper wrapper) {
         super(wrapper);
@@ -81,7 +85,9 @@ public class UnrestrictLi extends PluginForHost {
         try {
             con = br.openGetConnection(dl.getDownloadURL());
             if (con.isContentDisposition()) {
-                if (dl.getFinalFileName() == null) dl.setFinalFileName(getFileNameFromHeader(con));
+                if (dl.getFinalFileName() == null) {
+                    dl.setFinalFileName(getFileNameFromHeader(con));
+                }
                 dl.setVerifiedFileSize(con.getLongContentLength());
                 dl.setAvailable(true);
                 return AvailableStatus.TRUE;
@@ -190,19 +196,23 @@ public class UnrestrictLi extends PluginForHost {
             throw new PluginException(LinkStatus.ERROR_RETRY);
         } else if (br.containsHTML("invalid\":\"Error receiving page") || br.containsHTML("\"errormessage\":\"Error receiving page")) {
             logger.info("Error receiving page");
-            if (link.getLinkStatus().getRetryCount() <= 3) { throw new PluginException(LinkStatus.ERROR_RETRY, "Server error"); }
+            if (link.getLinkStatus().getRetryCount() <= 3) {
+                throw new PluginException(LinkStatus.ERROR_RETRY, "Server error");
+            }
             tempUnavailableHoster(acc, link, 10 * 60 * 1000l);
         } else if (br.containsHTML("Expired session\\. Please sign in")) {
             if (link.getLinkStatus().getRetryCount() >= 3) {
                 link.getLinkStatus().setRetryCount(0);
                 MessageDialog("Error", "Error signing in", false);
-                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                handlePluginBroken(acc, link, "expiredsessionsignin", MAXRETRY_OTHER_ERRORS);
             }
             logger.info("Invalid/Expired session.");
             fetchAccountInfo(acc);
             throw new PluginException(LinkStatus.ERROR_RETRY);
         }
-        if (generated == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (generated == null) {
+            handlePluginBroken(acc, link, "generated_null", MAXRETRY_OTHER_ERRORS);
+        }
         /* END Possible Error Messages */
         showMessage(link, "Task 2: Download begins!");
         generated = generated.replaceAll("\\\\/", "/");
@@ -215,7 +225,9 @@ public class UnrestrictLi extends PluginForHost {
             } catch (final Throwable e) {
             }
             // Throw retry exceptions
-            if (e1.getLinkStatus() == LinkStatus.ERROR_RETRY) throw e1;
+            if (e1.getLinkStatus() == LinkStatus.ERROR_RETRY) {
+                throw e1;
+            }
             /* START Possible Error Messages */
             if (br.containsHTML("Invalid API response\\.")) {
                 logger.info("Invalid API response.");
@@ -248,8 +260,11 @@ public class UnrestrictLi extends PluginForHost {
                 throw new PluginException(LinkStatus.ERROR_RETRY);
             }
             /* END Possible Error Messages */
+            getLogger().log(e1);
+            throw e1;
+            // throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         }
-        throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+
     }
 
     private void handleDL(final Account acc, final DownloadLink link, String generated) throws Exception {
@@ -273,7 +288,9 @@ public class UnrestrictLi extends PluginForHost {
             try {
                 if (!this.dl.startDownload()) {
                     try {
-                        if (dl.externalDownloadStop()) return;
+                        if (dl.externalDownloadStop()) {
+                            return;
+                        }
                     } catch (final Throwable e) {
                     }
                     /* unknown error, we disable multiple chunks */
@@ -296,37 +313,21 @@ public class UnrestrictLi extends PluginForHost {
         } else {
             if (dl.getConnection().getResponseCode() == 503) {
                 logger.info("unrestrict.li: 503 server error");
-                if (acc == null) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "503 server error", 10 * 60 * 1000l);
-                int timesFailed = link.getIntegerProperty("timesfailedunrestrictli_servererror503", 0);
-                link.getLinkStatus().setRetryCount(0);
-                if (timesFailed <= MAXRETRY_503_ERROR) {
-                    timesFailed++;
-                    link.setProperty("timesfailedunrestrictli_servererror503", timesFailed);
-                    throw new PluginException(LinkStatus.ERROR_RETRY, "503 server error");
-                } else {
-                    link.setProperty("timesfailedunrestrictli_servererror503", Property.NULL);
-                    logger.info("unrestrict.li: 503 server error -> Disabling current host");
-                    tempUnavailableHoster(acc, link, 10 * 60 * 1000l);
+                if (acc == null) {
+                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "503 server error", 10 * 60 * 1000l);
                 }
+                handlePluginBroken(acc, link, "unknown_dl_error", MAXRETRY_503_ERROR);
             }
             br.followConnection();
         }
         logger.info("unrestrict.li: Unknown error");
-        int timesFailed = link.getIntegerProperty("timesfailedunrestrictli_unknown", 0);
-        link.getLinkStatus().setRetryCount(0);
-        if (timesFailed <= 2) {
-            timesFailed++;
-            link.setProperty("timesfailedunrestrictli_unknown", timesFailed);
-            throw new PluginException(LinkStatus.ERROR_RETRY, "Unknown error");
-        } else {
-            link.setProperty("timesfailedunrestrictli_unknown", Property.NULL);
-            logger.info("unrestrict.li: Unknown error - plugin out of date!");
-            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
-        }
+        handlePluginBroken(acc, link, "unknown_dl_error", MAXRETRY_OTHER_ERRORS);
     }
 
     private void tempUnavailableHoster(Account account, DownloadLink downloadLink, long timeout) throws PluginException {
-        if (downloadLink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        if (downloadLink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap == null) {
@@ -349,11 +350,45 @@ public class UnrestrictLi extends PluginForHost {
                     return false;
                 } else if (lastUnavailable != null) {
                     unavailableMap.remove(downloadLink.getHost());
-                    if (unavailableMap.size() == 0) hostUnavailableMap.remove(account);
+                    if (unavailableMap.size() == 0) {
+                        hostUnavailableMap.remove(account);
+                    }
                 }
             }
         }
         return true;
+    }
+
+    /**
+     * Is intended to handle out of date errors which might occur seldom by re-tring a couple of times before we temporarily remove the host
+     * from the host list.
+     * 
+     * @param dl
+     *            : The DownloadLink
+     * @param error
+     *            : The name of the error
+     * @param maxRetries
+     *            : Max retries before out of date error is thrown
+     */
+    private void handlePluginBroken(final Account acc, final DownloadLink dl, final String error, final int maxRetries) throws PluginException {
+        int timesFailed = dl.getIntegerProperty(NICE_HOSTproperty + "failedtimes_" + error, 0);
+        dl.getLinkStatus().setRetryCount(0);
+        if (timesFailed <= maxRetries) {
+            logger.info(NICE_HOST + ": " + error + " -> Retrying");
+            timesFailed++;
+            dl.setProperty(NICE_HOSTproperty + "failedtimes_" + error, timesFailed);
+            throw new PluginException(LinkStatus.ERROR_RETRY, error);
+        } else {
+            dl.setProperty(NICE_HOSTproperty + "failedtimes_" + error, Property.NULL);
+            /* Download without account --> Plugin broken (only 1 possible case here) */
+            if (acc == null) {
+                logger.info(NICE_HOST + ": " + error + " -> Plugin is broken");
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            } else {
+                logger.info(NICE_HOST + ": " + error + " -> Disabling current host");
+                tempUnavailableHoster(acc, dl, 1 * 60 * 60 * 1000l);
+            }
+        }
     }
 
     private void showMessage(DownloadLink link, String message) {
@@ -397,7 +432,7 @@ public class UnrestrictLi extends PluginForHost {
 
         br.getPage("http://unrestrict.li/api/jdownloader/user.php");
         String expires = br.getRegex("<expires>(\\d+)</expires>").getMatch(0);
-        String traffic = br.getRegex("<traffic>(\\d+)</traffic>").getMatch(0);
+        String traffic = br.getRegex("<traffic>(-?\\d+)</traffic>").getMatch(0);
         if (expires != null) {
             account.setValid(true);
             ai.setValidUntil(Long.parseLong(expires) * 1000);
@@ -408,7 +443,7 @@ public class UnrestrictLi extends PluginForHost {
         } else {
             // Not a VIP member
             account.setValid(false);
-            // MessageDialog("Error", "Please upgrade to VIP to use this plugin", false);
+            // MessageDialog("Error", " Please upgrade to VIP to use this plugin", false);
             ai.setStatus("only VIP members can use this plugin");
             ai.setProperty("multiHostSupport", Property.NULL);
             throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nThis service only accepts VIP accounts!\r\nDieser Anbieter akzeptiert nur VIP accounts!", PluginException.VALUE_ID_PREMIUM_DISABLE);
@@ -417,9 +452,8 @@ public class UnrestrictLi extends PluginForHost {
             String apihosts = br.cloneBrowser().getPage("http://unrestrict.li/api/jdownloader/hosts.php");
             String[] hosts = new Regex(apihosts, "<host>(.*?)</host>").getColumn(0);
             ArrayList<String> supportedHosts = new ArrayList<String>(Arrays.asList(hosts));
-            ai.setProperty("multiHostSupport", supportedHosts);
+            ai.setMultiHostSupport(supportedHosts);
         } catch (Throwable e) {
-            account.setProperty("multiHostSupport", Property.NULL);
             logger.info("Failed to load Unrestrict.li hosts list. Error:" + e.toString());
         }
         return ai;
@@ -462,7 +496,9 @@ public class UnrestrictLi extends PluginForHost {
                 form.put("signin", "Log%20in");
                 form.put("remember_me", "remember");
                 br.submitForm(form);
-                if (br.getCookie("http://unrestrict.li", "unrestrict_user") == null) throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+                if (br.getCookie("http://unrestrict.li", "unrestrict_user") == null) {
+                    throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+                }
                 final HashMap<String, String> cookies = new HashMap<String, String>();
                 final Cookies add = this.br.getCookies("http://unrestrict.li");
                 for (final Cookie c : add.getCookies()) {

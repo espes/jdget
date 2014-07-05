@@ -52,8 +52,14 @@ public class Cookie {
         if (!(obj instanceof Cookie)) { return false; }
         final Cookie other = (Cookie) obj;
         if (!StringUtils.equalsIgnoreCase(this.getHost(), other.getHost())) { return false; }
-        if (!StringUtils.equalsIgnoreCase(this.getKey(), other.getKey())) { return false; }
-        if (!StringUtils.equalsIgnoreCase(this.getDomain(), other.getDomain())) { return false; }
+        if (!StringUtils.equals(this.getKey(), other.getKey())) { return false; }
+        /*
+         * domain property is not used at the moment, that's why we ignore it
+         * 
+         * TODO: add proper support once a service really uses this feature
+         * 
+         * if (!StringUtils.equalsIgnoreCase(this.getDomain(), other.getDomain())) { return false; }
+         */
         return true;
     }
     
@@ -101,7 +107,6 @@ public class Cookie {
             return false;
         }
         if (this.hostTime == -1) {
-            Log.L.severe("Cookie: no HostTime found! ExpireStatus cannot be checked " + this.host + " " + this.key);
             return false;
         } else {
             final long timediff = this.creationTime - this.hostTime;

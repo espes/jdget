@@ -538,7 +538,7 @@ public enum YoutubeVariant implements YoutubeVariantInterface {
         @Override
         public List<File> listProcessFiles(DownloadLink link) {
             List<File> ret = super.listProcessFiles(link);
-            File mp3 = new File(link.getFileOutput(true, true));
+            File mp3 = new File(link.getFileOutputForPlugin(true, true));
 
             ret.add(new File(mp3 + ".avi"));
             ret.add(new File(mp3 + ".mp3"));
@@ -567,7 +567,7 @@ public enum YoutubeVariant implements YoutubeVariantInterface {
         @Override
         public List<File> listProcessFiles(DownloadLink link) {
             List<File> ret = super.listProcessFiles(link);
-            File mp3 = new File(link.getFileOutput(true, true));
+            File mp3 = new File(link.getFileOutputForPlugin(true, true));
 
             ret.add(new File(mp3 + ".avi"));
             ret.add(new File(mp3 + ".mp3"));
@@ -1026,6 +1026,29 @@ public enum YoutubeVariant implements YoutubeVariantInterface {
             return _GUI._.YoutubeVariant_filenametag_WEBM_1080();
         }
     },
+
+    WEBM_1440(null, YoutubeVariantInterface.VariantGroup.VIDEO, YoutubeVariantInterface.DownloadType.VIDEO, "webm", YoutubeITAG.WEBM_VIDEO_1440P_VP9_AUDIO_VORBIS, null, null, null, null) {
+        @Override
+        public String getName() {
+            return "1440p WebM-Video";
+        }
+
+        @Override
+        public String getQualityExtension() {
+            return "1440p";
+        }
+    },
+    WEBM_2160(null, YoutubeVariantInterface.VariantGroup.VIDEO, YoutubeVariantInterface.DownloadType.VIDEO, "webm", YoutubeITAG.WEBM_VIDEO_2160P_VP9_AUDIO_VORBIS, null, null, null, null) {
+        @Override
+        public String getName() {
+            return "2160p WebM-Video";
+        }
+
+        @Override
+        public String getQualityExtension() {
+            return "2160p";
+        }
+    },
     WEBM_360(null, YoutubeVariantInterface.VariantGroup.VIDEO, YoutubeVariantInterface.DownloadType.VIDEO, "webm", YoutubeITAG.WEBM_VIDEO_360P_VP8_AUDIO_VORBIS, null, null, null, null) {
         @Override
         public String getName() {
@@ -1115,7 +1138,9 @@ public enum YoutubeVariant implements YoutubeVariantInterface {
         this.id = id;
 
         this.fileExtension = fileExtension;
-        if (type == null) throw new NullPointerException();
+        if (type == null) {
+            throw new NullPointerException();
+        }
         this.type = type;
         this.iTagVideo = video;
         this.iTagAudio = audio;
@@ -1126,7 +1151,9 @@ public enum YoutubeVariant implements YoutubeVariantInterface {
     }
 
     public void convert(DownloadLink downloadLink) throws Exception {
-        if (converter != null) converter.run(downloadLink);
+        if (converter != null) {
+            converter.run(downloadLink);
+        }
     }
 
     /**
@@ -1135,14 +1162,28 @@ public enum YoutubeVariant implements YoutubeVariantInterface {
      * @return
      */
     public boolean isVideoToolRequired() {
-        if (iTagVideo != null && iTagAudio != null) return true;
-        if (iTagVideo != null && iTagVideo.name().contains("DASH")) return true;
-        if (iTagAudio != null && iTagAudio.name().contains("DASH")) return true;
+        if (iTagVideo != null && iTagAudio != null) {
+            return true;
+        }
+        if (iTagVideo != null && iTagVideo.name().contains("DASH")) {
+            return true;
+        }
+        if (iTagAudio != null && iTagAudio.name().contains("DASH")) {
+            return true;
+        }
         if (converter != null) {
-            if (converter instanceof YoutubeMp4ToAACAudio) return true;
-            if (converter instanceof YoutubeMp4ToM4aAudio) return true;
-            if (converter instanceof YoutubeFlvToMp3Audio) return true;
-            if (converter instanceof YoutubeExternConverter) return true;
+            if (converter instanceof YoutubeMp4ToAACAudio) {
+                return true;
+            }
+            if (converter instanceof YoutubeMp4ToM4aAudio) {
+                return true;
+            }
+            if (converter instanceof YoutubeFlvToMp3Audio) {
+                return true;
+            }
+            if (converter instanceof YoutubeExternConverter) {
+                return true;
+            }
 
         }
         return false;
@@ -1215,8 +1256,12 @@ public enum YoutubeVariant implements YoutubeVariantInterface {
     }
 
     public String getTypeId() {
-        if (CFG_GUI.EXTENDED_VARIANT_NAMES_ENABLED.isEnabled()) return name();
-        if (this.id == null) { return this.name(); }
+        if (CFG_GUI.EXTENDED_VARIANT_NAMES_ENABLED.isEnabled()) {
+            return name();
+        }
+        if (this.id == null) {
+            return this.name();
+        }
         return this.id;
     }
 
@@ -1237,19 +1282,29 @@ public enum YoutubeVariant implements YoutubeVariantInterface {
     }
 
     public String modifyFileName(String formattedFilename, DownloadLink link) {
-        if (filenameModifier != null) return filenameModifier.run(formattedFilename, link);
+        if (filenameModifier != null) {
+            return filenameModifier.run(formattedFilename, link);
+        }
         return formattedFilename;
     }
 
     public String getAudioCodec() {
-        if (getiTagAudio() != null) { return getiTagAudio().getCodecAudio(); }
-        if (getiTagVideo() != null) { return getiTagVideo().getCodecAudio(); }
+        if (getiTagAudio() != null) {
+            return getiTagAudio().getCodecAudio();
+        }
+        if (getiTagVideo() != null) {
+            return getiTagVideo().getCodecAudio();
+        }
         return null;
     }
 
     public String getAudioQuality() {
-        if (getiTagAudio() != null) { return getiTagAudio().getQualityAudio(); }
-        if (getiTagVideo() != null) { return getiTagVideo().getQualityAudio(); }
+        if (getiTagAudio() != null) {
+            return getiTagAudio().getQualityAudio();
+        }
+        if (getiTagVideo() != null) {
+            return getiTagVideo().getQualityAudio();
+        }
         return null;
     }
 
@@ -1266,8 +1321,12 @@ public enum YoutubeVariant implements YoutubeVariantInterface {
     }
 
     public String getVideoCodec() {
-        if (getiTagData() != null) { return getiTagData().getCodecVideo(); }
-        if (getiTagVideo() != null) { return getiTagVideo().getCodecVideo(); }
+        if (getiTagData() != null) {
+            return getiTagData().getCodecVideo();
+        }
+        if (getiTagVideo() != null) {
+            return getiTagVideo().getCodecVideo();
+        }
         return null;
     }
 

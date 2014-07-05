@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import jd.PluginWrapper;
+import jd.config.SubConfiguration;
 import jd.controlling.ProgressController;
 import jd.http.URLConnectionAdapter;
 import jd.nutils.encoding.Encoding;
@@ -34,7 +35,7 @@ import jd.utils.JDUtilities;
 
 import org.appwork.utils.formatter.SizeFormatter;
 
-@DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "dropbox.com" }, urls = { "https?://(www\\.)?dropbox\\.com/(sh/[A-Za-z0-9\\-_/]+|l/[A-Za-z0-9]+)" }, flags = { 0 })
+@DecrypterPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "dropbox.com" }, urls = { "https?://(www\\.)?dropbox\\.com/(sh/[A-Za-z0-9\\-_/]+|l/[A-Za-z0-9]+)|https?://(www\\.)?db\\.tt/[A-Za-z0-9]+" }, flags = { 0 })
 public class DropBoxCom extends PluginForDecrypt {
 
     private boolean pluginloaded;
@@ -43,8 +44,11 @@ public class DropBoxCom extends PluginForDecrypt {
         super(wrapper);
     }
 
-    private final String NORMALLINK   = "https?://(www\\.)?dropbox\\.com/sh/.+";
-    private final String REDIRECTLINK = "https?://(www\\.)?dropbox\\.com/l/[A-Za-z0-9]+";
+    private static final String TYPE_NORMAL   = "https?://(www\\.)?dropbox\\.com/sh/.+";
+    private static final String TYPE_REDIRECT = "https?://(www\\.)?dropbox\\.com/l/[A-Za-z0-9]+";
+    private static final String TYPE_SHORT    = "https://(www\\.)?db\\.tt/[A-Za-z0-9]+";
+
+    private static final String DOWNLOAD_ZIP  = "DOWNLOAD_ZIP";
 
     public ArrayList<DownloadLink> decryptIt(CryptedLink param, ProgressController progress) throws Exception {
         ArrayList<DownloadLink> decryptedLinks = new ArrayList<DownloadLink>();
@@ -65,8 +69,12 @@ public class DropBoxCom extends PluginForDecrypt {
                 decryptedLinks.add(dl);
                 return decryptedLinks;
             }
-            if (con.getResponseCode() == 302 && parameter.matches(REDIRECTLINK)) {
+            if (con.getResponseCode() == 302 && (parameter.matches(TYPE_REDIRECT) || parameter.matches(TYPE_SHORT))) {
                 parameter = br.getRedirectLocation();
+                if (!parameter.matches(TYPE_NORMAL)) {
+                    logger.warning("Decrypter broken or unsupported redirect-url: " + parameter);
+                    return null;
+                }
             }
             br.followConnection();
         } finally {
@@ -77,19 +85,19 @@ public class DropBoxCom extends PluginForDecrypt {
         }
         br.getPage(parameter);
         // Handling for single links
-        if (br.containsHTML(new Regex(parameter, ".*?(\\.com/sh/[a-z0-9]+).+").getMatch(0) + "[^<>\"]+" + "dl=1([^<>\"]*?)\"")) {
-            final DownloadLink dl = createDownloadlink(parameter.replace("dropbox.com/", "dropboxdecrypted.com/"));
-            dl.setProperty("decrypted", true);
-            decryptedLinks.add(dl);
-            return decryptedLinks;
-        }
-        // Decrypt "Download as zip" link
-        final String zipLink = br.getRegex("data\\-dl\\-link=\"(https?://dl\\.[^<>\"]*?)\" onclick=\"FreshDropdown\\.hide_all\\(\\)\"><img src=\"[^<>\"]*?\" class=\"[a-z0-9\\-_ ]+\" />Download as \\.zip</a>").getMatch(0);
-        if (zipLink != null) {
+        /* TODO: Fix handling for single links - disabled by now to prevent errors */
+        // if (br.containsHTML(new Regex(parameter, ".*?(\\.com/sh/[a-z0-9]+).+").getMatch(0) + "[^<>\"]+" + "dl=1([^<>\"]*?)\"")) {
+        // final DownloadLink dl = createDownloadlink(parameter.replace("dropbox.com/", "dropboxdecrypted.com/"));
+        // dl.setProperty("decrypted", true);
+        // decryptedLinks.add(dl);
+        // return decryptedLinks;
+        // }
+        /* Decrypt "Download as zip" link if available and wished by the user */
+        if (br.containsHTML(">Download as \\.zip<") && SubConfiguration.getConfig("dropbox.com").getBooleanProperty(DOWNLOAD_ZIP, false)) {
             final DownloadLink dl = createDownloadlink(parameter.replace("dropbox.com/", "dropboxdecrypted.com/"));
             dl.setProperty("decrypted", true);
             dl.setProperty("type", "zip");
-            dl.setProperty("directlink", Encoding.htmlDecode(zipLink));
+            dl.setProperty("directlink", parameter + "?dl=1");
             decryptedLinks.add(dl);
         }
         // Decrypt file- and folderlinks
@@ -150,7 +158,9 @@ public class DropBoxCom extends PluginForDecrypt {
             return decryptedLinks;
         }
         if (fpName != null) {
-            if (fpName.contains("\\")) fpName = unescape(fpName);
+            if (fpName.contains("\\")) {
+                fpName = unescape(fpName);
+            }
             FilePackage fp = FilePackage.getInstance();
             fp.setName(Encoding.htmlDecode(fpName.trim()));
             fp.addLinks(decryptedLinks);
@@ -162,7 +172,9 @@ public class DropBoxCom extends PluginForDecrypt {
         /* we have to make sure the youtube plugin is loaded */
         if (pluginloaded == false) {
             final PluginForHost plugin = JDUtilities.getPluginForHost("youtube.com");
-            if (plugin == null) throw new IllegalStateException("youtube plugin not found!");
+            if (plugin == null) {
+                throw new IllegalStateException("youtube plugin not found!");
+            }
             pluginloaded = true;
         }
         return jd.plugins.hoster.Youtube.unescape(s);

@@ -45,7 +45,7 @@ import org.appwork.utils.formatter.SizeFormatter;
 
 @HostPlugin(revision = "$Revision$", interfaceVersion = 3, names = { "superload.cz" }, urls = { "http://\\w+\\.superload\\.eu/download\\.php\\?a=[a-z0-9]+" }, flags = { 2 })
 public class SuperLoadCz extends PluginForHost {
-
+    /* IMPORTANT: superload.cz and stahomat.cz use the same api */
     // DEV NOTES
     // supports last09 based on pre-generated links and jd2
 
@@ -53,8 +53,6 @@ public class SuperLoadCz extends PluginForHost {
     private static final String                            mProt              = "http://";
     private static final String                            mAPI               = "http://api.superload.cz/a-p-i";
     private static HashMap<Account, HashMap<String, Long>> hostUnavailableMap = new HashMap<Account, HashMap<String, Long>>();
-
-    private static final int                               MAX_SIMULTAN_DLS   = 5;
 
     private static Object                                  LOCK               = new Object();
     private String                                         TOKEN              = null;
@@ -78,9 +76,18 @@ public class SuperLoadCz extends PluginForHost {
         br.setReadTimeout(3 * 60 * 1000);
     }
 
+    /**
+     * JD 2 Code. DO NOT USE OVERRIDE FOR COMPATIBILITY REASONS
+     */
+    public boolean isProxyRotationEnabledForLinkChecker() {
+        return false;
+    }
+
     public boolean checkLinks(DownloadLink[] urls) {
         prepBrowser();
-        if (urls == null || urls.length == 0) { return false; }
+        if (urls == null || urls.length == 0) {
+            return false;
+        }
         try {
             List<Account> accs = AccountController.getInstance().getValidAccounts(this.getHost());
             if (accs == null || accs.size() == 0) {
@@ -121,7 +128,9 @@ public class SuperLoadCz extends PluginForHost {
     @Override
     public AvailableStatus requestFileInformation(DownloadLink link) throws PluginException {
         checkLinks(new DownloadLink[] { link });
-        if (!link.isAvailable()) { throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND); }
+        if (!link.isAvailable()) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
         return getAvailableStatus(link);
     }
 
@@ -130,7 +139,9 @@ public class SuperLoadCz extends PluginForHost {
             final Field field = link.getClass().getDeclaredField("availableStatus");
             field.setAccessible(true);
             Object ret = field.get(link);
-            if (ret != null && ret instanceof AvailableStatus) return (AvailableStatus) ret;
+            if (ret != null && ret instanceof AvailableStatus) {
+                return (AvailableStatus) ret;
+            }
         } catch (final Throwable e) {
         }
         return AvailableStatus.UNCHECKED;
@@ -150,7 +161,9 @@ public class SuperLoadCz extends PluginForHost {
                     return false;
                 } else if (lastUnavailable != null) {
                     unavailableMap.remove(downloadLink.getHost());
-                    if (unavailableMap.size() == 0) hostUnavailableMap.remove(account);
+                    if (unavailableMap.size() == 0) {
+                        hostUnavailableMap.remove(account);
+                    }
                 }
             }
         }
@@ -182,7 +195,9 @@ public class SuperLoadCz extends PluginForHost {
         if (!dl.getConnection().isContentDisposition()) {
             /* download is not contentdisposition, so remove this host from premiumHosts list */
             br.followConnection();
-            if (br.containsHTML(">Omlouváme se, ale soubor se nepovedlo stáhnout")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error", 30 * 60 * 1000l);
+            if (br.containsHTML(">Omlouváme se, ale soubor se nepovedlo stáhnout")) {
+                throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error", 30 * 60 * 1000l);
+            }
             /* temp disabled the host */
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         } else {
@@ -204,17 +219,17 @@ public class SuperLoadCz extends PluginForHost {
         br.setFollowRedirects(true);
         final String pass = downloadLink.getStringProperty("pass", null);
         TOKEN = account.getStringProperty("token", null);
-        if (TOKEN == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (TOKEN == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         String dllink = checkDirectLink(downloadLink, "superloadczdirectlink");
         if (dllink == null) {
             showMessage(downloadLink, "Task 1: Generating Link");
             /* request Download */
-            if (pass != null) {
-                postPageSafe(account, mAPI + "/download-url", "url=" + Encoding.urlEncode(downloadLink.getDownloadURL()) + "&password=" + Encoding.urlEncode(pass) + "&token=");
-            } else {
-                postPageSafe(account, mAPI + "/download-url", "url=" + Encoding.urlEncode(downloadLink.getDownloadURL()) + "&token=");
-            }
-            if (br.containsHTML("\"error\":\"invalidLink\"")) {
+            postPageSafe(account, mAPI + "/download-url", "url=" + Encoding.urlEncode(downloadLink.getDownloadURL()) + (pass != null ? "&password=" + Encoding.urlEncode(pass) : "") + "&token=");
+            if (br.getHttpConnection() != null && br.getHttpConnection().getResponseCode() == 404) {
+                throw new PluginException(LinkStatus.ERROR_RETRY);
+            } else if (br.containsHTML("\"error\":\"invalidLink\"")) {
                 logger.info("Superload.cz says 'invalid link', disabling real host for 1 hour.");
                 tempUnavailableHoster(account, downloadLink, 60 * 60 * 1000l);
             } else if (br.containsHTML("\"error\":\"temporarilyUnsupportedServer\"")) {
@@ -229,7 +244,9 @@ public class SuperLoadCz extends PluginForHost {
                 throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_TEMP_DISABLE);
             }
             dllink = getJson("link");
-            if (dllink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (dllink == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             dllink = dllink.replaceAll("\\\\", "");
             showMessage(downloadLink, "Task 2: Download begins!");
         }
@@ -278,7 +295,7 @@ public class SuperLoadCz extends PluginForHost {
         }
         account.setValid(true);
         account.setConcurrentUsePossible(true);
-        account.setMaxSimultanDownloads(MAX_SIMULTAN_DLS);
+        account.setMaxSimultanDownloads(5);
         ai.setValidUntil(-1);
         ai.setStatus("Premium User");
         try {
@@ -286,20 +303,8 @@ public class SuperLoadCz extends PluginForHost {
             String hostsSup = br.cloneBrowser().postPage(mAPI + "/get-supported-hosts", "token=" + TOKEN);
             String[] hosts = new Regex(hostsSup, "\"([^\", ]+\\.[^\", ]+)").getColumn(0);
             ArrayList<String> supportedHosts = new ArrayList<String>(Arrays.asList(hosts));
-            if (supportedHosts.contains("uploaded.net") || supportedHosts.contains("ul.to") || supportedHosts.contains("uploaded.to")) {
-                if (!supportedHosts.contains("uploaded.net")) {
-                    supportedHosts.add("uploaded.net");
-                }
-                if (!supportedHosts.contains("ul.to")) {
-                    supportedHosts.add("ul.to");
-                }
-                if (!supportedHosts.contains("uploaded.to")) {
-                    supportedHosts.add("uploaded.to");
-                }
-            }
-            ai.setProperty("multiHostSupport", supportedHosts);
+            ai.setMultiHostSupport(supportedHosts);
         } catch (Throwable e) {
-            account.setProperty("multiHostSupport", Property.NULL);
             logger.info("Could not fetch ServerList from " + mName + ": " + e.toString());
         }
         return ai;
@@ -308,7 +313,12 @@ public class SuperLoadCz extends PluginForHost {
     private void login(final Account acc) throws IOException, PluginException {
         synchronized (LOCK) {
             br.postPage(mAPI + "/login", "username=" + Encoding.urlEncode(acc.getUser()) + "&password=" + JDHash.getMD5(acc.getPass()));
-            if (!getSuccess()) throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+            if (br.getHttpConnection() != null && br.getHttpConnection().getResponseCode() == 404) {
+                throw new PluginException(LinkStatus.ERROR_RETRY);
+            }
+            if (!getSuccess()) {
+                throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+            }
             TOKEN = getJson("token");
             if (TOKEN != null) {
                 acc.setProperty("token", TOKEN);
@@ -323,9 +333,13 @@ public class SuperLoadCz extends PluginForHost {
     }
 
     private AccountInfo updateCredits(AccountInfo ai, Account account) throws PluginException, IOException {
-        if (ai == null) ai = new AccountInfo();
+        if (ai == null) {
+            ai = new AccountInfo();
+        }
         String token = account.getStringProperty("token", null);
-        if (token == null) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+        if (token == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         br.postPage(mAPI + "/get-status-bar", "token=" + token);
         Integer credits = Integer.parseInt(getJson("credits"));
         if (credits != null) {
@@ -338,7 +352,9 @@ public class SuperLoadCz extends PluginForHost {
     }
 
     private void tempUnavailableHoster(Account account, DownloadLink downloadLink, long timeout) throws PluginException {
-        if (downloadLink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        if (downloadLink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap == null) {
@@ -353,7 +369,9 @@ public class SuperLoadCz extends PluginForHost {
 
     private String getJson(final String key) {
         String result = br.getRegex("\"" + key + "\":\"([^\"]+)\"").getMatch(0);
-        if (result == null) result = br.getRegex("\"" + key + "\":([^\"\\}\\,]+)").getMatch(0);
+        if (result == null) {
+            result = br.getRegex("\"" + key + "\":([^\"\\}\\,]+)").getMatch(0);
+        }
         return result;
     }
 
@@ -384,7 +402,9 @@ public class SuperLoadCz extends PluginForHost {
             failed = false;
             break;
         }
-        if (failed) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error 401", 10 * 60 * 1000l);
+        if (failed) {
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error 401", 10 * 60 * 1000l);
+        }
     }
 
     @Override

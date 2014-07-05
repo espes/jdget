@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
 import jd.controlling.downloadcontroller.DownloadController;
 import jd.controlling.packagecontroller.AbstractPackageChildrenNodeFilter;
 import jd.plugins.DownloadLink;
-import jd.plugins.FilePackage;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.utils.StringUtils;
@@ -38,16 +37,10 @@ public class DownloadLinkArchiveFactory extends DownloadLinkArchiveFile implemen
     }
 
     public String createExtractSubPath(String path, Archive archive) {
-        DownloadLink link = getFirstLink(archive);
+        final DownloadLink link = getFirstLink(archive);
         try {
-            FilePackage fp = link.getFilePackage();
             if (path.contains(PACKAGENAME)) {
-                String packageName = null;
-                if (FilePackage.isDefaultFilePackage(fp)) {
-                    packageName = link.getStringProperty(DownloadLink.PROPERTY_LASTFPNAME, null);
-                } else {
-                    packageName = CrossSystem.alleviatePathParts(link.getFilePackage().getName());
-                }
+                final String packageName = CrossSystem.alleviatePathParts(link.getLastValidFilePackage().getName());
                 if (!StringUtils.isEmpty(packageName)) {
                     path = path.replace(PACKAGENAME, packageName);
                 } else {
@@ -146,7 +139,9 @@ public class DownloadLinkArchiveFactory extends DownloadLinkArchiveFile implemen
             if (af instanceof DownloadLinkArchiveFile) {
                 for (DownloadLink link : ((DownloadLinkArchiveFile) af).getDownloadLinks()) {
                     String pw = link.getDownloadPassword();
-                    if (StringUtils.isEmpty(pw) == false) ret.add(pw);
+                    if (StringUtils.isEmpty(pw) == false) {
+                        ret.add(pw);
+                    }
                 }
             }
         }
@@ -164,9 +159,13 @@ public class DownloadLinkArchiveFactory extends DownloadLinkArchiveFile implemen
     }
 
     private DownloadLink getFirstLink(Archive archive) {
-        if (archive.getFirstArchiveFile() instanceof DownloadLinkArchiveFile) { return ((DownloadLinkArchiveFile) archive.getFirstArchiveFile()).getDownloadLinks().get(0); }
+        if (archive.getFirstArchiveFile() instanceof DownloadLinkArchiveFile) {
+            return ((DownloadLinkArchiveFile) archive.getFirstArchiveFile()).getDownloadLinks().get(0);
+        }
         for (ArchiveFile af : archive.getArchiveFiles()) {
-            if (af instanceof DownloadLinkArchiveFile) { return ((DownloadLinkArchiveFile) af).getDownloadLinks().get(0); }
+            if (af instanceof DownloadLinkArchiveFile) {
+                return ((DownloadLinkArchiveFile) af).getDownloadLinks().get(0);
+            }
         }
         throw new WTFException("Archive should always have at least one link");
     }
@@ -190,9 +189,13 @@ public class DownloadLinkArchiveFactory extends DownloadLinkArchiveFile implemen
 
     @Override
     public String getID() {
-        if (id != null) return id;
+        if (id != null) {
+            return id;
+        }
         synchronized (this) {
-            if (id != null) return id;
+            if (id != null) {
+                return id;
+            }
             id = getIDFromFile(this);
         }
         return id;
@@ -201,7 +204,9 @@ public class DownloadLinkArchiveFactory extends DownloadLinkArchiveFile implemen
     private String getIDFromFile(DownloadLinkArchiveFile file) {
         for (DownloadLink link : file.getDownloadLinks()) {
             String id = link.getArchiveID();
-            if (id != null) { return id; }
+            if (id != null) {
+                return id;
+            }
         }
         return null;
     }
@@ -214,7 +219,9 @@ public class DownloadLinkArchiveFactory extends DownloadLinkArchiveFile implemen
                 if (af instanceof DownloadLinkArchiveFactory) {
                     id = getIDFromFile((DownloadLinkArchiveFactory) af);
                 }
-                if (id != null) break;
+                if (id != null) {
+                    break;
+                }
             }
         }
         if (id == null) {
@@ -231,7 +238,9 @@ public class DownloadLinkArchiveFactory extends DownloadLinkArchiveFile implemen
 
     public synchronized static String createUniqueAlltimeID() {
         long time = System.currentTimeMillis();
-        if (time == LAST_USED_TIMESTAMP) time++;
+        if (time == LAST_USED_TIMESTAMP) {
+            time++;
+        }
         LAST_USED_TIMESTAMP = time;
         return time + "";
     }

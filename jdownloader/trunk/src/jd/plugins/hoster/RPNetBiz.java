@@ -87,7 +87,7 @@ public class RPNetBiz extends PluginForHost {
     public void prepBrowser() {
         // define custom browser headers and language settings.
         br.getHeaders().put("Accept-Language", "en-gb, en;q=0.9");
-        br.getHeaders().put("User-Agent", "JDOWNLOADER");
+        br.getHeaders().put("User-Agent", "JDownloader");
         br.setCustomCharset("utf-8");
         br.setConnectTimeout(60 * 1000);
         br.setReadTimeout(60 * 1000);
@@ -128,7 +128,9 @@ public class RPNetBiz extends PluginForHost {
         try {
             con = br.openGetConnection(link.getDownloadURL());
             List<Integer> allowedResponseCodes = Arrays.asList(200, 206);
-            if (!allowedResponseCodes.contains(con.getResponseCode()) || con.getContentType().contains("html") || con.getResponseMessage().contains("Download doesn't exist for given Hash/ID/Key")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            if (!allowedResponseCodes.contains(con.getResponseCode()) || con.getContentType().contains("html") || con.getResponseMessage().contains("Download doesn't exist for given Hash/ID/Key")) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             link.setName(getFileNameFromHeader(con));
             link.setDownloadSize(con.getLongContentLength());
         } finally {
@@ -159,11 +161,9 @@ public class RPNetBiz extends PluginForHost {
         String hosts = br.getPage(mPremium + "hostlist.php");
         if (hosts != null) {
             ArrayList<String> supportedHosts = new ArrayList<String>(Arrays.asList(hosts.split(",")));
-            ai.setProperty("multiHostSupport", supportedHosts);
-            ai.setStatus("Premium User - " + supportedHosts.size() + " hosts available!");
-        } else {
-            ai.setStatus("Premium User - 0 Hosts available!");
+            ai.setMultiHostSupport(supportedHosts);
         }
+        ai.setStatus("Premium User");
         return ai;
     }
 
@@ -189,7 +189,9 @@ public class RPNetBiz extends PluginForHost {
                     return false;
                 } else if (lastUnavailable != null) {
                     unavailableMap.remove(downloadLink.getHost());
-                    if (unavailableMap.size() == 0) hostUnavailableMap.remove(account);
+                    if (unavailableMap.size() == 0) {
+                        hostUnavailableMap.remove(account);
+                    }
                 }
             }
         }
@@ -197,9 +199,13 @@ public class RPNetBiz extends PluginForHost {
     }
 
     private void tempUnavailableHoster(final Account account, final DownloadLink downloadLink, final long timeout) throws PluginException {
-        if (downloadLink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        if (downloadLink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        }
         // This should never happen
-        if (downloadLink.getHost().contains("rpnet")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "FATAL server error", 5 * 60 * 1000l);
+        if (downloadLink.getHost().contains("rpnet")) {
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "FATAL server error", 5 * 60 * 1000l);
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap == null) {
@@ -280,7 +286,9 @@ public class RPNetBiz extends PluginForHost {
                 generatedLink = tmp.substring(1, tmp.length() - 1);
             }
             // download the file
-            if (generatedLink == null || generatedLink.isEmpty()) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+            if (generatedLink == null || generatedLink.isEmpty()) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             showMessage(link, "Download begins!");
 
             try {
@@ -289,6 +297,10 @@ public class RPNetBiz extends PluginForHost {
             } catch (final PluginException e1) {
                 if (e1.getLinkStatus() == LinkStatus.ERROR_DOWNLOAD_INCOMPLETE) {
                     logger.info("rpnet.biz: ERROR_DOWNLOAD_INCOMPLETE --> Quitting loop");
+                    throw e1;
+                } else if (e1.getLinkStatus() == LinkStatus.ERROR_DOWNLOAD_FAILED) {
+                    logger.info("rpnet.biz: ERROR_DOWNLOAD_FAILED --> Quitting loop");
+                    throw e1;
                 }
             }
         }
@@ -330,7 +342,9 @@ public class RPNetBiz extends PluginForHost {
 
     private void login(Account account, boolean force) throws Exception {
         br.getPage(mPremium + "client_api.php?username=" + Encoding.urlEncode(account.getUser()) + "&password=" + URLEncoder.encode(account.getPass(), "UTF-8") + "&action=showAccountInformation");
-        if (br.toString().contains("Invalid authentication.")) { throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE); }
+        if (br.toString().contains("Invalid authentication.")) {
+            throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_DISABLE);
+        }
         JSonObject node = (JSonObject) new JSonFactory(br.toString()).parse();
         JSonObject accountInfo = (JSonObject) node.get("accountInfo"); // Just make sure this doesn't throw an exception
     }

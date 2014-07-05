@@ -16,6 +16,7 @@ import org.appwork.remoteapi.exceptions.BadParameterException;
 import org.jdownloader.DomainInfo;
 import org.jdownloader.api.RemoteAPIController;
 import org.jdownloader.gui.views.SelectionInfo;
+import org.jdownloader.myjdownloader.client.bindings.PriorityStorable;
 import org.jdownloader.myjdownloader.client.bindings.interfaces.DownloadsListInterface;
 import org.jdownloader.plugins.FinalLinkState;
 
@@ -45,9 +46,15 @@ public class DownloadsAPIV2Impl implements DownloadsAPIV2 {
         List<FilePackageAPIStorableV2> ret = new ArrayList<FilePackageAPIStorableV2>(packages.size());
         int startWith = queryParams.getStartAt();
         int maxResults = queryParams.getMaxResults();
-        if (startWith > dlc.size() - 1) return ret;
-        if (startWith < 0) startWith = 0;
-        if (maxResults < 0) maxResults = dlc.size();
+        if (startWith > dlc.size() - 1) {
+            return ret;
+        }
+        if (startWith < 0) {
+            startWith = 0;
+        }
+        if (maxResults < 0) {
+            maxResults = dlc.size();
+        }
 
         for (int i = startWith; i < Math.min(startWith + maxResults, dlc.size()); i++) {
             FilePackage fp = packages.get(i);
@@ -58,7 +65,7 @@ public class DownloadsAPIV2Impl implements DownloadsAPIV2 {
                 FilePackageAPIStorableV2 fps = new FilePackageAPIStorableV2(fp);
 
                 if (queryParams.isSaveTo()) {
-                    fps.setSaveTo(fp.getDownloadDirectory());
+                    fps.setSaveTo(fp.getView().getDownloadDirectory());
 
                 }
                 if (queryParams.isBytesTotal()) {
@@ -144,20 +151,30 @@ public class DownloadsAPIV2Impl implements DownloadsAPIV2 {
             }
         }
 
-        if (links.isEmpty()) return result;
+        if (links.isEmpty()) {
+            return result;
+        }
 
         int startWith = queryParams.getStartAt();
         int maxResults = queryParams.getMaxResults();
 
-        if (startWith > links.size() - 1) return result;
-        if (startWith < 0) startWith = 0;
-        if (maxResults < 0) maxResults = links.size();
+        if (startWith > links.size() - 1) {
+            return result;
+        }
+        if (startWith < 0) {
+            startWith = 0;
+        }
+        if (maxResults < 0) {
+            maxResults = links.size();
+        }
 
         for (int i = startWith; i < Math.min(startWith + maxResults, links.size()); i++) {
 
             DownloadLink dl = links.get(i);
             DownloadLinkAPIStorableV2 dls = new DownloadLinkAPIStorableV2(dl);
-
+            if (queryParams.isPriority()) {
+                dls.setPriority(org.jdownloader.myjdownloader.client.bindings.PriorityStorable.valueOf(dl.getPriorityEnum().name()));
+            }
             if (queryParams.isHost()) {
                 dls.setHost(dl.getHost());
             }
@@ -227,15 +244,32 @@ public class DownloadsAPIV2Impl implements DownloadsAPIV2 {
     @Override
     public void renamePackage(Long packageId, String newName) {
         DownloadController dlc = DownloadController.getInstance();
-        dlc.writeLock();
-        for (FilePackage fp : dlc.getPackages()) {
-            if (packageId.equals(fp.getUniqueID().getID())) {
-                fp.setName(newName);
-                break;
+        try {
+            dlc.writeLock();
+            for (FilePackage fp : dlc.getPackages()) {
+                if (packageId.equals(fp.getUniqueID().getID())) {
+                    fp.setName(newName);
+                    break;
+                }
             }
+        } finally {
+            dlc.writeUnlock();
         }
-        dlc.writeUnlock();
 
+    }
+
+    @Override
+    public void renameLink(Long linkId, String newName) {
+        DownloadController dlc = DownloadController.getInstance();
+        try {
+            dlc.writeLock();
+            DownloadLink link = dlc.getLinkByID(linkId);
+            if (link != null) {
+                link.setName(newName);
+            }
+        } finally {
+            dlc.writeUnlock();
+        }
     }
 
     @Override
@@ -352,10 +386,13 @@ public class DownloadsAPIV2Impl implements DownloadsAPIV2 {
     }
 
     public static HashSet<Long> createLookupSet(long[] linkIds) {
-        if (linkIds == null || linkIds.length == 0) return null;
+        if (linkIds == null || linkIds.length == 0) {
+            return null;
+        }
         HashSet<Long> linkLookup = new HashSet<Long>();
-        for (long l : linkIds)
+        for (long l : linkIds) {
             linkLookup.add(l);
+        }
         return linkLookup;
     }
 
@@ -373,6 +410,42 @@ public class DownloadsAPIV2Impl implements DownloadsAPIV2 {
 
         DownloadWatchDog.getInstance().reset(getSelectionInfo(linkIds, packageIds).getChildren());
 
+    }
+
+    @Override
+    public void setPriority(PriorityStorable priority, long[] linkIds, long[] packageIds) throws BadParameterException {
+        org.jdownloader.controlling.Priority jdPriority = org.jdownloader.controlling.Priority.valueOf(priority.name());
+        for (DownloadLink dl : getSelectionInfo(linkIds, packageIds).getChildren()) {
+            dl.setPriorityEnum(jdPriority);
+        }
+    }
+
+    @Override
+    public void setStopMark(long linkId, long packageId) {
+        for (DownloadLink dl : getSelectionInfo(new long[] { linkId }, new long[] { packageId }).getChildren()) {
+            DownloadWatchDog.getInstance().getSession().setStopMark(dl);
+        }
+    }
+
+    @Override
+    public void removeStopMark() {
+        DownloadWatchDog.getInstance().getSession().setStopMark(null);
+    }
+
+    @Override
+    public void resumeLinks(long[] linkIds, long[] packageIds) throws BadParameterException {
+        DownloadWatchDog dwd = DownloadWatchDog.getInstance();
+        List<DownloadLink> links = getSelectionInfo(linkIds, packageIds).getChildren();
+        dwd.resume(links);
+    }
+
+    @Override
+    public void setDownloadDirectory(String directory, long[] packageIds) {
+        DownloadWatchDog dwd = DownloadWatchDog.getInstance();
+        List<FilePackage> pkgs = convertIdsToPackages(packageIds);
+        for (FilePackage pkg : pkgs) {
+            dwd.setDownloadDirectory(pkg, directory);
+        }
     }
 
 }

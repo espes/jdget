@@ -18,6 +18,7 @@ package jd.plugins.hoster;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -94,23 +95,9 @@ public class DebridItaliaCom extends PluginForHost {
         // now let's get a list of all supported hosts:
         br.getPage("http://debriditalia.com/api.php?hosts");
         hosts = br.getRegex("\"([^<>\"]*?)\"").getColumn(0);
-        ArrayList<String> supportedHosts = new ArrayList<String>();
-        for (final String host : hosts) {
-            supportedHosts.add(host);
-        }
-        if (supportedHosts.contains("uploaded.net") || supportedHosts.contains("ul.to") || supportedHosts.contains("uploaded.to")) {
-            if (!supportedHosts.contains("uploaded.net")) {
-                supportedHosts.add("uploaded.net");
-            }
-            if (!supportedHosts.contains("ul.to")) {
-                supportedHosts.add("ul.to");
-            }
-            if (!supportedHosts.contains("uploaded.to")) {
-                supportedHosts.add("uploaded.to");
-            }
-        }
+        final ArrayList<String> supportedHosts = new ArrayList<String>(Arrays.asList(hosts));
+        ac.setMultiHostSupport(supportedHosts);
         ac.setStatus("Account valid");
-        ac.setProperty("multiHostSupport", supportedHosts);
         return ac;
     }
 
@@ -210,7 +197,9 @@ public class DebridItaliaCom extends PluginForHost {
             try {
                 if (!this.dl.startDownload()) {
                     try {
-                        if (dl.externalDownloadStop()) return;
+                        if (dl.externalDownloadStop()) {
+                            return;
+                        }
                     } catch (final Throwable e) {
                     }
                     /* unknown error, we disable multiple chunks */
@@ -242,12 +231,16 @@ public class DebridItaliaCom extends PluginForHost {
 
     private boolean loginAPI(final Account acc) throws IOException {
         br.getPage("http://debriditalia.com/api.php?check=on&u=" + Encoding.urlEncode(acc.getUser()) + "&p=" + Encoding.urlEncode(acc.getPass()));
-        if (!br.containsHTML("<status>valid</status>")) return false;
+        if (!br.containsHTML("<status>valid</status>")) {
+            return false;
+        }
         return true;
     }
 
     private void tempUnavailableHoster(final Account account, final DownloadLink downloadLink, long timeout) throws PluginException {
-        if (downloadLink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        if (downloadLink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT, "Unable to handle this errorcode!");
+        }
         synchronized (hostUnavailableMap) {
             HashMap<String, Long> unavailableMap = hostUnavailableMap.get(account);
             if (unavailableMap == null) {
@@ -270,7 +263,9 @@ public class DebridItaliaCom extends PluginForHost {
                     return false;
                 } else if (lastUnavailable != null) {
                     unavailableMap.remove(downloadLink.getHost());
-                    if (unavailableMap.size() == 0) hostUnavailableMap.remove(account);
+                    if (unavailableMap.size() == 0) {
+                        hostUnavailableMap.remove(account);
+                    }
                 }
             }
         }
@@ -283,7 +278,9 @@ public class DebridItaliaCom extends PluginForHost {
 
     private String checkDirectLink(final DownloadLink downloadLink, final String property) {
         String dllink = downloadLink.getStringProperty(property);
-        if (downloadLink.getDownloadURL().contains("clz.to/")) dllink = downloadLink.getDownloadURL();
+        if (downloadLink.getDownloadURL().contains("clz.to/")) {
+            dllink = downloadLink.getDownloadURL();
+        }
         if (dllink != null) {
             try {
                 final Browser br2 = br.cloneBrowser();

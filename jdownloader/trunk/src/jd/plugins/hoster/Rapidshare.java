@@ -203,7 +203,9 @@ public class Rapidshare extends PluginForHost {
     @Override
     public boolean checkLinks(final DownloadLink[] urls) {
 
-        if (urls == null || urls.length == 0) { return false; }
+        if (urls == null || urls.length == 0) {
+            return false;
+        }
         try {
             if (Rapidshare.RS_API_WAIT.get() > System.currentTimeMillis()) {
                 for (final DownloadLink u : urls) {
@@ -243,7 +245,9 @@ public class Rapidshare extends PluginForHost {
                 } else {
                     logger.finest("OnlineCheck: Check " + urls.length + " links");
                 }
-                if (!this.checkLinksIntern2(links)) { return false; }
+                if (!this.checkLinksIntern2(links)) {
+                    return false;
+                }
             }
         } catch (final Exception e) {
             e.printStackTrace();
@@ -265,7 +269,9 @@ public class Rapidshare extends PluginForHost {
     }
 
     public boolean checkLinksIntern(final DownloadLink[] urls) {
-        if (urls == null) { return false; }
+        if (urls == null) {
+            return false;
+        }
         final ArrayList<DownloadLink> checkurls = new ArrayList<DownloadLink>();
         final ArrayList<DownloadLink> finishedurls = new ArrayList<DownloadLink>();
         for (final DownloadLink u : urls) {
@@ -359,7 +365,9 @@ public class Rapidshare extends PluginForHost {
                     }
                     i++;
                 }
-                if (!doretry) { return true; }
+                if (!doretry) {
+                    return true;
+                }
             }
             return false;
         } catch (final Exception e) {
@@ -385,7 +393,9 @@ public class Rapidshare extends PluginForHost {
     }
 
     private boolean checkLinksIntern2(final ArrayList<DownloadLink> links) {
-        if (!this.checkLinksIntern(links.toArray(new DownloadLink[] {}))) { return false; }
+        if (!this.checkLinksIntern(links.toArray(new DownloadLink[] {}))) {
+            return false;
+        }
         final ArrayList<DownloadLink> retry = new ArrayList<DownloadLink>();
         for (final DownloadLink link : links) {
             if (link.getProperty("htmlworkaround", null) != null) {
@@ -393,7 +403,9 @@ public class Rapidshare extends PluginForHost {
             }
         }
         if (retry.size() > 0) {
-            if (!this.checkLinksIntern(retry.toArray(new DownloadLink[] {}))) { return false; }
+            if (!this.checkLinksIntern(retry.toArray(new DownloadLink[] {}))) {
+                return false;
+            }
         }
         return true;
     }
@@ -434,7 +446,9 @@ public class Rapidshare extends PluginForHost {
                         continue;
                     }
                 }
-                if (maxRedirects <= 0) { throw new PluginException(LinkStatus.ERROR_FATAL, "Redirectloop"); }
+                if (maxRedirects <= 0) {
+                    throw new PluginException(LinkStatus.ERROR_FATAL, "Redirectloop");
+                }
 
             }
         }
@@ -445,7 +459,7 @@ public class Rapidshare extends PluginForHost {
     }
 
     private RAFDownload createHackedDownloadInterface2(PluginForHost plugin, final DownloadLink downloadLink, final Request request) throws IOException, PluginException {
-        request.getHeaders().put("Accept-Encoding", "");
+        request.getHeaders().put("Accept-Encoding", "identity");
         final RAFDownload dl = new RAFDownload(plugin, downloadLink, request) {
 
             long lastWrite = -1;
@@ -459,8 +473,12 @@ public class Rapidshare extends PluginForHost {
                     int       speed = 30 * 1024;
 
                     public int getMaximalSpeed() {
-                        if (speed >= max) return max;
-                        if (speed <= 0) return max;
+                        if (speed >= max) {
+                            return max;
+                        }
+                        if (speed <= 0) {
+                            return max;
+                        }
                         return speed;
                     }
 
@@ -543,7 +561,9 @@ public class Rapidshare extends PluginForHost {
      * @return
      */
     private String getCorrectedURL(String link) {
-        if (link == null) { return null; }
+        if (link == null) {
+            return null;
+        }
         if (link.contains("://ssl.") || !link.startsWith("http://rapidshare.com")) {
             link = "http://rapidshare.com" + link.substring(link.indexOf("rapidshare.com") + 14);
         }
@@ -627,7 +647,9 @@ public class Rapidshare extends PluginForHost {
                     try {
                         throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_ONLY);
                     } catch (final Throwable e) {
-                        if (e instanceof PluginException) throw (PluginException) e;
+                        if (e instanceof PluginException) {
+                            throw (PluginException) e;
+                        }
                     }
                     throw new PluginException(LinkStatus.ERROR_FATAL, "This file can only be downloaded by its uploader");
                 }
@@ -700,7 +722,9 @@ public class Rapidshare extends PluginForHost {
                 final String host = this.br.getRegex("DL:(.*?),").getMatch(0);
                 final String auth = this.br.getRegex("DL:(.*?),(.*?),").getMatch(1);
                 final String wait = this.br.getRegex("DL:(.*?),(.*?),(\\d+)").getMatch(2);
-                if (wait == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                if (wait == null) {
+                    throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                }
                 this.sleep(Long.parseLong(wait) * 1000l, downloadLink);
                 dllink = "http://" + host + "/cgi-bin/rsapi.cgi?sub=download&dlauth=" + auth + "&bin=1&noflvheader=1&fileid=" + link.getId() + "&filename=" + encodeFilename(link.getName());
                 /* needed for secured links */
@@ -742,11 +766,13 @@ public class Rapidshare extends PluginForHost {
                     this.br.followConnection();
                 } catch (final Throwable e) {
                 }
-                if (br.containsHTML("Download permission denied by uploader"))
+                if (br.containsHTML("Download permission denied by uploader")) {
                     throw new PluginException(LinkStatus.ERROR_FATAL, "This file can only be downloaded by its uploader");
-                else if (br.containsHTML("File ID invalid"))
+                } else if (br.containsHTML("File ID invalid")) {
                     throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
-                else if (br.containsHTML("Filename invalid")) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error", 30 * 60 * 1000l);
+                } else if (br.containsHTML("Filename invalid")) {
+                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, "Server error", 30 * 60 * 1000l);
+                }
                 logger.severe(this.br.toString());
                 throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, 10 * 60 * 1000l);
             }
@@ -761,7 +787,9 @@ public class Rapidshare extends PluginForHost {
 
     private boolean oldStyle() {
         String style = System.getProperty("ftpStyle", null);
-        if ("new".equalsIgnoreCase(style)) return false;
+        if ("new".equalsIgnoreCase(style)) {
+            return false;
+        }
         String prev = JDUtilities.getRevision();
         if (prev == null || prev.length() < 3) {
             prev = "0";
@@ -769,7 +797,9 @@ public class Rapidshare extends PluginForHost {
             prev = prev.replaceAll(",|\\.", "");
         }
         int rev = Integer.parseInt(prev);
-        if (rev < 10000) return true;
+        if (rev < 10000) {
+            return true;
+        }
         return false;
     }
 
@@ -836,7 +866,9 @@ public class Rapidshare extends PluginForHost {
                 String directurl = "https://" + host + "/cgi-bin/rsapi.cgi?sub=download&bin=1&noflvheader=1&fileid=" + link.getId() + "&filename=" + this.encodeFilename(link.getName()) + "&cookie=" + cookie;
                 if (dllink != null) {
                     directurl = dllink + "&cookie=" + cookie;
-                } else if (host == null) { throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT); }
+                } else if (host == null) {
+                    throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                }
                 /* needed for secured links */
                 if (link.getSecMD5() != null) {
                     directurl += "&seclinkmd5=" + link.getSecMD5();
@@ -855,7 +887,9 @@ public class Rapidshare extends PluginForHost {
                 if (!urlConnection.isContentDisposition() && urlConnection.getHeaderField("Cache-Control") != null) {
                     // Lädt die zuletzt aufgebaute vernindung
                     this.br.followConnection();
-                    if (br.containsHTML("Download permission denied by uploader")) { throw new PluginException(LinkStatus.ERROR_FATAL, "This file can only be downloaded by its uploader"); }
+                    if (br.containsHTML("Download permission denied by uploader")) {
+                        throw new PluginException(LinkStatus.ERROR_FATAL, "This file can only be downloaded by its uploader");
+                    }
                     if (retry) {
                         /* in case we get anther DL hoster */
                         host = this.br.getRegex("DL:(.*?),").getMatch(0);
@@ -1005,8 +1039,8 @@ public class Rapidshare extends PluginForHost {
             br.setFollowRedirects(true);
             br.getPage(req);
         } catch (final BrowserException e) {
-            if (e.getConnection() != null && !req.startsWith("https")) {
-                switch (e.getConnection().getResponseCode()) {
+            if (e.getRequest() != null && e.getRequest().getHttpConnection() != null && !req.startsWith("https")) {
+                switch (e.getRequest().getHttpConnection().getResponseCode()) {
                 case 500:
                 case 502:
                     req = "https" + req.substring(4);
@@ -1026,9 +1060,13 @@ public class Rapidshare extends PluginForHost {
     }
 
     private void readTimeoutHotFix() {
-        if (ReadTimeoutHotFix.get() == true) { return; }
+        if (ReadTimeoutHotFix.get() == true) {
+            return;
+        }
         synchronized (Rapidshare.LOCK) {
-            if (ReadTimeoutHotFix.get() == true) { return; }
+            if (ReadTimeoutHotFix.get() == true) {
+                return;
+            }
             Rapidshare.ReadTimeoutHotFix.set(true);
             try {
                 final Class<?> c = Class.forName("sun.net.NetworkClient");
@@ -1082,7 +1120,9 @@ public class Rapidshare extends PluginForHost {
         if (!downloadLink.isAvailabilityStatusChecked()) {
             downloadLink.setAvailableStatus(AvailableStatus.UNCHECKABLE);
         } else {
-            if (!downloadLink.isAvailable()) { throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND); }
+            if (!downloadLink.isAvailable()) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
         }
         return getAvailableStatus(downloadLink);
     }
@@ -1092,7 +1132,9 @@ public class Rapidshare extends PluginForHost {
             final Field field = link.getClass().getDeclaredField("availableStatus");
             field.setAccessible(true);
             Object ret = field.get(link);
-            if (ret != null && ret instanceof AvailableStatus) return (AvailableStatus) ret;
+            if (ret != null && ret instanceof AvailableStatus) {
+                return (AvailableStatus) ret;
+            }
         } catch (final Throwable e) {
         }
         return AvailableStatus.UNCHECKED;
@@ -1137,7 +1179,9 @@ public class Rapidshare extends PluginForHost {
     }
 
     private void updateAccountInfo(final Account account, final Browser br) {
-        if (account == null || br == null) { return; }
+        if (account == null || br == null) {
+            return;
+        }
         AccountInfo ai = account.getAccountInfo();
         if (ai == null) {
             ai = new AccountInfo();

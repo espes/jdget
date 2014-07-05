@@ -33,6 +33,7 @@ import jd.nutils.encoding.Encoding;
 import jd.parser.Regex;
 import jd.parser.html.Form;
 import jd.plugins.Account;
+import jd.plugins.Account.AccountType;
 import jd.plugins.AccountInfo;
 import jd.plugins.DownloadLink;
 import jd.plugins.DownloadLink.AvailableStatus;
@@ -64,7 +65,7 @@ public class FilesMonsterCom extends PluginForHost {
         this.enablePremium("http://filesmonster.com/service.php");
     }
 
-    public void correctDownloadLink(DownloadLink link) {
+    public void correctDownloadLink(final DownloadLink link) {
         link.setUrlDownload(link.getDownloadURL().replace("filesmonsterdecrypted.com/", "filesmonster.com/"));
     }
 
@@ -74,7 +75,7 @@ public class FilesMonsterCom extends PluginForHost {
     }
 
     // @Override to keep compatible to stable
-    public boolean canHandle(DownloadLink downloadLink, Account account) {
+    public boolean canHandle(final DownloadLink downloadLink, final Account account) {
         if (downloadLink.getBooleanProperty("PREMIUMONLY") && account == null) {
             /* premium only */
             return false;
@@ -93,23 +94,35 @@ public class FilesMonsterCom extends PluginForHost {
         if (downloadLink.getDownloadURL().contains("/free/2/")) {
             br.getPage(downloadLink.getStringProperty("mainlink"));
             if (br.getRedirectLocation() != null) {
-                if (br.getRedirectLocation().contains(REDIRECTFNF)) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                if (br.getRedirectLocation().contains(REDIRECTFNF)) {
+                    throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                }
                 throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
             }
             downloadLink.setName(downloadLink.getName());
             downloadLink.setDownloadSize(downloadLink.getDownloadSize());
         } else {
-            if (downloadLink.getBooleanProperty("offline", false)) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            if (downloadLink.getBooleanProperty("offline", false)) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             br.getPage(downloadLink.getDownloadURL());
             // Link offline
-            if (br.containsHTML("(>File was deleted by owner or it was deleted for violation of copyrights<|>File not found<|>The link could not be decoded<)")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            if (br.containsHTML("(>File was deleted by owner or it was deleted for violation of copyrights<|>File not found<|>The link could not be decoded<)")) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             // Advertising link
-            if (br.containsHTML("the file can be accessed at the|>can be accessed at the")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            if (br.containsHTML("the file can be accessed at the|>can be accessed at the")) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             // link not possible due to ip ban http://svn.jdownloader.org/issues/27798
-            if (br.containsHTML(">You do not have permission to access the requested resource on this server.<|>Perhaps your IP address is blocked due to suspicious activity.<")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            if (br.containsHTML(">You do not have permission to access the requested resource on this server.<|>Perhaps your IP address is blocked due to suspicious activity.<")) {
+                throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+            }
             if (br.getRedirectLocation() != null) {
                 // Link offline 2
-                if (br.getRedirectLocation().contains(REDIRECTFNF)) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                if (br.getRedirectLocation().contains(REDIRECTFNF)) {
+                    throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+                }
                 throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
             }
 
@@ -123,35 +136,48 @@ public class FilesMonsterCom extends PluginForHost {
             }
             String filename = br.getRegex(jd.plugins.decrypter.FilesMonsterDecrypter.FILENAMEREGEX).getMatch(0);
             String filesize = br.getRegex(jd.plugins.decrypter.FilesMonsterDecrypter.FILESIZEREGEX).getMatch(0);
-            if (filename == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            if (filename == null) {
+                throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+            }
             downloadLink.setFinalFileName(Encoding.htmlDecode(filename.trim()));
             if (filesize != null) {
                 downloadLink.setDownloadSize(SizeFormatter.getSize(filesize.trim()));
             }
         }
-        if (br.containsHTML(TEMPORARYUNAVAILABLE)) downloadLink.getLinkStatus().setStatusText(JDL.L("plugins.hoster.filesmonstercom.temporaryunavailable", "Download not available at the moment"));
-        if (downloadLink.getBooleanProperty("PREMIUMONLY")) downloadLink.getLinkStatus().setStatusText(JDL.L("plugins.hoster.filesmonstercom.only4premium", PREMIUMONLYUSERTEXT));
+        if (br.containsHTML(TEMPORARYUNAVAILABLE)) {
+            downloadLink.getLinkStatus().setStatusText(JDL.L("plugins.hoster.filesmonstercom.temporaryunavailable", "Download not available at the moment"));
+        }
+        if (downloadLink.getBooleanProperty("PREMIUMONLY")) {
+            downloadLink.getLinkStatus().setStatusText(JDL.L("plugins.hoster.filesmonstercom.only4premium", PREMIUMONLYUSERTEXT));
+        }
         return AvailableStatus.TRUE;
 
     }
 
-    private String getNewTemporaryLink(String mainlink, String originalfilename) throws IOException, PluginException {
+    private String getNewTemporaryLink(final String mainlink, final String originalfilename) throws IOException, PluginException {
         // Find a new temporary link
         String mainlinkpart = new Regex(mainlink, "filesmonster\\.com/download\\.php\\?id=(.+)").getMatch(0);
         String temporaryLink = null;
         br.getPage(mainlink);
         final String[] allInfo = getTempLinks();
         if (allInfo != null && allInfo.length != 0) {
-            for (String singleInfo : allInfo)
-                if (singleInfo.contains("\"name\":\"" + originalfilename + "\"")) temporaryLink = new Regex(singleInfo, "\"dlcode\":\"(.*?)\"").getMatch(0);
+            for (String singleInfo : allInfo) {
+                if (singleInfo.contains("\"name\":\"" + originalfilename + "\"")) {
+                    temporaryLink = new Regex(singleInfo, "\"dlcode\":\"(.*?)\"").getMatch(0);
+                }
+            }
         }
-        if (temporaryLink != null) temporaryLink = "http://filesmonster.com/dl/" + mainlinkpart + "/free/2/" + temporaryLink + "/";
+        if (temporaryLink != null) {
+            temporaryLink = "http://filesmonster.com/dl/" + mainlinkpart + "/free/2/" + temporaryLink + "/";
+        }
         return temporaryLink;
     }
 
     private void handleErrors() throws PluginException {
         logger.info("Handling errors...");
-        if (br.containsHTML(TEMPORARYUNAVAILABLE)) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, JDL.L("plugins.hoster.filesmonstercom.temporaryunavailable", "Download not available at the moment"), 120 * 60 * 1000l);
+        if (br.containsHTML(TEMPORARYUNAVAILABLE)) {
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, JDL.L("plugins.hoster.filesmonstercom.temporaryunavailable", "Download not available at the moment"), 120 * 60 * 1000l);
+        }
         String wait = br.getRegex("You can wait for the start of downloading (\\d+)").getMatch(0);
         if (wait == null) {
             wait = br.getRegex("is already in use (\\d+)").getMatch(0);
@@ -174,27 +200,39 @@ public class FilesMonsterCom extends PluginForHost {
             }
 
         }
-        if (wait != null) throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, Long.parseLong(wait) * 60 * 1001l);
-        if (br.containsHTML("Minimum interval between free downloads is 45 minutes")) throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, 45 * 60 * 1001l);
-        if (br.containsHTML("Respectfully yours Adminstration of Filesmonster\\.com")) throw new PluginException(LinkStatus.ERROR_IP_BLOCKED);
-        if (br.containsHTML("You need Premium membership to download files")) throw new PluginException(LinkStatus.ERROR_FATAL, JDL.L("plugins.hoster.filesmonstercom.only4premium", PREMIUMONLYUSERTEXT));
+        if (wait != null) {
+            throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, Long.parseLong(wait) * 60 * 1001l);
+        }
+        if (br.containsHTML("Minimum interval between free downloads is 45 minutes")) {
+            throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, 45 * 60 * 1001l);
+        }
+        if (br.containsHTML("Respectfully yours Adminstration of Filesmonster\\.com")) {
+            throw new PluginException(LinkStatus.ERROR_IP_BLOCKED);
+        }
+        if (br.containsHTML("You need Premium membership to download files")) {
+            throw new PluginException(LinkStatus.ERROR_FATAL, JDL.L("plugins.hoster.filesmonstercom.only4premium", PREMIUMONLYUSERTEXT));
+        }
     }
 
     @Override
-    public void handleFree(DownloadLink downloadLink) throws Exception {
+    public void handleFree(final DownloadLink downloadLink) throws Exception {
         requestFileInformation(downloadLink);
         if (downloadLink.getBooleanProperty("PREMIUMONLY")) {
             try {
                 throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_ONLY);
             } catch (final Throwable e) {
-                if (e instanceof PluginException) throw (PluginException) e;
+                if (e instanceof PluginException) {
+                    throw (PluginException) e;
+                }
             }
             throw new PluginException(LinkStatus.ERROR_FATAL, PREMIUMONLYUSERTEXT);
         }
         handleErrors();
         br.setFollowRedirects(true);
         String postThat = br.getRegex(POSTTHATREGEX).getMatch(0);
-        if (postThat == null) postThat = new Regex(downloadLink.getDownloadURL(), POSTTHATREGEX2).getMatch(0);
+        if (postThat == null) {
+            postThat = new Regex(downloadLink.getDownloadURL(), POSTTHATREGEX2).getMatch(0);
+        }
         if (postThat == null) {
             logger.warning("The following string could not be found: postThat");
             throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
@@ -206,7 +244,9 @@ public class FilesMonsterCom extends PluginForHost {
                 try {
                     throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_ONLY);
                 } catch (final Throwable e) {
-                    if (e instanceof PluginException) throw (PluginException) e;
+                    if (e instanceof PluginException) {
+                        throw (PluginException) e;
+                    }
                 }
                 throw new PluginException(LinkStatus.ERROR_FATAL, PREMIUMONLYUSERTEXT);
             }
@@ -229,7 +269,9 @@ public class FilesMonsterCom extends PluginForHost {
         String c = getCaptchaCode(cf, downloadLink);
         rc.setCode(c);
         handleErrors();
-        if (br.containsHTML("(Captcha number error or expired|api\\.recaptcha\\.net)")) throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+        if (br.containsHTML("(Captcha number error or expired|api\\.recaptcha\\.net)")) {
+            throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+        }
         if (!downloadLink.getDownloadURL().contains("/free/2/")) {
             String finalPage = br.getRegex("reserve_ticket\\(\\'(/dl/.*?)\\'\\)").getMatch(0);
             if (finalPage == null) {
@@ -295,7 +337,9 @@ public class FilesMonsterCom extends PluginForHost {
                 /** Load cookies */
                 final Object ret = account.getProperty("cookies", null);
                 boolean acmatch = Encoding.urlEncode(account.getUser()).equals(account.getStringProperty("name", Encoding.urlEncode(account.getUser())));
-                if (acmatch) acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                if (acmatch) {
+                    acmatch = Encoding.urlEncode(account.getPass()).equals(account.getStringProperty("pass", Encoding.urlEncode(account.getPass())));
+                }
                 if (acmatch && ret != null && ret instanceof HashMap<?, ?> && !force) {
                     final HashMap<String, String> cookies = (HashMap<String, String>) ret;
                     if (account.isValid()) {
@@ -312,9 +356,9 @@ public class FilesMonsterCom extends PluginForHost {
                 // get login page first, that way we don't post twice in case
                 // captcha is already invoked!
                 br.getPage("http://filesmonster.com/login.php");
-                Form login = br.getFormbyProperty("name", "login");
+                final Form login = br.getFormbyProperty("name", "login");
+                final String lang = System.getProperty("user.language");
                 if (login == null) {
-                    String lang = System.getProperty("user.language");
                     if ("de".equalsIgnoreCase(lang)) {
                         throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nPlugin defekt, bitte den JDownloader Support kontaktieren!", PluginException.VALUE_ID_PREMIUM_DISABLE);
                     } else {
@@ -326,7 +370,9 @@ public class FilesMonsterCom extends PluginForHost {
                     final PluginForHost recplug = JDUtilities.getPluginForHost("DirectHTTP");
                     final jd.plugins.hoster.DirectHTTP.Recaptcha rc = ((DirectHTTP) recplug).getReCaptcha(br);
                     final String id = br.getRegex("\\?k=([A-Za-z0-9%_\\+\\- ]+)\"").getMatch(0);
-                    if (id == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                    if (id == null) {
+                        throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+                    }
                     rc.setId(id);
                     rc.load();
                     final File cf = rc.downloadCaptcha(getLocalCaptchaFile());
@@ -338,8 +384,30 @@ public class FilesMonsterCom extends PluginForHost {
                 login.put("pass", Encoding.urlEncode(account.getPass()));
                 br.submitForm(login);
 
-                if (br.getRegex("Your membership type: <span class=\"[A-Za-z0-9 ]+\">(Premium)</span>").getMatch(0) == null || br.containsHTML("Username/Password can not be found in our database") || br.containsHTML("Try to recover your password by 'Password reminder'")) throw new PluginException(LinkStatus.ERROR_PREMIUM);
-                /** Save cookies */
+                if (br.containsHTML("Username/Password can not be found in our database") || br.containsHTML("Try to recover your password by \\'Password reminder\\'")) {
+                    if ("de".equalsIgnoreCase(lang)) {
+                        throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nUngültiger Benutzername oder ungültiges Passwort!\r\nDu bist dir sicher, dass dein eingegebener Benutzername und Passwort stimmen? Versuche folgendes:\r\n1. Falls dein Passwort Sonderzeichen enthält, ändere es (entferne diese) und versuche es erneut!\r\n2. Gib deine Zugangsdaten per Hand (ohne kopieren/einfügen) ein.", PluginException.VALUE_ID_PREMIUM_DISABLE);
+                    } else {
+                        throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nInvalid username/password!\r\nYou're sure that the username and password you entered are correct? Some hints:\r\n1. If your password contains special characters, change it (remove them) and try again!\r\n2. Type in your username/password by hand without copy & paste.", PluginException.VALUE_ID_PREMIUM_DISABLE);
+                    }
+                } else if (br.getRegex("Your membership type: <span class=\"[A-Za-z0-9 ]+\">(Premium)</span>").getMatch(0) == null) {
+                    try {
+                        account.setType(AccountType.FREE);
+                    } catch (final Throwable e) {
+                        /* Not available in old 0.9.581 */
+                    }
+                    if ("de".equalsIgnoreCase(lang)) {
+                        throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nNicht unterstützter Accounttyp!\r\nFalls du denkst diese Meldung sei falsch die Unterstützung dieses Account-Typs sich\r\ndeiner Meinung nach aus irgendeinem Grund lohnt,\r\nkontaktiere uns über das support Forum.", PluginException.VALUE_ID_PREMIUM_DISABLE);
+                    } else {
+                        throw new PluginException(LinkStatus.ERROR_PREMIUM, "\r\nUnsupported account type!\r\nIf you think this message is incorrect or it makes sense to add support for this account type\r\ncontact us via our support forum.", PluginException.VALUE_ID_PREMIUM_DISABLE);
+                    }
+                }
+                try {
+                    account.setType(AccountType.PREMIUM);
+                } catch (final Throwable e) {
+                    /* Not available in old 0.9.581 */
+                }
+                /* Save cookies */
                 final HashMap<String, String> cookies = new HashMap<String, String>();
                 final Cookies add = this.br.getCookies(this.getHost());
                 for (final Cookie c : add.getCookies()) {
@@ -358,26 +426,26 @@ public class FilesMonsterCom extends PluginForHost {
     }
 
     @Override
-    public AccountInfo fetchAccountInfo(Account account) throws Exception {
+    public AccountInfo fetchAccountInfo(final Account account) throws Exception {
         AccountInfo ai = new AccountInfo();
         try {
-            // CAPTCHA is shown after 30 successful logins since beginning of
-            // the day or after 5 unsuccessful login attempts.
-            // Make sure account service updates do not login more than once
-            // every 4 hours? so we only use up to 6 logins a day?
-            if (account.getStringProperty("lastlogin") != null && (System.currentTimeMillis() - 14400000 <= Long.parseLong(account.getStringProperty("lastlogin"))))
+            // CAPTCHA is shown after 30 successful logins since beginning of the day or after 5 unsuccessful login attempts.
+            // Make sure account service updates do not login more than once every 4 hours? so we only use up to 6 logins a day?
+            if (account.getStringProperty("lastlogin") != null && (System.currentTimeMillis() - 14400000 <= Long.parseLong(account.getStringProperty("lastlogin")))) {
                 login(account, false);
-            else
+            } else {
                 login(account, true);
+            }
         } catch (final PluginException e) {
             account.setValid(false);
             throw e;
         }
-        // needed because of cached login and we need to have a browser
-        // containing html to regex against!
-        if (br.getURL() == null || !br.getURL().equalsIgnoreCase("http://filesmoster.com/")) br.getPage("http://filesmonster.com/");
+        // needed because of cached login and we need to have a browser containing html to regex against!
+        if (br.getURL() == null || !br.getURL().equalsIgnoreCase("http://filesmoster.com/")) {
+            br.getPage("http://filesmonster.com/");
+        }
         ai.setUnlimitedTraffic();
-        String expires = br.getRegex("<span>Valid until: <span class=\\'green\\'>([^<>\"]*?)</span>").getMatch(0);
+        String expires = br.getRegex("<span>\\s*Valid until: <span class='green'>([^<>\"]+)</span>").getMatch(0);
         long ms = 0;
         if (expires != null) {
             ms = TimeFormatter.getMilliSeconds(expires, "MM/dd/yy HH:mm", null);
@@ -399,22 +467,38 @@ public class FilesMonsterCom extends PluginForHost {
     }
 
     @Override
-    public void handlePremium(DownloadLink downloadLink, Account account) throws Exception {
+    public void handlePremium(final DownloadLink downloadLink, final Account account) throws Exception {
         requestFileInformation(downloadLink);
         if (!downloadLink.getDownloadURL().contains("download.php?id=")) {
             logger.info(downloadLink.getDownloadURL());
             throw new PluginException(LinkStatus.ERROR_FATAL, JDL.L("plugins.hoster.filesmonstercom.only4freeusers", "This file is only available for freeusers"));
         }
+        // will wipe cookies for quick fix of core issue
+        br.setCookiesExclusive(false);
         login(account, false);
         br.setDebug(true);
         br.getPage(downloadLink.getDownloadURL());
-        if (br.containsHTML(TEMPORARYUNAVAILABLE)) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, JDL.L("plugins.hoster.filesmonstercom.temporaryunavailable", "Download not available at the moment"), 120 * 60 * 1000l);
-        if (br.containsHTML("\">Today you have already downloaded ")) {
+
+        Regex r = br.getRegex("Please try again in <b>(\\d+)</b> hours and <b>(\\d+)</b> minutes.");
+        if (r.count() > 0) {
+            long sec = 60 * (Long.parseLong(r.getMatch(0)) * 60 + Long.parseLong(r.getMatch(1)));
+            if (sec == 0) { // minimum time of 1 sec
+                sec = 1;
+            }
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, sec * 1000l);
+        }
+
+        if (br.containsHTML(TEMPORARYUNAVAILABLE)) {
+            throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, JDL.L("plugins.hoster.filesmonstercom.temporaryunavailable", "Download not available at the moment"), 120 * 60 * 1000l);
+        }
+        if (br.containsHTML("\">Today you have already downloaded ") || br.containsHTML("\">You have not enough traffic in your account to download this file")) {
             logger.info("Traffic limit reached!");
             throw new PluginException(LinkStatus.ERROR_PREMIUM, PluginException.VALUE_ID_PREMIUM_TEMP_DISABLE);
         }
         String premlink = br.getRegex("\"(http://filesmonster\\.com/get/.*?)\"").getMatch(0);
-        if (premlink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (premlink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         br.getPage(premlink);
         if (br.containsHTML("<div id=\"error\">Today you have already downloaded")) {
             try {
@@ -428,7 +512,9 @@ public class FilesMonsterCom extends PluginForHost {
         ajax.getPage(ajaxurl);
 
         String dllink = ajax.getRegex("url\":\"(http:.*?)\"").getMatch(0);
-        if (dllink == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (dllink == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         dllink = dllink.replaceAll("\\\\/", "/");
         /* max chunks to 1 , because each chunk gets calculated full size */
         dl = jd.plugins.BrowserAdapter.openDownload(br, downloadLink, dllink, true, 1);
@@ -438,12 +524,13 @@ public class FilesMonsterCom extends PluginForHost {
         dl.startDownload();
     }
 
-    private AccountInfo trafficUpdate(AccountInfo importedAi, Account account) throws IOException {
+    private AccountInfo trafficUpdate(final AccountInfo importedAi, final Account account) throws IOException {
         AccountInfo ai = new AccountInfo();
-        if (importedAi == null)
+        if (importedAi == null) {
             ai = account.getAccountInfo();
-        else
+        } else {
             ai = importedAi;
+        }
         // care of filesmonster
         br.getPage("/today_downloads/");
         String[] dailyQuota = br.getRegex("Today you have already downloaded <span[^>]+>(\\d+(\\.\\d+)? ?(KB|MB|GB)) </span>\\.[\r\n\t ]+Daily download limit <span[^>]+>(\\d+(\\.\\d+)? ?(KB|MB|GB))").getRow(0);
@@ -451,7 +538,9 @@ public class FilesMonsterCom extends PluginForHost {
             long usedQuota = SizeFormatter.getSize(dailyQuota[0]);
             long maxQuota = SizeFormatter.getSize(dailyQuota[3]);
             long dataLeft = maxQuota - usedQuota;
-            if (dataLeft <= 0) dataLeft = 0;
+            if (dataLeft <= 0) {
+                dataLeft = 0;
+            }
             ai.setTrafficLeft(dataLeft);
             ai.setTrafficMax(maxQuota);
         } else {
@@ -461,7 +550,9 @@ public class FilesMonsterCom extends PluginForHost {
             ai.setTrafficMax(SizeFormatter.getSize("12 GiB"));
         }
         // not sure if this is needed, but can't hurt either way.
-        if (importedAi == null) account.setAccountInfo(ai);
+        if (importedAi == null) {
+            account.setAccountInfo(ai);
+        }
         return ai;
     }
 
@@ -520,11 +611,11 @@ public class FilesMonsterCom extends PluginForHost {
     }
 
     @Override
-    public void resetDownloadlink(DownloadLink link) {
+    public void resetDownloadlink(final DownloadLink link) {
     }
 
     /* NO OVERRIDE!! We need to stay 0.9*compatible */
-    public boolean hasCaptcha(DownloadLink link, jd.plugins.Account acc) {
+    public boolean hasCaptcha(final DownloadLink link, final jd.plugins.Account acc) {
         if (acc == null) {
             /* no account, yes we can expect captcha */
             return true;

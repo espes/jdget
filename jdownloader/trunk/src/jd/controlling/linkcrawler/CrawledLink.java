@@ -2,8 +2,6 @@ package jd.controlling.linkcrawler;
 
 import java.util.List;
 
-import javax.swing.ImageIcon;
-
 import jd.controlling.linkcollector.LinkCollectingInformation;
 import jd.controlling.linkcollector.LinkCollectingJob;
 import jd.controlling.linkcollector.LinkOriginDetails;
@@ -14,10 +12,10 @@ import jd.plugins.Account;
 import jd.plugins.CryptedLink;
 import jd.plugins.DownloadLink;
 import jd.plugins.DownloadLinkProperty;
-import jd.plugins.PartInfo;
+import jd.plugins.LinkInfo;
 import jd.plugins.PluginForHost;
 
-import org.appwork.utils.Files;
+import org.appwork.utils.NullsafeAtomicReference;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.os.CrossSystem;
 import org.jdownloader.DomainInfo;
@@ -30,7 +28,7 @@ import org.jdownloader.myjdownloader.client.json.AvailableLinkState;
 
 public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>, CheckableLink, AbstractNodeNotifier {
 
-    private boolean crawlDeep = false;
+    private volatile boolean crawlDeep = false;
 
     public boolean isCrawlDeep() {
         return crawlDeep;
@@ -40,13 +38,13 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
         this.crawlDeep = crawlDeep;
     }
 
-    private CrawledPackage                     parent               = null;
-    private UnknownCrawledLinkHandler          unknownHandler       = null;
-    private CrawledLinkModifier                modifyHandler        = null;
-    private BrokenCrawlerHandler               brokenCrawlerHandler = null;
-    private boolean                            autoConfirmEnabled   = false;
+    private volatile CrawledPackage            parent               = null;
+    private volatile UnknownCrawledLinkHandler unknownHandler       = null;
+    private volatile CrawledLinkModifier       modifyHandler        = null;
+    private volatile BrokenCrawlerHandler      brokenCrawlerHandler = null;
+    private volatile boolean                   autoConfirmEnabled   = false;
 
-    private transient volatile UniqueAlltimeID uniqueID             = null;
+    private volatile UniqueAlltimeID           uniqueID             = null;
     private LinkOriginDetails                  origin;
 
     public boolean isAutoConfirmEnabled() {
@@ -93,12 +91,12 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
         this.unknownHandler = unknownHandler;
     }
 
-    private LinkCollectingJob         sourceJob          = null;
-    private long                      created            = -1;
+    private volatile LinkCollectingJob         sourceJob          = null;
+    private volatile long                      created            = -1;
 
-    boolean                           enabledState       = true;
-    private PackageInfo               desiredPackageInfo = null;
-    private LinkCollectingInformation collectingInfo     = null;
+    boolean                                    enabledState       = true;
+    private volatile PackageInfo               desiredPackageInfo = null;
+    private volatile LinkCollectingInformation collectingInfo     = null;
 
     public PackageInfo getDesiredPackageInfo() {
         return desiredPackageInfo;
@@ -119,9 +117,13 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
      * @return
      */
     public String getLinkID() {
-        String linkID = null;
-        if (dlLink != null) linkID = dlLink.getLinkID();
-        if (linkID != null) return linkID;
+        final DownloadLink dlLink = getDownloadLink();
+        if (dlLink != null) {
+            final String linkID = dlLink.getLinkID();
+            if (linkID != null) {
+                return linkID;
+            }
+        }
         return getURL();
     }
 
@@ -141,7 +143,10 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
     }
 
     public long getSize() {
-        if (dlLink != null) return dlLink.getView().getBytesTotal();
+        final DownloadLink dlLink = getDownloadLink();
+        if (dlLink != null) {
+            return dlLink.getView().getBytesTotal();
+        }
         return -1;
     }
 
@@ -149,46 +154,54 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
      * @return the hPlugin
      */
     public PluginForHost gethPlugin() {
-        if (dlLink != null) return dlLink.getDefaultPlugin();
+        final DownloadLink dlLink = getDownloadLink();
+        if (dlLink != null) {
+            return dlLink.getDefaultPlugin();
+        }
         return null;
     }
-
-    private DownloadLink dlLink = null;
 
     /**
      * @return the dlLink
      */
     public DownloadLink getDownloadLink() {
-        return dlLink;
+        final Object llink = link;
+        if (llink instanceof DownloadLink) {
+            return (DownloadLink) llink;
+        }
+        return null;
     }
 
     /**
      * @return the cLink
      */
     public CryptedLink getCryptedLink() {
-        return cLink;
+        final Object llink = link;
+        if (llink instanceof CryptedLink) {
+            return (CryptedLink) llink;
+        }
+        return null;
     }
 
-    private CryptedLink          cLink             = null;
-    private String               url;
-    private CrawledLink          sourceLink        = null;
-    private String               name              = null;
-    private String               fileNameExtension = null;
-    private FilterRule           matchingFilter;
+    private volatile Object                         link           = null;
+    private volatile CrawledLink                    sourceLink     = null;
+    private volatile String                         name           = null;
+    private volatile FilterRule                     matchingFilter;
 
-    private volatile ArchiveInfo archiveInfo;
-    private UniqueAlltimeID      previousParent    = null;
-    private PartInfo             partInfo;
-    private transient ImageIcon  icon              = null;
-    private String[]             sourceUrls;
+    private volatile ArchiveInfo                    archiveInfo;
+    private volatile UniqueAlltimeID                previousParent = null;
+    private volatile String[]                       sourceUrls;
+    private final NullsafeAtomicReference<LinkInfo> linkInfo       = new NullsafeAtomicReference<LinkInfo>();
 
     public CrawledLink(DownloadLink dlLink) {
-        this.dlLink = dlLink;
+        link = dlLink;
         passwordForward(dlLink);
     }
 
     private void passwordForward(DownloadLink dlLink) {
-        if (dlLink == null) return;
+        if (dlLink == null) {
+            return;
+        }
         List<String> lst = dlLink.getSourcePluginPasswordList();
         if (lst != null && lst.size() > 0) {
             getArchiveInfo().getExtractionPasswords().addAll(lst);
@@ -196,71 +209,73 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
     }
 
     public void setDownloadLink(DownloadLink dlLink) {
-        this.dlLink = dlLink;
+        link = dlLink;
         passwordForward(dlLink);
 
     }
 
     public CrawledLink(CryptedLink cLink) {
-        this.cLink = cLink;
+        link = cLink;
     }
 
     public CrawledLink(String url) {
-        if (url == null) return;
-        this.url = new String(url);
+        if (url == null) {
+            return;
+        }
+        link = new String(url);
     }
 
     public String getName() {
-        String lname = name;
+        final String lname = name;
         if (lname != null) {
             CrawledPackage lparent = this.getParentNode();
             String packageName = null;
-            if (lparent != null) packageName = lparent.getName();
+            if (lparent != null) {
+                packageName = lparent.getName();
+            }
             return PackagizerController.replaceDynamicTags(lname, packageName);
         }
-        if (dlLink != null) return dlLink.getView().getDisplayName();
+        final DownloadLink dlLink = getDownloadLink();
+        if (dlLink != null) {
+            return dlLink.getView().getDisplayName();
+        }
         return "RAWURL:" + getURL();
     }
 
     public int getChunks() {
-        if (dlLink != null) return dlLink.getChunks();
+        final DownloadLink dlLink = getDownloadLink();
+        if (dlLink != null) {
+            return dlLink.getChunks();
+        }
         return -1;
     }
 
     public void setChunks(int chunks) {
-        if (dlLink != null) dlLink.setChunks(chunks);
+        final DownloadLink dlLink = getDownloadLink();
+        if (dlLink != null) {
+            dlLink.setChunks(chunks);
+        }
     }
 
     public void setName(String name) {
-        if (StringUtils.equals(name, this.name)) return;
+        if (StringUtils.equals(name, this.name)) {
+            return;
+        }
         if (name != null) {
             name = CrossSystem.alleviatePathParts(name);
-            if (StringUtils.equals(name, this.name)) return;
+            if (StringUtils.equals(name, this.name)) {
+                return;
+            }
         }
         if (StringUtils.isEmpty(name)) {
             this.name = null;
         } else {
             this.name = name;
         }
-        setPartInfo(null);
-        setIcon(null);
-        setExtension(null);
-        if (hasNotificationListener()) nodeUpdated(this, AbstractNodeNotifier.NOTIFY.PROPERTY_CHANCE, new CrawledLinkProperty(this, CrawledLinkProperty.Property.NAME, getName()));
-    }
-
-    private void setPartInfo(PartInfo info) {
-        this.partInfo = info;
-    }
-
-    private void setIcon(ImageIcon icon) {
-        this.icon = icon;
-    }
-
-    public PartInfo getPartInfo() {
-        if (partInfo == null) {
-            partInfo = new PartInfo(this);
+        setLinkInfo(null);
+        if (hasNotificationListener()) {
+            nodeUpdated(this, AbstractNodeNotifier.NOTIFY.PROPERTY_CHANCE, new CrawledLinkProperty(this, CrawledLinkProperty.Property.NAME, getName()));
         }
-        return partInfo;
     }
 
     /* returns unmodified name variable */
@@ -273,36 +288,49 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
     }
 
     public String getHost() {
-        if (dlLink != null) return dlLink.getHost();
+        final DownloadLink dlLink = getDownloadLink();
+        if (dlLink != null) {
+            return dlLink.getHost();
+        }
         return null;
     }
 
-    // public ImageIcon getIcon() {
-    //     if (icon == null) {
-    //         icon = DownloadLink.getIcon(getName());
-    //     }
-    //     return icon;
-    // }
-
     public String getURL() {
-        if (dlLink != null) return dlLink.getDownloadURL();
-        if (cLink != null) return cLink.getCryptedUrl();
-        if (url != null) return url;
+        final Object llink = link;
+        if (llink != null) {
+            if (llink instanceof DownloadLink) {
+                return ((DownloadLink) llink).getDownloadURL();
+            } else if (llink instanceof CryptedLink) {
+                return ((CryptedLink) llink).getCryptedUrl();
+            } else {
+                return llink.toString();
+            }
+        }
         return null;
     }
 
     @Override
     public String toString() {
-        CrawledLink parentL = sourceLink;
-        StringBuilder sb = new StringBuilder();
-        sb.append("NAME:");
-        sb.append(getName());
-        if (parentL != null) {
-            sb.append(parentL.toString() + "-->");
+        final CrawledLink parentL = sourceLink;
+        final StringBuilder sb = new StringBuilder();
+        if (isNameSet()) {
+            sb.append("NAME:");
+            sb.append(getName());
         }
-        if (url != null) sb.append("URL:" + getURL());
-        if (dlLink != null) sb.append("DLLink:" + getURL());
-        if (cLink != null) sb.append("CLink:" + getURL());
+        final Object llink = link;
+        if (llink != null) {
+            if (llink instanceof DownloadLink) {
+                sb.append("DLLink:" + ((DownloadLink) llink).getDownloadURL());
+            } else if (llink instanceof CryptedLink) {
+                sb.append("CLink:" + ((CryptedLink) llink).getCryptedUrl());
+            } else {
+                sb.append("URL:" + llink.toString());
+            }
+        }
+        if (parentL != null) {
+            sb.append("<--");
+            sb.append(parentL.toString());
+        }
         return sb.toString();
     }
 
@@ -326,15 +354,20 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
     }
 
     public void setArchiveID(String id) {
+        final DownloadLink dlLink = getDownloadLink();
         if (dlLink != null) {
             dlLink.setArchiveID(id);
         }
     }
 
     public void setEnabled(boolean b) {
-        if (b == enabledState) return;
+        if (b == enabledState) {
+            return;
+        }
         enabledState = b;
-        if (hasNotificationListener()) nodeUpdated(this, AbstractNodeNotifier.NOTIFY.PROPERTY_CHANCE, new CrawledLinkProperty(this, CrawledLinkProperty.Property.ENABLED, b));
+        if (hasNotificationListener()) {
+            nodeUpdated(this, AbstractNodeNotifier.NOTIFY.PROPERTY_CHANCE, new CrawledLinkProperty(this, CrawledLinkProperty.Property.ENABLED, b));
+        }
     }
 
     public long getCreated() {
@@ -355,7 +388,9 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
 
     public CrawledLink getOriginLink() {
         CrawledLink lsourceLink = getSourceLink();
-        if (lsourceLink == null) return this;
+        if (lsourceLink == null) {
+            return this;
+        }
         return lsourceLink.getOriginLink();
     }
 
@@ -378,6 +413,7 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
     }
 
     public AvailableLinkState getLinkState() {
+        final DownloadLink dlLink = getDownloadLink();
         if (dlLink != null) {
             switch (dlLink.getAvailableStatus()) {
             case FALSE:
@@ -397,7 +433,10 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
 
     public Priority getPriority() {
         try {
-            if (dlLink == null) return Priority.DEFAULT;
+            final DownloadLink dlLink = getDownloadLink();
+            if (dlLink == null) {
+                return Priority.DEFAULT;
+            }
             return dlLink.getPriorityEnum();
         } catch (Throwable e) {
             return Priority.DEFAULT;
@@ -405,6 +444,7 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
     }
 
     public void setPriority(Priority priority) {
+        final DownloadLink dlLink = getDownloadLink();
         if (dlLink != null) {
             dlLink.setPriorityEnum(priority);
         }
@@ -416,22 +456,43 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
      * @return
      */
     public boolean hasAutoCaptcha() {
-        if (gethPlugin() != null) { return gethPlugin().hasAutoCaptcha(); }
+        final PluginForHost plugin = gethPlugin();
+        if (plugin != null) {
+            return plugin.hasAutoCaptcha();
+        }
         return true;
     }
 
     public boolean hasCaptcha(Account acc) {
-        if (gethPlugin() != null) { return gethPlugin().hasCaptcha(dlLink, acc); }
+        final PluginForHost plugin = gethPlugin();
+        final DownloadLink dlLink = getDownloadLink();
+        if (plugin != null && dlLink != null) {
+            return plugin.hasCaptcha(dlLink, acc);
+        }
         return false;
     }
 
     public boolean isDirectHTTP() {
-        if (gethPlugin() != null) { return gethPlugin().getClass().getName().equalsIgnoreCase("jd.plugins.hoster.DirectHTTP"); }
+        final PluginForHost plugin = gethPlugin();
+        if (plugin != null) {
+            return plugin.getClass().getName().endsWith("r.DirectHTTP");
+        }
+        return false;
+    }
+
+    public boolean isFTP() {
+        final PluginForHost plugin = gethPlugin();
+        if (plugin != null) {
+            return plugin.getClass().getName().endsWith("r.Ftp");
+        }
         return false;
     }
 
     public DomainInfo getDomainInfo() {
-        if (dlLink != null) { return dlLink.getDomainInfo(); }
+        final DownloadLink dlLink = getDownloadLink();
+        if (dlLink != null) {
+            return dlLink.getDomainInfo();
+        }
         return null;
     }
 
@@ -459,14 +520,22 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
     }
 
     public boolean hasVariantSupport() {
-        return dlLink.hasVariantSupport();
+        final DownloadLink dlLink = getDownloadLink();
+        return dlLink != null && dlLink.hasVariantSupport();
     }
 
     public UniqueAlltimeID getUniqueID() {
-        if (dlLink != null) return dlLink.getUniqueID();
-        if (uniqueID != null) return uniqueID;
+        final DownloadLink dlLink = getDownloadLink();
+        if (dlLink != null) {
+            return dlLink.getUniqueID();
+        }
+        if (uniqueID != null) {
+            return uniqueID;
+        }
         synchronized (this) {
-            if (uniqueID != null) return uniqueID;
+            if (uniqueID != null) {
+                return uniqueID;
+            }
             uniqueID = new UniqueAlltimeID();
         }
         return uniqueID;
@@ -484,26 +553,36 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
      * @return the collectingInfo
      */
     public LinkCollectingInformation getCollectingInfo() {
-        LinkCollectingInformation lcollectingInfo = collectingInfo;
-        CrawledLink lsourceLink = getSourceLink();
-        if (lcollectingInfo != null || lsourceLink == null) return lcollectingInfo;
+        final LinkCollectingInformation lcollectingInfo = collectingInfo;
+        final CrawledLink lsourceLink = getSourceLink();
+        if (lcollectingInfo != null || lsourceLink == null) {
+            return lcollectingInfo;
+        }
         return lsourceLink.getCollectingInfo();
     }
 
     public ArchiveInfo getArchiveInfo() {
-        if (archiveInfo != null) return archiveInfo;
+        if (archiveInfo != null) {
+            return archiveInfo;
+        }
         synchronized (this) {
-            if (archiveInfo != null) return archiveInfo;
+            if (archiveInfo != null) {
+                return archiveInfo;
+            }
             archiveInfo = new ArchiveInfo();
         }
         return archiveInfo;
     }
 
     public boolean hasArchiveInfo() {
-        ArchiveInfo larchiveInfo = archiveInfo;
+        final ArchiveInfo larchiveInfo = archiveInfo;
         if (larchiveInfo != null) {
-            if (!BooleanStatus.UNSET.equals(larchiveInfo.getAutoExtract())) return true;
-            if (larchiveInfo.getExtractionPasswords() != null && larchiveInfo.getExtractionPasswords().size() > 0) return true;
+            if (!BooleanStatus.UNSET.equals(larchiveInfo.getAutoExtract())) {
+                return true;
+            }
+            if (larchiveInfo.getExtractionPasswords() != null && larchiveInfo.getExtractionPasswords().size() > 0) {
+                return true;
+            }
         }
         return false;
     }
@@ -512,17 +591,29 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
         this.archiveInfo = archiveInfo;
     }
 
-    public String getExtension() {
-        if (fileNameExtension == null) {
-            fileNameExtension = Files.getExtension(getName());
+    public LinkInfo getLinkInfo() {
+        LinkInfo ret = linkInfo.get();
+        if (ret == null) {
+            ret = LinkInfo.getLinkInfo(this);
+            linkInfo.set(ret);
         }
-        return fileNameExtension;
+        return ret;
+    }
+
+    private void setLinkInfo(LinkInfo linkInfo) {
+        if (linkInfo != null) {
+            this.linkInfo.set(linkInfo);
+        } else {
+            this.linkInfo.getAndClear();
+        }
     }
 
     @Override
     public void nodeUpdated(AbstractNode source, NOTIFY notify, Object param) {
-        CrawledPackage lparent = parent;
-        if (lparent == null) return;
+        final CrawledPackage lparent = parent;
+        if (lparent == null) {
+            return;
+        }
         AbstractNode lsource = source;
         if (lsource != null && lsource instanceof DownloadLink) {
             if (param instanceof DownloadLinkProperty) {
@@ -540,8 +631,7 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
                 case NAME:
                     if (!isNameSet()) {
                         /* we use the name from downloadLink */
-                        this.setIcon(null);
-                        this.setExtension(null);
+                        setLinkInfo(null);
                         nodeUpdated(this, AbstractNodeNotifier.NOTIFY.PROPERTY_CHANCE, new CrawledLinkProperty(this, CrawledLinkProperty.Property.NAME, propertyEvent.getValue()));
                         return;
                     }
@@ -551,18 +641,18 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
                 }
             }
         }
-        if (lsource == null) lsource = this;
+        if (lsource == null) {
+            lsource = this;
+        }
         lparent.nodeUpdated(lsource, notify, param);
-    }
-
-    private void setExtension(String object) {
-        fileNameExtension = object;
     }
 
     @Override
     public boolean hasNotificationListener() {
-        CrawledPackage lparent = parent;
-        if (lparent != null && lparent.hasNotificationListener()) return true;
+        final CrawledPackage lparent = parent;
+        if (lparent != null && lparent.hasNotificationListener()) {
+            return true;
+        }
         return false;
     }
 
@@ -572,7 +662,10 @@ public class CrawledLink implements AbstractPackageChildrenNode<CrawledPackage>,
     }
 
     public String getArchiveID() {
-        if (dlLink != null) { return dlLink.getArchiveID(); }
+        final DownloadLink dlLink = getDownloadLink();
+        if (dlLink != null) {
+            return dlLink.getArchiveID();
+        }
         return null;
     }
 

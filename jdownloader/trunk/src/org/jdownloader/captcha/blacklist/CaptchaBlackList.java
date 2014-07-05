@@ -1,7 +1,7 @@
 package org.jdownloader.captcha.blacklist;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.WeakHashMap;
 
 import jd.controlling.downloadcontroller.DownloadLinkCandidate;
 import jd.controlling.downloadcontroller.DownloadLinkCandidateResult;
@@ -32,27 +32,28 @@ public class CaptchaBlackList implements DownloadWatchdogListener {
             entries.add(entry);
         }
         synchronized (whitelist) {
-            ArrayList<DownloadLink> rem = new ArrayList<DownloadLink>();
-            for (DownloadLink link : whitelist) {
+            final ArrayList<DownloadLink> rem = new ArrayList<DownloadLink>();
+            for (DownloadLink link : whitelist.keySet()) {
                 if (entry.matches(new PrePluginCheckDummyChallenge(link))) {
                     rem.add(link);
                 }
             }
-            whitelist.removeAll(rem);
+            whitelist.keySet().removeAll(rem);
         }
     }
 
-    public boolean matches(Challenge<?> c) {
+    public BlacklistEntry matches(Challenge<?> c) {
         return matches(c, false);
     }
 
-    private boolean matches(Challenge<?> c, boolean bypasswhitelist) {
+    private BlacklistEntry matches(Challenge<?> c, boolean bypasswhitelist) {
         if (!bypasswhitelist) {
             DownloadLink link = Challenge.getDownloadLink(c);
             if (link != null) {
                 synchronized (whitelist) {
-                    if (whitelist.contains(link)) { return false; }
-
+                    if (whitelist.containsKey(link)) {
+                        return null;
+                    }
                 }
             }
         }
@@ -62,16 +63,15 @@ public class CaptchaBlackList implements DownloadWatchdogListener {
                 for (BlacklistEntry e : entries) {
                     if (e.canCleanUp()) {
                         cleanups.add(e);
-                        continue;
+                    } else if (e.matches(c)) {
+                        return e;
                     }
-                    if (e.matches(c)) { return true; }
                 }
             } finally {
                 entries.removeAll(cleanups);
             }
-
         }
-        return false;
+        return null;
     }
 
     @Override
@@ -93,12 +93,11 @@ public class CaptchaBlackList implements DownloadWatchdogListener {
     @Override
     public void onDownloadWatchdogStateIsStopped() {
         synchronized (entries) {
-            ArrayList<BlacklistEntry> cleanups = new ArrayList<BlacklistEntry>();
+            final ArrayList<BlacklistEntry> cleanups = new ArrayList<BlacklistEntry>();
             try {
                 for (BlacklistEntry e : entries) {
                     if (e.canCleanUp() || e instanceof SessionBlackListEntry) {
                         cleanups.add(e);
-                        continue;
                     }
                 }
             } finally {
@@ -124,25 +123,24 @@ public class CaptchaBlackList implements DownloadWatchdogListener {
 
     }
 
-    private HashSet<DownloadLink> whitelist = new HashSet<DownloadLink>();
+    private final WeakHashMap<DownloadLink, Object> whitelist = new WeakHashMap<DownloadLink, Object>();
 
     public void addWhitelist(DownloadLink link) {
-        if (!matches(new PrePluginCheckDummyChallenge(link), true)) return;
-        synchronized (whitelist) {
-            whitelist.add(link);
+        if (matches(new PrePluginCheckDummyChallenge(link), true) != null) {
+            synchronized (whitelist) {
+                whitelist.put(link, this);
+            }
+            collectGarbage();
         }
-
-        collectGarbage();
     }
 
     protected void collectGarbage() {
         synchronized (entries) {
-            ArrayList<BlacklistEntry> cleanups = new ArrayList<BlacklistEntry>();
+            final ArrayList<BlacklistEntry> cleanups = new ArrayList<BlacklistEntry>();
             try {
                 for (BlacklistEntry e : entries) {
                     if (e.canCleanUp()) {
                         cleanups.add(e);
-                        continue;
                     }
                 }
             } finally {
@@ -153,7 +151,7 @@ public class CaptchaBlackList implements DownloadWatchdogListener {
 
     public boolean isWhitelisted(DownloadLink downloadLink) {
         synchronized (whitelist) {
-            return whitelist.contains(downloadLink);
+            return whitelist.containsKey(downloadLink);
         }
     }
 

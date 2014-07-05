@@ -16,6 +16,7 @@ import javax.swing.JComboBox;
 
 import jd.controlling.AccountController;
 import jd.controlling.TaskQueue;
+import jd.plugins.PluginForHost;
 
 import org.appwork.swing.components.searchcombo.SearchComboBox;
 import org.appwork.uio.UIOManager;
@@ -61,7 +62,7 @@ public class BuyAction extends AbstractAction {
 
     public static String getPreselectedHoster() {
         if ("Europe/Berlin".equalsIgnoreCase(Calendar.getInstance().getTimeZone().getID())) {
-            return "uploaded.to";
+            return "oboom.com";
         } else {
             return "rapidgator.net";
         }
@@ -82,7 +83,9 @@ public class BuyAction extends AbstractAction {
                 final java.util.List<LazyHostPlugin> plugins = new ArrayList<LazyHostPlugin>();
                 /* only show plugins with account support */
                 for (LazyHostPlugin lhp : pluginsAll) {
-                    if (lhp.isPremium()) plugins.add(lhp);
+                    if (lhp.isPremium()) {
+                        plugins.add(lhp);
+                    }
                 }
                 final LazyHostPlugin[] options = plugins.toArray(new LazyHostPlugin[plugins.size()]);
                 LazyHostPlugin plg = HostPluginController.getInstance().get(getPreselectedHoster());
@@ -131,13 +134,17 @@ public class BuyAction extends AbstractAction {
 
                                         @Override
                                         protected Icon getIconForValue(LazyHostPlugin value) {
-                                            if (value == null) return null;
+                                            if (value == null) {
+                                                return null;
+                                            }
                                             return DomainInfo.getInstance(value.getDisplayName()).getFavIcon();
                                         }
 
                                         @Override
                                         protected String getTextForValue(LazyHostPlugin value) {
-                                            if (value == null) return null;
+                                            if (value == null) {
+                                                return null;
+                                            }
                                             return value.getDisplayName();
                                         }
 
@@ -176,10 +183,23 @@ public class BuyAction extends AbstractAction {
                             };
 
                             Dialog.getInstance().showDialog(d);
-                            if (d.getReturnValue() < 0) return;
-                            LazyHostPlugin buyIt = options[d.getReturnValue()];
-                            if (buyIt == null || StringUtils.isEmpty(buyIt.getPremiumUrl())) return;
-                            CrossSystem.openURLOrShowMessage(AccountController.createFullBuyPremiumUrl(buyIt.getPremiumUrl(), "accountmanager" + (table == null ? "/context" : "/table")));
+                            if (d.getReturnValue() < 0) {
+                                return;
+                            }
+                            final LazyHostPlugin buyIt = options[d.getReturnValue()];
+                            if (buyIt == null || StringUtils.isEmpty(buyIt.getPremiumUrl())) {
+                                return;
+                            }
+                            String url = null;
+                            try {
+                                PluginForHost plugin = buyIt.newInstance(null);
+                                url = plugin.getBuyPremiumUrl();
+                            } catch (final Throwable e) {
+                            }
+                            if (StringUtils.isEmpty(url)) {
+                                url = buyIt.getPremiumUrl();
+                            }
+                            CrossSystem.openURLOrShowMessage(AccountController.createFullBuyPremiumUrl(url, "accountmanager" + (table == null ? "/context" : "/table")));
                             try {
                                 BuyAndAddPremiumAccount dia;
                                 UIOManager.I().show(BuyAndAddPremiumDialogInterface.class, dia = new BuyAndAddPremiumAccount(DomainInfo.getInstance(buyIt.getHost()), "accountmanager" + (table == null ? "/context" : "/table")));

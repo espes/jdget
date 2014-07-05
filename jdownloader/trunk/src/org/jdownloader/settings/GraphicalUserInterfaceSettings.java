@@ -1,6 +1,7 @@
 package org.jdownloader.settings;
 
 import java.awt.event.KeyEvent;
+import java.util.HashMap;
 
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.ValidationException;
@@ -39,7 +40,9 @@ public interface GraphicalUserInterfaceSettings extends ConfigInterface {
         public void validate(String themeID) throws ValidationException {
             if (!Application.getResource("themes/" + themeID).exists()) {
                 throw new ValidationException(Application.getResource("themes/" + themeID) + " must exist");
-            } else if (!Application.getResource("themes/" + themeID).isDirectory()) { throw new ValidationException(Application.getResource("themes/" + themeID) + " must be a directory"); }
+            } else if (!Application.getResource("themes/" + themeID).isDirectory()) {
+                throw new ValidationException(Application.getResource("themes/" + themeID) + " must be a directory");
+            }
         }
 
     }
@@ -160,11 +163,6 @@ public interface GraphicalUserInterfaceSettings extends ConfigInterface {
     @DefaultBooleanValue(true)
     @RequiresRestart("A JDownloader Restart is Required")
     boolean isFilterHighlightEnabled();
-
-    @AboutConfig
-    @DefaultBooleanValue(true)
-    @DescriptionForConfigEntry("If enabled, The User Interface will switch to Linkgrabber Tab if a new job has been added")
-    boolean isLinkgrabberAutoTabSwitchEnabled();
 
     @AboutConfig
     @DefaultBooleanValue(true)
@@ -346,8 +344,6 @@ public interface GraphicalUserInterfaceSettings extends ConfigInterface {
     public void setLastFrameStatus(FrameStatus status);
 
     void setLastIfFileExists(IfFileExistsAction value);
-
-    void setLinkgrabberAutoTabSwitchEnabled(boolean b);
 
     void setLinkgrabberSidebarVisible(boolean b);
 
@@ -1052,4 +1048,23 @@ public interface GraphicalUserInterfaceSettings extends ConfigInterface {
     boolean isSpecialDealOboomDialogVisibleOnStartup();
 
     void setSpecialDealOboomDialogVisibleOnStartup(boolean b);
+
+    @RequiresRestart("Restart is Required")
+    @AboutConfig
+    HashMap<String, Long> getPremiumExpireWarningMapV2();
+
+    void setPremiumExpireWarningMapV2(HashMap<String, Long> value);
+
+    @AboutConfig
+    @DefaultBooleanValue(true)
+    boolean isPremiumExpireWarningEnabled();
+
+    void setPremiumExpireWarningEnabled(boolean b);
+
+    @AboutConfig
+    @RequiresRestart("Restart is Required")
+    @DefaultBooleanValue(true)
+    boolean isStatusBarAddPremiumButtonVisible();
+
+    void setStatusBarAddPremiumButtonVisible(boolean b);
 }

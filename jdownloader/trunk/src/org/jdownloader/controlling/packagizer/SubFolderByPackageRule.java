@@ -18,4 +18,10 @@ public class SubFolderByPackageRule extends PackagizerRule {
         setStaticRule(true);
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+
+    }
+
 }

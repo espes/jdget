@@ -75,7 +75,9 @@ public class RayFileCom extends PluginForHost {
         ajax.getPage("http://www.rayfile.com/zh-cn/files/" + vid + "/" + vkey + "/");
 
         String downloadUrl = ajax.getRegex("downloads_url = \\['(.*?)'\\]").getMatch(0);
-        if (downloadUrl == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (downloadUrl == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
 
         br.clearCookies("rayfile.com");
         br.getHeaders().put("Accept-Encoding", null);
@@ -110,7 +112,9 @@ public class RayFileCom extends PluginForHost {
 
     private boolean oldStyle() {
         String style = System.getProperty("ftpStyle", null);
-        if ("new".equalsIgnoreCase(style)) return false;
+        if ("new".equalsIgnoreCase(style)) {
+            return false;
+        }
         String prev = JDUtilities.getRevision();
         if (prev == null || prev.length() < 3) {
             prev = "0";
@@ -118,7 +122,9 @@ public class RayFileCom extends PluginForHost {
             prev = prev.replaceAll(",|\\.", "");
         }
         int rev = Integer.parseInt(prev);
-        if (rev < 10000) return true;
+        if (rev < 10000) {
+            return true;
+        }
         return false;
     }
 
@@ -140,7 +146,9 @@ public class RayFileCom extends PluginForHost {
                         continue;
                     }
                 }
-                if (maxRedirects <= 0) { throw new PluginException(LinkStatus.ERROR_FATAL, "Redirectloop"); }
+                if (maxRedirects <= 0) {
+                    throw new PluginException(LinkStatus.ERROR_FATAL, "Redirectloop");
+                }
 
             }
         }
@@ -158,22 +166,26 @@ public class RayFileCom extends PluginForHost {
 
             @Override
             public URLConnectionAdapter connect() throws IOException, PluginException {
-                if (connected) return connection;
+                if (connected) {
+                    return connection;
+                }
                 logger.finer("Connect...");
                 this.connected = true;
-                br.connect(request);
-                if (getBrowser().isDebug()) logger.finest(request.printHeaders());
+                br.openRequestConnection(request, false);
+                if (getBrowser().isDebug()) {
+                    logger.finest(request.printHeaders());
+                }
                 connection = request.getHttpConnection();
-                if (request.getLocation() != null) throw new PluginException(LinkStatus.ERROR_DOWNLOAD_FAILED);
+                if (request.getLocation() != null) {
+                    throw new PluginException(LinkStatus.ERROR_DOWNLOAD_FAILED);
+                }
                 if (connection.getRange() != null) {
                     // Dateigröße wird aus dem Range-Response gelesen
                     if (connection.getRange()[2] > 0) {
-                        this.setFilesizeCheck(true);
                         downloadLink.setDownloadSize(connection.getRange()[2]);
                     }
                 } else {
                     if (connection.getLongContentLength() > 0) {
-                        this.setFilesizeCheck(true);
                         downloadLink.setDownloadSize(connection.getLongContentLength());
                     }
                 }
@@ -201,14 +213,20 @@ public class RayFileCom extends PluginForHost {
             br.getPage(redirectUrl);
         }
 
-        if (br.containsHTML("page404")) throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        if (br.containsHTML("page404")) {
+            throw new PluginException(LinkStatus.ERROR_FILE_NOT_FOUND);
+        }
 
         String filename = br.getRegex("var fname = \"(.*?)\";").getMatch(0);
         String filesize = br.getRegex("formatsize = \"(.*?)\";").getMatch(0);
 
-        if (filename == null) throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        if (filename == null) {
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
+        }
         link.setName(filename.trim());
-        if (filesize != null && !filesize.equals("")) link.setDownloadSize(SizeFormatter.getSize(filesize));
+        if (filesize != null && !filesize.equals("")) {
+            link.setDownloadSize(SizeFormatter.getSize(filesize));
+        }
         return AvailableStatus.TRUE;
     }
 

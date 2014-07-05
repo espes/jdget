@@ -16,6 +16,7 @@
 
 package jd.plugins;
 
+import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -25,10 +26,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.regex.Pattern;
 
 // import javax.swing.JComponent;
+// import javax.swing.JLabel;
+// import javax.swing.JPanel;
+// import javax.swing.SwingConstants;
 
 import jd.PluginWrapper;
 import jd.captcha.JACMethod;
@@ -37,6 +40,8 @@ import jd.controlling.accountchecker.AccountCheckerThread;
 import jd.controlling.captcha.CaptchaSettings;
 import jd.controlling.captcha.SkipException;
 import jd.controlling.captcha.SkipRequest;
+import jd.controlling.downloadcontroller.ExceptionRunnable;
+import jd.controlling.downloadcontroller.SingleDownloadController;
 import jd.controlling.downloadcontroller.SingleDownloadController.WaitingQueueItem;
 import jd.controlling.linkcrawler.CrawledLink;
 import jd.http.Browser;
@@ -44,22 +49,32 @@ import jd.nutils.Formatter;
 import jd.plugins.DownloadLink.AvailableStatus;
 import jd.plugins.download.DownloadInterface;
 import jd.plugins.download.DownloadInterfaceFactory;
+import jd.plugins.download.DownloadLinkDownloadable;
+import jd.plugins.download.Downloadable;
 
+import org.appwork.storage.JSonStorage;
 import org.appwork.storage.config.JsonConfig;
+// import org.appwork.swing.MigPanel;
 // import org.appwork.uio.UIOManager;
 import org.appwork.utils.Application;
-import org.appwork.utils.Exceptions;
 import org.appwork.utils.IO;
+import org.appwork.utils.IO.SYNC;
+import org.appwork.utils.ProgressFeedback;
 import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
+import org.appwork.utils.formatter.SizeFormatter;
 import org.appwork.utils.logging2.LogSource;
 import org.appwork.utils.os.CrossSystem;
+// import org.appwork.utils.swing.SwingUtils;
 // import org.appwork.utils.swing.dialog.AbstractDialog;
 // import org.appwork.utils.swing.dialog.Dialog;
 // import org.appwork.utils.swing.dialog.DialogCanceledException;
 // import org.appwork.utils.swing.dialog.DialogClosedException;
 // import org.appwork.utils.swing.dialog.DialogNoAnswerException;
+// import org.appwork.utils.swing.dialog.ProgressDialog;
+// import org.appwork.utils.swing.dialog.ProgressDialog.ProgressGetter;
 import org.jdownloader.DomainInfo;
+import org.jdownloader.captcha.blacklist.BlacklistEntry;
 import org.jdownloader.captcha.blacklist.BlockAllDownloadCaptchasEntry;
 import org.jdownloader.captcha.blacklist.BlockDownloadCaptchasByHost;
 import org.jdownloader.captcha.blacklist.BlockDownloadCaptchasByLink;
@@ -74,11 +89,13 @@ import org.jdownloader.captcha.v2.challenge.stringcaptcha.BasicCaptchaChallenge;
 import org.jdownloader.captcha.v2.solverjob.ResponseList;
 import org.jdownloader.controlling.FileCreationManager;
 import org.jdownloader.controlling.linkcrawler.LinkVariant;
+// import org.jdownloader.gui.IconKey;
 // import org.jdownloader.gui.dialog.AskToUsePremiumDialog;
 // import org.jdownloader.gui.dialog.AskToUsePremiumDialogInterface;
 // import org.jdownloader.gui.helpdialogs.HelpDialog;
 import org.jdownloader.gui.translate._GUI;
 // import org.jdownloader.gui.views.SelectionInfo.PluginView;
+// import org.jdownloader.images.AbstractIcon;
 // import org.jdownloader.images.NewTheme;
 import org.jdownloader.logging.LogController;
 // import org.jdownloader.plugins.CaptchaStepProgress;
@@ -86,6 +103,7 @@ import org.jdownloader.plugins.PluginTaskID;
 import org.jdownloader.plugins.SleepPluginProgress;
 import org.jdownloader.plugins.accounts.AccountFactory;
 import org.jdownloader.plugins.controller.host.LazyHostPlugin;
+import org.jdownloader.settings.staticreferences.CFG_GENERAL;
 // import org.jdownloader.settings.staticreferences.CFG_GUI;
 import org.jdownloader.translate._JDT;
 
@@ -95,6 +113,8 @@ import org.jdownloader.translate._JDT;
  * @author astaldo
  */
 public abstract class PluginForHost extends Plugin {
+    private static final String         COPY_MOVE_FILE        = "CopyMoveFile";
+
     private static Pattern[]            PATTERNS              = new Pattern[] {
                                                               /**
                                                                * these patterns should split filename and fileextension (extension must
@@ -138,7 +158,9 @@ public abstract class PluginForHost extends Plugin {
             } else {
                 errlogger.severe("URL:" + link.getDownloadURL());
             }
-            if (e != null) errlogger.log(e);
+            if (e != null) {
+                errlogger.log(e);
+            }
         } finally {
             errlogger.close();
         }
@@ -155,6 +177,9 @@ public abstract class PluginForHost extends Plugin {
         this.lazyP = (LazyHostPlugin) wrapper.getLazy();
     }
 
+    /**
+     * @since JD2
+     * */
     public void setBrowser(Browser brr) {
         br = brr;
     }
@@ -163,7 +188,7 @@ public abstract class PluginForHost extends Plugin {
         return dl;
     }
 
-    protected String getCaptchaCode(final String captchaAddress, final DownloadLink downloadLink) throws IOException, PluginException {
+    protected String getCaptchaCode(final String captchaAddress, final DownloadLink downloadLink) throws Exception {
         return getCaptchaCode(getHost(), captchaAddress, downloadLink);
     }
 
@@ -177,20 +202,15 @@ public abstract class PluginForHost extends Plugin {
         return lazyP.getPattern();
     }
 
-    protected String getCaptchaCode(final String method, final String captchaAddress, final DownloadLink downloadLink) throws IOException, PluginException {
+    protected String getCaptchaCode(final String method, final String captchaAddress, final DownloadLink downloadLink) throws Exception {
         if (captchaAddress == null) {
             logger.severe("Captcha Adresse nicht definiert");
-            throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+            throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
         }
         File captchaFile = null;
         try {
             captchaFile = getLocalCaptchaFile();
-            try {
-                Browser.download(captchaFile, br.cloneBrowser().openGetConnection(captchaAddress));
-            } catch (Exception e) {
-                logger.severe("Captcha Download fehlgeschlagen: " + captchaAddress);
-                throw new PluginException(LinkStatus.ERROR_CAPTCHA);
-            }
+            Browser.download(captchaFile, br.cloneBrowser().openGetConnection(captchaAddress));
             final String captchaCode = getCaptchaCode(method, captchaFile, downloadLink);
             return captchaCode;
         } finally {
@@ -198,12 +218,11 @@ public abstract class PluginForHost extends Plugin {
         }
     }
 
-    protected String getCaptchaCode(final File captchaFile, final DownloadLink downloadLink) throws PluginException {
+    protected String getCaptchaCode(final File captchaFile, final DownloadLink downloadLink) throws Exception {
         return getCaptchaCode(getHost(), captchaFile, downloadLink);
     }
 
-    protected String getCaptchaCode(final String methodname, final File captchaFile, final DownloadLink downloadLink) throws PluginException {
-
+    protected String getCaptchaCode(final String methodname, final File captchaFile, final DownloadLink downloadLink) throws Exception {
         return getCaptchaCode(methodname, captchaFile, 0, downloadLink, null, null);
     }
 
@@ -251,25 +270,20 @@ public abstract class PluginForHost extends Plugin {
         return lastChallengeResponse != null;
     }
 
-    protected String getCaptchaCode(final String method, File file, final int flag, final DownloadLink link, final String defaultValue, final String explain) throws PluginException {
-
-        // CaptchaStepProgress progress = new CaptchaStepProgress(0, 1, null);
+    protected String getCaptchaCode(final String method, File file, final int flag, final DownloadLink link, final String defaultValue, final String explain) throws Exception {
+        // final CaptchaStepProgress progress = new CaptchaStepProgress(0, 1, null);
         // progress.setProgressSource(this);
+        // progress.setDisplayInProgressColumnEnabled(false);
         // this.hasCaptchas = true;
-        // PluginProgress old = null;
         // try {
-        //     // try {
-        //     // final BufferedImage img = ImageProvider.read(file);
-        //     // progress.setIcon(new ImageIcon(IconIO.getScaledInstance(img, 16, 16)));
-        //     // } catch (Throwable e) {
-        //     // e.printStackTrace();
-        //     // }
-        //     old = link.setPluginProgress(progress);
+        //     link.addPluginProgress(progress);
         //     String orgCaptchaImage = link.getStringProperty("orgCaptchaFile", null);
         //     if (orgCaptchaImage != null && new File(orgCaptchaImage).exists()) {
         //         file = new File(orgCaptchaImage);
         //     }
-        //     if (this.getDownloadLink() == null) this.setDownloadLink(link);
+        //     if (this.getDownloadLink() == null) {
+        //         this.setDownloadLink(link);
+        //     }
         //     final boolean insideAccountChecker = Thread.currentThread() instanceof AccountCheckerThread;
         //     BasicCaptchaChallenge c = new BasicCaptchaChallenge(method, file, defaultValue, explain, this, flag) {
 
@@ -294,7 +308,9 @@ public abstract class PluginForHost extends Plugin {
         //             case BLOCK_PACKAGE:
         //                 /* user wants to block captchas from current FilePackage */
         //                 DownloadLink lLink = Challenge.getDownloadLink(challenge);
-        //                 if (lLink == null || lLink.getDefaultPlugin() == null) return false;
+        //                 if (lLink == null || lLink.getDefaultPlugin() == null) {
+        //                     return false;
+        //                 }
         //                 return link.getFilePackage() == lLink.getFilePackage();
         //             default:
         //                 return false;
@@ -303,9 +319,10 @@ public abstract class PluginForHost extends Plugin {
         //     };
         //     c.setTimeout(getCaptchaTimeout());
         //     invalidateLastChallengeResponse();
-        //     if (CaptchaBlackList.getInstance().matches(c)) {
+        //     final BlacklistEntry blackListEntry = CaptchaBlackList.getInstance().matches(c);
+        //     if (blackListEntry != null) {
         //         logger.warning("Cancel. Blacklist Matching");
-        //         throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+        //         throw new CaptchaException(blackListEntry);
         //     }
         //     ChallengeResponseController.getInstance().handle(c);
         //     if (!c.isSolved()) {
@@ -315,42 +332,53 @@ public abstract class PluginForHost extends Plugin {
         //     }
         //     return c.getResult().getValue();
         // } catch (InterruptedException e) {
-        //     logger.warning(Exceptions.getStackTrace(e));
-        //     throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+        //     LogSource.exception(logger, e);
+        //     throw e;
         // } catch (SkipException e) {
+        //     LogSource.exception(logger, e);
         //     if (getDownloadLink() != null) {
         //         switch (e.getSkipRequest()) {
         //         case BLOCK_ALL_CAPTCHAS:
         //             CaptchaBlackList.getInstance().add(new BlockAllDownloadCaptchasEntry());
 
-        //             if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) {
+        //                 HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             }
         //             break;
         //         case BLOCK_HOSTER:
         //             CaptchaBlackList.getInstance().add(new BlockDownloadCaptchasByHost(getDownloadLink().getHost()));
-        //             if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) {
+        //                 HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             }
         //             break;
 
         //         case BLOCK_PACKAGE:
         //             CaptchaBlackList.getInstance().add(new BlockDownloadCaptchasByPackage(getDownloadLink().getParentNode()));
-        //             if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) {
+        //                 HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             }
         //             break;
         //         case SINGLE:
         //             CaptchaBlackList.getInstance().add(new BlockDownloadCaptchasByLink(getDownloadLink()));
-        //             if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) {
+        //                 HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //             }
         //             break;
         //         case TIMEOUT:
         //             if (JsonConfig.create(CaptchaSettings.class).isSkipDownloadLinkOnCaptchaTimeoutEnabled()) {
         //                 CaptchaBlackList.getInstance().add(new BlockDownloadCaptchasByLink(getDownloadLink()));
-        //                 if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //                 if (CFG_GUI.HELP_DIALOGS_ENABLED.isEnabled()) {
+        //                     HelpDialog.show(false, true, HelpDialog.getMouseLocation(), "SKIPPEDHOSTER", Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_title(), _GUI._.ChallengeDialogHandler_viaGUI_skipped_help_msg(), NewTheme.I().getIcon("skipped", 32));
+        //                 }
         //             }
         //         case REFRESH:
         //             // we should forward the refresh request to a new pluginstructure soon. For now. the plugin will just retry
-        //             break;
+        //             return "";
         //         }
         //     }
-        //     throw new PluginException(LinkStatus.ERROR_CAPTCHA);
+        //     throw new CaptchaException(e.getSkipRequest());
         // } finally {
-        //     link.compareAndSetPluginProgress(progress, old);
+        //     link.removePluginProgress(progress);
         // }
         throw new UnsupportedOperationException("jdget TODO");
     }
@@ -423,13 +451,15 @@ public abstract class PluginForHost extends Plugin {
             try {
                 oldDl.close();
             } catch (final Throwable e) {
-                LogSource.exception(getLogger(), e);
+                getLogger().log(e);
             }
         }
     }
 
     protected void setBrowserExclusive() {
-        if (br == null) return;
+        if (br == null) {
+            return;
+        }
         br.setCookiesExclusive(true);
         br.clearCookies(getHost());
     }
@@ -538,15 +568,12 @@ public abstract class PluginForHost extends Plugin {
         return -1;
     }
 
-    /*
-     * Integer.Min_Value will result in no download at all (eg no free supported)
+    /**
+     * this method returns absolut numbers of max allowed downloads for given plugin/link/account combination
      * 
-     * -1 -> unlimited
-     * 
-     * <-1 || 0 = no download
-     * 
-     * 
-     * return max possible simultan downloads for given link and account,overwrite this if you want special handling, eg for multihost
+     * @param link
+     * @param account
+     * @return
      */
     public int getMaxSimultanDownload(DownloadLink link, final Account account) {
         int max;
@@ -607,9 +634,13 @@ public abstract class PluginForHost extends Plugin {
     public Object getInfoGenerator(Account account) {
         AccountInfo ai = account.getAccountInfo();
         Map<String, Object> props = null;
-        if (ai == null) return null;
+        if (ai == null) {
+            return null;
+        }
         props = ai.getProperties();
-        if (props == null || props.size() == 0) return null;
+        if (props == null || props.size() == 0) {
+            return null;
+        }
         KeyValueInfoGenerator ret = new KeyValueInfoGenerator(_JDT._.pluginforhost_infogenerator_title(account.getUser(), account.getHoster()));
         for (Entry<String, Object> es : ai.getProperties().entrySet()) {
             String key = es.getKey();
@@ -652,32 +683,22 @@ public abstract class PluginForHost extends Plugin {
     public boolean enoughTrafficFor(DownloadLink downloadLink, Account account) {
         AccountInfo ai = null;
         if (account != null && (ai = account.getAccountInfo()) != null) {
-            if (ai.isUnlimitedTraffic()) return true;
-            if (ai.getTrafficLeft() >= 0 && ai.getTrafficLeft() < downloadLink.getView().getBytesTotalEstimated()) return false;
+            if (ai.isUnlimitedTraffic()) {
+                return true;
+            }
+            if (ai.getTrafficLeft() >= 0 && ai.getTrafficLeft() < downloadLink.getView().getBytesTotalEstimated()) {
+                return false;
+            }
         }
         return true;
     }
 
     public void handle(final DownloadLink downloadLink, final Account account) throws Exception {
         try {
-            waitForNextStartAllowed(downloadLink);
-            if (false) {
-                if (true) throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, 5 * 60 * 1000l);
-                if (false) {
-                    throw new PluginException(LinkStatus.ERROR_IP_BLOCKED, 5 * 60 * 1000l);
-                } else if (getHost().contains("share")) {
-                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, 60 * 5 * 1000l);
-                } else if (getHost().contains("upload")) {
-                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, 90 * 5 * 1000l);
-                } else if (getHost().contains("cloud")) {
-                    throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
-                } else {
-                    throw new PluginException(LinkStatus.ERROR_TEMPORARILY_UNAVAILABLE, new Random().nextInt(5) * 60 * 1000l);
-                }
-            }
+            waitForNextStartAllowed(downloadLink, account);
             if (account != null) {
                 /* with account */
-                if (account.getHoster().equalsIgnoreCase(downloadLink.getHost())) {
+                if (StringUtils.equalsIgnoreCase(account.getHoster(), downloadLink.getHost())) {
                     handlePremium(downloadLink, account);
                 } else {
                     handleMultiHost(downloadLink, account);
@@ -709,6 +730,7 @@ public abstract class PluginForHost extends Plugin {
          * 
          * will update this doc about error handling
          */
+        logger.severe("invalid call to handleMultiHost: " + downloadLink.getName() + ":" + downloadLink.getHost() + " to " + getHost() + ":" + this.getVersion() + " with " + account);
         throw new PluginException(LinkStatus.ERROR_PLUGIN_DEFECT);
     }
 
@@ -721,9 +743,11 @@ public abstract class PluginForHost extends Plugin {
 
     public List<File> listProcessFiles(DownloadLink link) {
         List<File> ret = new ArrayList<File>();
-        ret.add(new File(link.getFileOutput() + ".part"));
-        ret.add(new File(link.getFileOutput()));
-        ret.add(new File(link.getFileOutput(false, true)));
+
+        ret.add(new File(link.getFileOutputForPlugin(false, false) + ".part"));
+        ret.add(new File(link.getFileOutputForPlugin(false, false)));
+        ret.add(new File(link.getFileOutputForPlugin(false, true)));
+
         return ret;
     }
 
@@ -735,14 +759,18 @@ public abstract class PluginForHost extends Plugin {
         WAIT_BETWEEN_STARTS = Math.max(0, interval);
     }
 
-    protected void waitForNextStartAllowed(final DownloadLink downloadLink) throws PluginException, InterruptedException {
-        WaitingQueueItem queueItem = downloadLink.getDownloadLinkController().getQueueItem();
-        long wait = WAIT_BETWEEN_STARTS;
+    protected long getStartIntervall(final DownloadLink downloadLink, final Account account) {
+        return WAIT_BETWEEN_STARTS;
+    }
+
+    protected void waitForNextStartAllowed(final DownloadLink downloadLink, final Account account) throws PluginException, InterruptedException {
+        final WaitingQueueItem queueItem = downloadLink.getDownloadLinkController().getQueueItem();
+        final long wait = Math.max(0, getStartIntervall(downloadLink, account));
         if (wait == 0) {
             queueItem.lastStartTimestamp.set(System.currentTimeMillis());
             return;
         }
-        PluginProgress progress = new PluginProgress(0, 0, null) {
+        final PluginProgress progress = new PluginProgress(0, 0, null) {
             private String pluginMessage = null;
 
             @Override
@@ -767,13 +795,13 @@ public abstract class PluginForHost extends Plugin {
         };
         // progress.setIcon(NewTheme.I().getIcon("wait", 16));
         progress.setProgressSource(this);
-        PluginProgress old = null;
+        progress.setDisplayInProgressColumnEnabled(false);
         try {
             long lastQueuePosition = -1;
             long waitQueuePosition = -1;
             long waitMax = 0;
             long waitCur = 0;
-            old = downloadLink.setPluginProgress(progress);
+            downloadLink.addPluginProgress(progress);
             while ((waitQueuePosition = queueItem.indexOf(downloadLink)) >= 0 && !downloadLink.getDownloadLinkController().isAborting()) {
                 if (waitQueuePosition != lastQueuePosition) {
                     waitMax = (queueItem.lastStartTimestamp.get() - System.currentTimeMillis()) + ((waitQueuePosition + 1) * wait);
@@ -790,13 +818,17 @@ public abstract class PluginForHost extends Plugin {
                 }
                 waitCur -= wTimeout;
             }
-            if (downloadLink.getDownloadLinkController().isAborting()) throw new PluginException(LinkStatus.ERROR_RETRY);
+            if (downloadLink.getDownloadLinkController().isAborting()) {
+                throw new PluginException(LinkStatus.ERROR_RETRY);
+            }
             queueItem.lastStartTimestamp.set(System.currentTimeMillis());
         } catch (final InterruptedException e) {
-            if (downloadLink.getDownloadLinkController().isAborting()) throw new PluginException(LinkStatus.ERROR_RETRY);
+            if (downloadLink.getDownloadLinkController().isAborting()) {
+                throw new PluginException(LinkStatus.ERROR_RETRY);
+            }
             throw e;
         } finally {
-            downloadLink.compareAndSetPluginProgress(progress, old);
+            downloadLink.removePluginProgress(progress);
         }
     }
 
@@ -814,11 +846,17 @@ public abstract class PluginForHost extends Plugin {
                 queueItem.lastConnectionTimestamp.set(System.currentTimeMillis());
                 break;
             }
-            if (downloadLink.getDownloadLinkController().isAborting()) throw new InterruptedException("Controller aborted");
+            if (downloadLink.getDownloadLinkController().isAborting()) {
+                throw new InterruptedException("Controller aborted");
+            }
             Thread.sleep(waitCur);
-            if (queueItem.lastConnectionTimestamp.compareAndSet(lastConnectionTimestamp, System.currentTimeMillis())) break;
+            if (queueItem.lastConnectionTimestamp.compareAndSet(lastConnectionTimestamp, System.currentTimeMillis())) {
+                break;
+            }
         }
-        if (downloadLink.getDownloadLinkController().isAborting()) throw new InterruptedException("Controller aborted");
+        if (downloadLink.getDownloadLinkController().isAborting()) {
+            throw new InterruptedException("Controller aborted");
+        }
     }
 
     protected void sleep(final long i, final DownloadLink downloadLink) throws PluginException {
@@ -829,12 +867,31 @@ public abstract class PluginForHost extends Plugin {
     public void resetPluginGlobals() {
     }
 
+    /**
+     * JD2 only
+     * 
+     * @return
+     */
+    public boolean isAbort() {
+        final DownloadLink link = getDownloadLink();
+        if (link != null) {
+            final SingleDownloadController con = link.getDownloadLinkController();
+            if (con != null) {
+                return con.isAborting() || Thread.currentThread().isInterrupted();
+            }
+        }
+        return super.isAbort();
+    }
+
     protected void sleep(long i, DownloadLink downloadLink, final String message) throws PluginException {
-        PluginProgress progress = new SleepPluginProgress(i, message);
+        if (downloadLink.getDownloadLinkController().isAborting()) {
+            throw new PluginException(LinkStatus.ERROR_RETRY);
+        }
+        final PluginProgress progress = new SleepPluginProgress(i, message);
         progress.setProgressSource(this);
-        PluginProgress old = null;
+        progress.setDisplayInProgressColumnEnabled(false);
         try {
-            old = downloadLink.setPluginProgress(progress);
+            downloadLink.addPluginProgress(progress);
             while (i > 0 && !downloadLink.getDownloadLinkController().isAborting()) {
                 progress.setCurrent(i);
                 synchronized (this) {
@@ -842,12 +899,14 @@ public abstract class PluginForHost extends Plugin {
                 }
                 i -= 1000;
             }
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             throw new PluginException(LinkStatus.ERROR_RETRY);
         } finally {
-            downloadLink.compareAndSetPluginProgress(progress, old);
+            downloadLink.removePluginProgress(progress);
         }
-        if (downloadLink.getDownloadLinkController().isAborting()) throw new PluginException(LinkStatus.ERROR_RETRY);
+        if (downloadLink.getDownloadLinkController().isAborting()) {
+            throw new PluginException(LinkStatus.ERROR_RETRY);
+        }
     }
 
     public Browser getBrowser() {
@@ -860,7 +919,9 @@ public abstract class PluginForHost extends Plugin {
      * @return
      */
     public String getBuyPremiumUrl() {
-        if (premiumurl != null) return premiumurl;
+        if (premiumurl != null) {
+            return premiumurl;
+        }
         return premiumurl;
     }
 
@@ -870,6 +931,20 @@ public abstract class PluginForHost extends Plugin {
 
     public void setDownloadLink(DownloadLink link) {
         this.link = link;
+    }
+
+    public long getAvailableStatusTimeout(DownloadLink link, AvailableStatus availableStatus) {
+        if (availableStatus != null) {
+            switch (availableStatus) {
+            case TRUE:
+            case FALSE:
+                return 5 * 60 * 1000l;
+            default:
+                return 2 * 60 * 1000l;
+            }
+        } else {
+            return 1 * 60 * 1000l;
+        }
     }
 
     public DownloadLink getDownloadLink() {
@@ -896,7 +971,9 @@ public abstract class PluginForHost extends Plugin {
 
     public DomainInfo getDomainInfo(DownloadLink link) {
         String host = getCustomFavIconURL(link);
-        if (host == null) host = getHost();
+        if (host == null) {
+            host = getHost();
+        }
         return DomainInfo.getInstance(host);
     }
 
@@ -906,44 +983,44 @@ public abstract class PluginForHost extends Plugin {
             File hostPluginsDir = new File(home, "src/jd/plugins/hoster/");
             for (File f : hostPluginsDir.listFiles()) {
                 if (f.getName().endsWith(".java")) {
-                    StringBuilder method = new StringBuilder();
-                    String src = IO.readFileToString(f);
-                    if (src.toLowerCase().contains("captcha")) {
-                        if (new Regex(src, "(boolean\\s+hasCaptcha\\(\\s*DownloadLink .*?\\,\\s*Account .*?\\))").matches()) {
-                            continue;
-                        }
-                        if (src.contains("enablePremium")) {
-                            method.append("\r\n/* NO OVERRIDE!! We need to stay 0.9*compatible */");
-                            method.append("\r\npublic boolean hasCaptcha(DownloadLink link, jd.plugins.Account acc) {");
-                            method.append("\r\nif (acc == null) {");
-                            method.append("\r\n/* no account, yes we can expect captcha */");
-                            method.append("\r\nreturn true;");
-                            method.append("\r\n}");
-
-                            method.append("\r\n if (Boolean.TRUE.equals(acc.getBooleanProperty(\"free\"))) {");
-                            method.append("\r\n/* free accounts also have captchas */");
-                            method.append("\r\nreturn true;");
-                            method.append("\r\n}");
-                            method.append("\r\nreturn false;");
-                            method.append("\r\n}");
-
-                        } else {
-                            method.append("\r\n/* NO OVERRIDE!! We need to stay 0.9*compatible */");
-                            method.append("\r\npublic boolean hasCaptcha(DownloadLink link, jd.plugins.Account acc) {");
-                            method.append("\r\nreturn true;");
-                            method.append("\r\n}");
-                        }
-
-                    } else {
-
-                    }
-
-                    if (method.length() > 0) {
-
-                        src = src.substring(0, src.lastIndexOf("}")) + method.toString() + "\r\n}";
-                        FileCreationManager.getInstance().delete(f, null);
-                        IO.writeStringToFile(f, src);
-                    }
+                    // StringBuilder method = new StringBuilder();
+                    // String src = IO.readFileToString(f);
+                    // if (src.toLowerCase().contains("captcha")) {
+                    // if (new Regex(src, "(boolean\\s+hasCaptcha\\(\\s*DownloadLink .*?\\,\\s*Account .*?\\))").matches()) {
+                    // continue;
+                    // }
+                    // if (src.contains("enablePremium")) {
+                    // method.append("\r\n/* NO OVERRIDE!! We need to stay 0.9*compatible */");
+                    // method.append("\r\npublic boolean hasCaptcha(DownloadLink link, jd.plugins.Account acc) {");
+                    // method.append("\r\nif (acc == null) {");
+                    // method.append("\r\n/* no account, yes we can expect captcha */");
+                    // method.append("\r\nreturn true;");
+                    // method.append("\r\n}");
+                    //
+                    // method.append("\r\n if (Boolean.TRUE.equals(acc.getBooleanProperty(\"free\"))) {");
+                    // method.append("\r\n/* free accounts also have captchas */");
+                    // method.append("\r\nreturn true;");
+                    // method.append("\r\n}");
+                    // method.append("\r\nreturn false;");
+                    // method.append("\r\n}");
+                    //
+                    // } else {
+                    // method.append("\r\n/* NO OVERRIDE!! We need to stay 0.9*compatible */");
+                    // method.append("\r\npublic boolean hasCaptcha(DownloadLink link, jd.plugins.Account acc) {");
+                    // method.append("\r\nreturn true;");
+                    // method.append("\r\n}");
+                    // }
+                    //
+                    // } else {
+                    //
+                    // }
+                    //
+                    // if (method.length() > 0) {
+                    //
+                    // src = src.substring(0, src.lastIndexOf("}")) + method.toString() + "\r\n}";
+                    // FileCreationManager.getInstance().delete(f, null);
+                    // IO.writeStringToFile(f, src);
+                    // }
 
                 }
             }
@@ -1061,7 +1138,9 @@ public abstract class PluginForHost extends Plugin {
                 if (prototypeName.equalsIgnoreCase(originalFilename)) {
                     /* same name but different upper/lower cases */
                     newName = fixCase(cache, originalFilename, prototypeName);
-                    if (newName != null) return newName;
+                    if (newName != null) {
+                        return newName;
+                    }
                 }
                 /*
                  * this holds the filename that got extracted with same pattern as the originalFilename
@@ -1094,9 +1173,11 @@ public abstract class PluginForHost extends Plugin {
                         cache.put(prototypeName + pattern.toString(), prototypesplit);
                     }
                 }
-
+                if (fileNameSplit[0].equals(prototypesplit)) {
+                    continue;
+                }
                 if (isHosterManipulatesFilenames() && fileNameSplit[0].length() == prototypesplit.length() && filteredName.equalsIgnoreCase(filterPackageID(prototypesplit))) {
-                    newName = getFixedFileName(originalFilename, originalReplaces, prototypesplit, next.getDefaultPlugin().getFilenameReplaceMap());
+                    newName = getFixedFileName(cache, originalFilename, originalReplaces, prototypesplit, next.getDefaultPlugin().getFilenameReplaceMap());
                     if (newName != null) {
                         String caseFix = fixCase(cache, newName + fileNameSplit[1], prototypeName);
                         if (caseFix != null) {
@@ -1122,30 +1203,60 @@ public abstract class PluginForHost extends Plugin {
         return null;
     }
 
-    protected String getFixedFileName(String originalFilename, char[] originalReplaces, String prototypeName, char[] prototypeReplaces) {
+    protected String getFixedFileName(HashMap<Object, Object> cache, String originalFilename, char[] originalReplaces, String prototypeName, char[] prototypeReplaces) {
         if (originalReplaces.length == 0 && prototypeReplaces.length == 0) {
             /* no replacements available */
             return null;
         }
-        StringBuilder sb = new StringBuilder();
+        final Boolean original = (Boolean) cache.get(originalFilename + new String(originalReplaces));
+        final Boolean prototype = (Boolean) cache.get(prototypeName + new String(prototypeReplaces));
+        if (Boolean.FALSE.equals(original) && Boolean.FALSE.equals(prototype)) {
+            return null;
+        }
+        final ArrayList<Character> foundOriginalReplaces = new ArrayList<Character>(originalReplaces.length);
+        final ArrayList<Character> foundPrototypeReplaces = new ArrayList<Character>(prototypeReplaces.length);
+        if (original == null) {
+            for (int index = 0; index < originalReplaces.length; index++) {
+                if (originalFilename.indexOf(originalReplaces[index]) >= 0) {
+                    foundOriginalReplaces.add(originalReplaces[index]);
+                }
+            }
+        }
+        if (prototype == null) {
+            for (int index = 0; index < prototypeReplaces.length; index++) {
+                if (prototypeName.indexOf(prototypeReplaces[index]) >= 0) {
+                    foundPrototypeReplaces.add(prototypeReplaces[index]);
+                }
+            }
+        }
+        if (original == null && foundOriginalReplaces.size() == 0) {
+            cache.put(originalFilename + new String(originalReplaces), Boolean.FALSE);
+        }
+        if (prototype == null && foundPrototypeReplaces.size() == 0) {
+            cache.put(prototypeName + new String(prototypeReplaces), Boolean.FALSE);
+        }
+        if (foundOriginalReplaces.size() == 0 && foundOriginalReplaces.size() == 0) {
+            return null;
+        }
+        final StringBuilder sb = new StringBuilder();
         mainLoop: for (int i = 0; i < prototypeName.length(); i++) {
             char oC = originalFilename.charAt(i);
             char pC = prototypeName.charAt(i);
             if (Character.toLowerCase(oC) != Character.toLowerCase(pC)) {
-                for (char oCC : originalReplaces) {
+                for (Character oCC : foundOriginalReplaces) {
                     /*
                      * first we check if char from Original is on replacement List, if so, we use char from prototype
                      */
-                    if (oC == oCC) {
+                    if (oC == oCC.charValue()) {
                         sb.append(pC);
                         continue mainLoop;
                     }
                 }
-                for (char pCC : prototypeReplaces) {
+                for (Character pCC : foundPrototypeReplaces) {
                     /*
                      * then we check if char from prototype is on replacement List, if so, we use char from original
                      */
-                    if (pC == pCC) {
+                    if (pC == pCC.charValue()) {
                         sb.append(oC);
                         continue mainLoop;
                     }
@@ -1161,7 +1272,9 @@ public abstract class PluginForHost extends Plugin {
     protected String fixCase(HashMap<Object, Object> cache, String originalFilename, String prototypeName) {
         if (cache != null) {
             Object ret = cache.get(originalFilename + "_" + prototypeName);
-            if (ret != null) return (String) ret;
+            if (ret != null) {
+                return (String) ret;
+            }
         }
         boolean eic = originalFilename.equals(prototypeName);
         StringBuilder sb = new StringBuilder(prototypeName.length());
@@ -1182,7 +1295,9 @@ public abstract class PluginForHost extends Plugin {
                 return null;
             }
         }
-        if (cache != null) cache.put(originalFilename + "_" + prototypeName, sb.toString());
+        if (cache != null) {
+            cache.put(originalFilename + "_" + prototypeName, sb.toString());
+        }
         return sb.toString();
     }
 
@@ -1212,7 +1327,9 @@ public abstract class PluginForHost extends Plugin {
      */
     public AccountFactory getAccountFactory() {
         // this should be plugincode as soon as we can ignore 0.9 compatibility
-        // if (getHost().equalsIgnoreCase("letitbit.net")) { return new LetitBitAccountFactory(); }
+        // if (getHost().equalsIgnoreCase("letitbit.net")) {
+        //     return new LetitBitAccountFactory();
+        // }
         // return new DefaultAccountFactory();
         throw new UnsupportedOperationException("jdget TODO");
     }
@@ -1246,6 +1363,30 @@ public abstract class PluginForHost extends Plugin {
     // public void extendDownloadsTableContextMenu(JComponent parent, PluginView<DownloadLink> pv) {
     // }
 
+    public Downloadable newDownloadable(DownloadLink downloadLink, final Browser br) {
+        if (br != null) {
+            return new DownloadLinkDownloadable(downloadLink) {
+                @Override
+                public Browser getContextBrowser() {
+                    return br.cloneBrowser();
+                }
+
+            };
+        }
+        return new DownloadLinkDownloadable(downloadLink);
+    }
+
+    /**
+     * JD2 ONLY
+     * 
+     * @param accounts
+     * @param downloadLink
+     * @return
+     */
+    public List<Account> sort(List<Account> accounts, DownloadLink downloadLink) {
+        return accounts;
+    }
+
     /**
      * THIS IS JDOWNLOADER 2 ONLY!
      * 
@@ -1271,55 +1412,287 @@ public abstract class PluginForHost extends Plugin {
         throw new UnsupportedOperationException("jdget TODO");
     }
 
+    public static class FilePair {
+        public FilePair(File oldFile, File newFile) {
+            this.oldFile = oldFile;
+            this.newFile = newFile;
+        }
+
+        private final File oldFile;
+
+        public File getOldFile() {
+            return oldFile;
+        }
+
+        public File getNewFile() {
+            return newFile;
+        }
+
+        private final File newFile;
+    }
+
     /**
      * Do not call directly. This method is called from the DownloadWatchdog.rename method only. The DownloadWatchdog assures, that the
-     * method is not called during a processing download, but afterwards
+     * method is not called during a processing download, but afterwards. Avoid to override this method. if possible, try to override
+     * #listFilePairsToMove instead
      * 
      * @param link
+     * @param string2
+     * @param string
      * @param value
      */
-    public void rename(DownloadLink link, String value) {
-        File old = new File(link.getFileOutput(false, false));
-        if (old.exists()) {
-            File newFile = new File(old.getParentFile(), value);
-            // FileAccessManager am = DownloadWatchDog.getInstance().getSession().getFileAccessManager();
-
-            old.renameTo(newFile);
-            if (link.getFinalFileOutput() != null && new File(link.getFinalFileOutput()).equals(old)) {
-                link.setFinalFileOutput(newFile.getAbsolutePath());
+    public void move(DownloadLink link, String currentDirectory, String currentName, String newDirectory, String newName) throws Exception {
+        if (link.getView().getBytesLoaded() <= 0) {
+            // nothing to rename or move. there should not be any file, and if there is, it does not belong to the link
+            return;
+        }
+        final ArrayList<ExceptionRunnable> revertList = new ArrayList<ExceptionRunnable>();
+        if (StringUtils.isEmpty(newName)) {
+            newName = currentName;
+        }
+        if (StringUtils.isEmpty(newDirectory)) {
+            newDirectory = currentDirectory;
+        }
+        if (CrossSystem.isWindows()) {
+            if (StringUtils.equalsIgnoreCase(currentDirectory, newDirectory) && StringUtils.equalsIgnoreCase(currentName, newName)) {
+                return;
             }
-
-        }
-
-        old = new File(link.getFileOutput(false, true));
-        if (old.exists()) {
-            File newFile = new File(old.getParentFile(), value);
-            // FileAccessManager am = DownloadWatchDog.getInstance().getSession().getFileAccessManager();
-
-            old.renameTo(newFile);
-            if (link.getFinalFileOutput() != null && new File(link.getFinalFileOutput()).equals(old)) {
-                link.setFinalFileOutput(newFile.getAbsolutePath());
+        } else {
+            if (StringUtils.equals(currentDirectory, newDirectory) && StringUtils.equals(currentName, newName)) {
+                return;
             }
-
         }
+        final MovePluginProgress progress = new MovePluginProgress();
+        try {
+            link.addPluginProgress(progress);
+            progress.setProgressSource(this);
+            for (FilePair filesToHandle : listFilePairsToMove(link, currentDirectory, currentName, newDirectory, newName)) {
+                handle(revertList, link, progress, filesToHandle.getOldFile(), filesToHandle.getNewFile());
+            }
+            revertList.clear();
+        } catch (Exception e) {
+            getLogger().log(e);
+            throw e;
+        } finally {
+            try {
+                // revert
+                for (final ExceptionRunnable r : revertList) {
+                    try {
+                        if (r != null) {
+                            r.run();
+                        }
+                    } catch (Throwable e1) {
+                        getLogger().log(e1);
+                    }
+                }
+            } finally {
+                link.removePluginProgress(progress);
+            }
+        }
+    }
 
-        old = new File(link.getFileOutput(false, false) + ".part");
+    protected FilePair[] listFilePairsToMove(DownloadLink link, String currentDirectory, String currentName, String newDirectory, String newName) {
+        FilePair[] ret = new FilePair[2];
+        ret[0] = new FilePair(new File(new File(currentDirectory), currentName + ".part"), new File(new File(newDirectory), newName + ".part"));
+        ret[1] = new FilePair(new File(new File(currentDirectory), currentName), new File(new File(newDirectory), newName));
+        return ret;
+    }
+
+    private void handle(ArrayList<ExceptionRunnable> revertList, final DownloadLink downloadLink, final MovePluginProgress progress, final File currentFile, final File newFile) throws FileExistsException, CouldNotRenameException, IOException {
+        if (!currentFile.exists() || currentFile.equals(newFile)) {
+            return;
+        }
+        progress.setFile(newFile);
+        revertList.add(new ExceptionRunnable() {
+
+            @Override
+            public void run() throws Exception {
+                renameOrMove(progress, downloadLink, newFile, currentFile);
+            }
+        });
+        renameOrMove(progress, downloadLink, currentFile, newFile);
+    }
+
+    private void renameOrMove(MovePluginProgress progress, final DownloadLink downloadLink, File old, File newFile) throws FileExistsException, CouldNotRenameException, IOException {
+
+        // TODO: what if newFile exists?
+        if (newFile.exists()) {
+            throw new FileExistsException(old, newFile);
+        }
+        if (!newFile.getParentFile().exists() && !newFile.getParentFile().mkdirs()) {
+            throw new IOException("Could not create " + newFile.getParent());
+        }
+        try {
+            getLogger().info("Move " + old + " to " + newFile);
+            if (CrossSystem.isWindows() && Application.getJavaVersion() >= Application.JAVA17) {
+                java.nio.file.Files.move(java.nio.file.Paths.get(old.toURI()), java.nio.file.Paths.get(newFile.toURI()), java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+            } else if (!old.renameTo(newFile)) {
+                throw new CouldNotRenameException(old, newFile);
+            }
+        } catch (CouldNotRenameException e) {
+            getLogger().log(e);
+            copyMove(progress, downloadLink, old, newFile);
+        } catch (IOException e) {
+            getLogger().log(e);
+            copyMove(progress, downloadLink, old, newFile);
+        }
+        // TODO copy optimiz
+        if (!newFile.getParentFile().equals(old.getParentFile())) {
+            // check if we have to delete the old path;
+            if (!old.getParentFile().equals(new File(CFG_GENERAL.DEFAULT_DOWNLOAD_FOLDER.getValue()))) {
+                // we ignore the dynamic tags here. if the default downloaddirectory contains dynamic tags, we can delete the folders
+                // anyaway if empty.
+                old.getParentFile().delete();
+            }
+        }
+    }
+
+    private void copyMove(final MovePluginProgress progress, final DownloadLink downloadLink, final File old, final File newFile) throws IOException {
+        if (!old.exists() && newFile.exists()) {
+            return;
+        }
         if (old.exists()) {
-            File newFile = new File(old.getParentFile(), value + ".part");
-            // FileAccessManager am = DownloadWatchDog.getInstance().getSession().getFileAccessManager();
-
-            old.renameTo(newFile);
+            // we did an file exists check earlier. so if the file exists here, the only reason is a failed rename/move;
+            newFile.delete();
+        } else {
+            throw new IOException("Cannot move " + old + " to " + newFile + ". The File does not exist!");
         }
+        // Thread thread = null;
+        // if (JSonStorage.getPlainStorage("Dialogs").get(COPY_MOVE_FILE, -1) < 0) {
+        //     // System.out.println("Thread start");
+        //     thread = new Thread() {
+        //         public void run() {
+        //             try {
+        //                 Thread.sleep(3000);
+        //                 // System.out.println("Dialog go");
+        //                 ProgressDialog dialog = new ProgressDialog(new ProgressGetter() {
 
-        old = new File(link.getFileOutput(false, true) + ".part");
-        if (old.exists()) {
-            File newFile = new File(old.getParentFile(), value + ".part");
-            // FileAccessManager am = DownloadWatchDog.getInstance().getSession().getFileAccessManager();
+        //                     @Override
+        //                     public void run() throws Exception {
+        //                         while (true) {
+        //                             Thread.sleep(1000);
+        //                         }
+        //                     }
 
-            old.renameTo(newFile);
+        //                     @Override
+        //                     public String getString() {
+        //                         return _JDT._.lit_please_wait();
+        //                     }
+
+        //                     @Override
+        //                     public int getProgress() {
+        //                         double perc = progress.getPercent();
+
+        //                         return Math.min(99, (int) (perc));
+        //                     }
+
+        //                     @Override
+        //                     public String getLabelString() {
+        //                         return null;
+        //                     }
+        //                 }, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _GUI._.PluginForHost_copyMove_progressdialog_title(), null, new AbstractIcon(IconKey.ICON_SAVETO, 32), null, _JDT._.lit_hide()) {
+        //                     @Override
+        //                     public String getDontShowAgainKey() {
+        //                         return COPY_MOVE_FILE;
+        //                     }
+
+        //                     private Component leftLabel(String name) {
+        //                         JLabel ret = new JLabel(name);
+        //                         ret.setHorizontalAlignment(SwingConstants.LEFT);
+        //                         return ret;
+        //                     }
+
+        //                     protected void extendLayout(JPanel p) {
+
+        //                         if (p.getComponentCount() == 0) {
+        //                             final JPanel subp = new MigPanel("ins 0,wrap 1", "[]", "[][]");
+        //                             p.add(subp, "wrap");
+        //                             p = subp;
+
+        //                             String packagename = downloadLink.getParentNode().getName();
+
+        //                             p.add(SwingUtils.toBold(new JLabel(_GUI._.lit_hoster())), "split 2,sizegroup left,alignx left");
+        //                             DomainInfo di = downloadLink.getDomainInfo();
+        //                             JLabel ret = new JLabel(di.getTld());
+        //                             ret.setHorizontalAlignment(SwingConstants.LEFT);
+        //                             ret.setIcon(di.getFavIcon());
+        //                             p.add(ret);
+
+        //                             if (downloadLink.getParentNode() != FilePackage.getDefaultFilePackage()) {
+        //                                 p.add(SwingUtils.toBold(new JLabel(_GUI._.IfFileExistsDialog_layoutDialogContent_package())), "split 2,sizegroup left,alignx left");
+        //                                 p.add(leftLabel(packagename));
+        //                             }
+        //                             p.add(SwingUtils.toBold(new JLabel(_GUI._.lit_filesize())), "split 2,sizegroup left,alignx left");
+        //                             p.add(leftLabel(SizeFormatter.formatBytes(old.length())));
+
+        //                             if (newFile.getName().equals(old.getName())) {
+        //                                 p.add(SwingUtils.toBold(new JLabel(_GUI._.lit_filename())), "split 2,sizegroup left,alignx left");
+        //                                 p.add(leftLabel(newFile.getName()));
+        //                             } else {
+        //                                 p.add(SwingUtils.toBold(new JLabel(_GUI._.PLUGINFORHOST_MOVECOPY_DIALOG_OLDFILENAME())), "split 2,sizegroup left,alignx left");
+        //                                 p.add(leftLabel(old.getName()));
+        //                                 p.add(SwingUtils.toBold(new JLabel(_GUI._.PLUGINFORHOST_MOVECOPY_DIALOG_NEWFILENAME())), "split 2,sizegroup left,alignx left");
+        //                                 p.add(leftLabel(newFile.getName()));
+        //                             }
+
+        //                             p.add(SwingUtils.toBold(new JLabel(_GUI._.PLUGINFORHOST_MOVECOPY_DIALOG_OLD())), "split 2,sizegroup left,alignx left");
+        //                             p.add(leftLabel(old.getParent()));
+
+        //                             p.add(SwingUtils.toBold(new JLabel(_GUI._.PLUGINFORHOST_MOVECOPY_DIALOG_NEW())), "split 2,sizegroup left,alignx left");
+        //                             p.add(leftLabel(newFile.getParent()));
+        //                         }
+        //                     }
+
+        //                 };
+        //                 UIOManager.I().show(null, dialog);
+        //             } catch (InterruptedException e) {
+        //                 e.printStackTrace();
+        //             }
+
+        //         }
+        //     };
+        //     thread.start();
+        // } else {
+        //     // System.out.println("Do not show again " + JSonStorage.getPlainStorage("Dialogs").get(COPY_MOVE_FILE, -1));
+        // }
+        try {
+            IO.copyFile(new ProgressFeedback() {
+
+                @Override
+                public void setBytesTotal(long length) {
+                    progress.setTotal(length);
+                }
+
+                @Override
+                public void setBytesProcessed(long position) {
+                    progress.setCurrent(position);
+                }
+            }, old, newFile, SYNC.META_AND_DATA);
+            old.delete();
+        } catch (IOException io) {
+            newFile.delete();
+            throw io;
+        } finally {
+            if (thread != null) {
+                thread.interrupt();
+            }
         }
-        link.setCustomFinalName(null);
-        link.forceFileName(value);
 
     }
+
+    public boolean isProxyRotationEnabledForLinkChecker() {
+        return true;
+    }
+
+    /**
+     * plugins may set a mirrorid to help the mirror detector. You have to ensure, that two mirrors either get the same mirror id, or no
+     * mirrorid(null)
+     * 
+     * @return
+     */
+
+    public String getMirrorID(DownloadLink link) {
+        return null;
+    }
+
 }
