@@ -1,4 +1,5 @@
-GCJ = gcj-mp-4.7
+#GCJ = gcj-mp-4.7
+GCJ = gcj
 GCJFLAGS = -g
 
 
@@ -15,6 +16,9 @@ JARS = \
 	jdownloader/trunk/ressourcen/libs/Filters.jar \
 	libs/bcprov-jdk14-150.jar \
 	AppWorkUtils/ant/joda-time-1.6.2.jar \
+	libs/script-api.jar \
+	libs/script-js.jar \
+	libs/extra.jar \
 	libs/cobra-fix.jar \
 	jdownloader/trunk/ressourcen/libs/js.jar \
 	libs/xbean-fix.jar \
@@ -29,7 +33,7 @@ OBJECTS = $(CLASSES:%.class=%.o) $(JARS:%.jar=%.o)
 OBJECTS_STR = '$(subst $(eval) ,' ',$(OBJECTS))'
 
 jdget: JDGet.java $(OBJECTS)
-	$(GCJ) $(GCJFLAGS) --classpath $(CLASSPATH) --main=JDGet JDGet.java $(OBJECTS_STR) -o '$@'
+	$(GCJ) $(GCJFLAGS) --classpath $(CLASSPATH) --main=JDGet JDGet.java $(OBJECTS_STR) -static-libgcc -o '$@'
 
 jdownloader/trunk/ressourcen/libs/sevenzipjbinding.o: jdownloader/trunk/ressourcen/libs/sevenzipjbinding.jar
 	$(GCJ) $(GCJFLAGS) --classpath $(CLASSPATH) -c '$<' -o '$@' -fjni

@@ -42,8 +42,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
 
 // import javax.imageio.ImageIO;
-// import javax.script.ScriptEngine;
-// import javax.script.ScriptEngineManager;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 // import javax.swing.BorderFactory;
 // import javax.swing.Box;
 // import javax.swing.BoxLayout;
@@ -643,41 +643,39 @@ public class LnkCrptWs extends PluginForDecrypt {
         }
 
         private String getAdditionalQuery(String query) {
-            throw new UnsupportedOperationException("jdget TODO");
-            // ScriptEngineManager manager = new ScriptEngineManager();
-            // ScriptEngine engine = manager.getEngineByName("javascript");
-            // String js = rcBr.toString();
-            // String doc = new Regex(query, "(document.*?)$").getMatch(0);
-            // js = js.replaceAll(doc + "=s_s_c_web_server_sign4;", "");
-            // query = query.replaceAll("\\+" + doc, "");
-            // try {
-            //     engine.eval("var document = new Object();");
-            //     engine.eval(js);
-            // } catch (final Throwable e) {
-            //     /* ignore rhino Exceptions */
-            //     try {
-            //         // query = engine.eval(query).toString() + new Regex(js, doc + "=\"([^\"]+)").getMatch(0);
-            //         query = new Regex(js, doc + "=\"([^\"]+)").getMatch(0);
-            //     } catch (Throwable e1) {
-            //     }
-            // }
-            // return "|1|0|" + query;
+            ScriptEngineManager manager = new ScriptEngineManager();
+            ScriptEngine engine = manager.getEngineByName("javascript");
+            String js = rcBr.toString();
+            String doc = new Regex(query, "(document.*?)$").getMatch(0);
+            js = js.replaceAll(doc + "=s_s_c_web_server_sign4;", "");
+            query = query.replaceAll("\\+" + doc, "");
+            try {
+                engine.eval("var document = new Object();");
+                engine.eval(js);
+            } catch (final Throwable e) {
+                /* ignore rhino Exceptions */
+                try {
+                    // query = engine.eval(query).toString() + new Regex(js, doc + "=\"([^\"]+)").getMatch(0);
+                    query = new Regex(js, doc + "=\"([^\"]+)").getMatch(0);
+                } catch (Throwable e1) {
+                }
+            }
+            return "|1|0|" + query;
         }
 
         private void makeFirstRequest() {
-            throw new UnsupportedOperationException("jdget TODO");
-            // ScriptEngineManager manager = new ScriptEngineManager();
-            // ScriptEngine engine = manager.getEngineByName("javascript");
-            // try {
-            //     /* creating pseudo functions: document.location */
-            //     engine.eval("var document = { loc : function() { return \"" + DLURL + "\";}}");
-            //     engine.eval("document.location = document.loc();");
-            //     engine.put("s_s_c_user_id", PARAMS.get("s_s_c_user_id"));
-            //     engine.eval(SERVERSTRING);
-            //     SERVERSTRING = engine.get("_13").toString();
-            // } catch (final Throwable e) {
-            //     SERVERSTRING = null;
-            // }
+            ScriptEngineManager manager = new ScriptEngineManager();
+            ScriptEngine engine = manager.getEngineByName("javascript");
+            try {
+                /* creating pseudo functions: document.location */
+                engine.eval("var document = { loc : function() { return \"" + DLURL + "\";}}");
+                engine.eval("document.location = document.loc();");
+                engine.put("s_s_c_user_id", PARAMS.get("s_s_c_user_id"));
+                engine.eval(SERVERSTRING);
+                SERVERSTRING = engine.get("_13").toString();
+            } catch (final Throwable e) {
+                SERVERSTRING = null;
+            }
         }
 
         private void load() throws Exception {

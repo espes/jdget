@@ -54,7 +54,7 @@ import jd.utils.JDUtilities;
 import jd.utils.locale.JDL;
 
 import org.appwork.utils.formatter.SizeFormatter;
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.plugins.PluginTaskID;
 
 @HostPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "megacrypter.com" }, urls = { "http://(www\\.)?megacrypter\\.com/\\![A-Za-z0-9\\-_\\!]+" }, flags = { 2 })
@@ -353,7 +353,7 @@ public class MegaCrypterCom extends PluginForHost {
 
             };
             progress.setProgressSource(this);
-            progress.setIcon(NewTheme.I().getIcon("lock", 16));
+            // progress.setIcon(NewTheme.I().getIcon("lock", 16));
             link.getLinkStatus().setStatusText("Decrypting");
             link.setPluginProgress(progress);
             fis = new FileInputStream(src);

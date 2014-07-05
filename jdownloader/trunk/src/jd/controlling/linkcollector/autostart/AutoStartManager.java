@@ -35,11 +35,14 @@ public class AutoStartManager implements GenericConfigEventListener<Boolean> {
     public AutoStartManager() {
 
         eventSender = new AutoStartManagerEventSender();
-        globalAutoStart = CFG_LINKGRABBER.LINKGRABBER_AUTO_START_ENABLED.isEnabled();
-        globalAutoConfirm = CFG_LINKGRABBER.LINKGRABBER_AUTO_CONFIRM_ENABLED.isEnabled();
-        CFG_LINKGRABBER.LINKGRABBER_AUTO_START_ENABLED.getEventSender().addListener(this, true);
-        CFG_LINKGRABBER.LINKGRABBER_AUTO_CONFIRM_ENABLED.getEventSender().addListener(this, true);
-        waittime = CFG_LINKGRABBER.CFG.getAutoConfirmDelay();
+        // globalAutoStart = CFG_LINKGRABBER.LINKGRABBER_AUTO_START_ENABLED.isEnabled();
+        // globalAutoConfirm = CFG_LINKGRABBER.LINKGRABBER_AUTO_CONFIRM_ENABLED.isEnabled();
+        // CFG_LINKGRABBER.LINKGRABBER_AUTO_START_ENABLED.getEventSender().addListener(this, true);
+        // CFG_LINKGRABBER.LINKGRABBER_AUTO_CONFIRM_ENABLED.getEventSender().addListener(this, true);
+        // waittime = CFG_LINKGRABBER.CFG.getAutoConfirmDelay();
+        globalAutoStart = true;
+        globalAutoConfirm = true;
+        waittime = 1;
         delayer = new DelayedRunnable(waittime, -1) {
 
             @Override

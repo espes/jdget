@@ -389,6 +389,9 @@ public class UserIO {
     //     }
     //     return -1;
     // }
+    public int requestComboDialog(int flag, final String title, final String question, final Object[] options, final int defaultSelection, final Object icon, final String okText, final String cancelText, final Object renderer) {
+        throw new UnsupportedOperationException("jdget TODO");
+    }
     
     public int requestConfirmDialog(final int flag, final String question) {
         // return this.requestConfirmDialog(flag, _GUI._.jd_gui_userio_defaulttitle_confirm(), question, getDefaultIcon(question), null, null);
@@ -562,5 +565,8 @@ public class UserIO {
     //     }
     //     return null;
     // }
+    public int[] requestMultiSelectionDialog(final int flag, final String title, final String question, final Object[] options, final Object icon, final String okText, final String cancelText, final Object renderer) {
+        throw new UnsupportedOperationException("jdget TODO");
+    }
     
 }

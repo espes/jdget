@@ -49,138 +49,138 @@ public class PluginClassLoader extends URLClassLoader {
         public PluginClassLoaderChild(PluginClassLoader parent) {
             super(new URL[] { /*Application.getRootUrlByClass(jd.SecondLevelLaunch.class, null)*/ }, parent);
             this.parent = parent;
-            // jdget TODO
         }
 
         public boolean isUpdateRequired(String name) {
-            if (!jared) return false;
-            name = name.replace("/", ".");
-            synchronized (DYNAMIC_LOADABLE_LOBRARIES) {
-                Iterator<Entry<String, String>> it = DYNAMIC_LOADABLE_LOBRARIES.entrySet().iterator();
-                while (it.hasNext()) {
-                    Entry<String, String> next = it.next();
-                    String dynamicPackage = next.getKey();
-                    String libFile = next.getValue();
-                    if (name.startsWith(dynamicPackage)) {
-                        /* dynamic Library in use */
-                        /* check if the library is already available on disk */
-                        File lib = Application.getResource("libs/" + libFile);
-                        if (lib.exists() && lib.isFile() && lib.length() != 0) {
-                            /* file already exists on disk, so we can use it */
-                            it.remove();
-                            break;
-                        } else if (lib.exists() && lib.isFile() && lib.length() == 0) {
-                            /* dummy library, we have to wait for update */
-                            return true;
-                        } else if (!lib.exists()) {
-                            /* library file not existing, create a new one if wished, so the update system replaces it with correct one */
-                            return true;
-                        }
-                        return true;
-                    }
-                }
-            }
+            // if (!jared) return false;
+            // name = name.replace("/", ".");
+            // synchronized (DYNAMIC_LOADABLE_LOBRARIES) {
+            //     Iterator<Entry<String, String>> it = DYNAMIC_LOADABLE_LOBRARIES.entrySet().iterator();
+            //     while (it.hasNext()) {
+            //         Entry<String, String> next = it.next();
+            //         String dynamicPackage = next.getKey();
+            //         String libFile = next.getValue();
+            //         if (name.startsWith(dynamicPackage)) {
+            //             /* dynamic Library in use */
+            //             /* check if the library is already available on disk */
+            //             File lib = Application.getResource("libs/" + libFile);
+            //             if (lib.exists() && lib.isFile() && lib.length() != 0) {
+            //                 /* file already exists on disk, so we can use it */
+            //                 it.remove();
+            //                 break;
+            //             } else if (lib.exists() && lib.isFile() && lib.length() == 0) {
+            //                 /* dummy library, we have to wait for update */
+            //                 return true;
+            //             } else if (!lib.exists()) {
+            //                 /* library file not existing, create a new one if wished, so the update system replaces it with correct one */
+            //                 return true;
+            //             }
+            //             return true;
+            //         }
+            //     }
+            // }
             return false;
         }
 
         @Override
         public Class<?> loadClass(String name) throws ClassNotFoundException {
-            try {
-                if (jared) {
-                    synchronized (DYNAMIC_LOADABLE_LOBRARIES) {
-                        Iterator<Entry<String, String>> it = DYNAMIC_LOADABLE_LOBRARIES.entrySet().iterator();
-                        while (it.hasNext()) {
-                            Entry<String, String> next = it.next();
-                            String dynamicPackage = next.getKey();
-                            String libFile = next.getValue();
-                            if (name.startsWith(dynamicPackage)) {
-                                /* dynamic Library in use */
-                                /* check if the library is already available on disk */
-                                File lib = Application.getResource("libs/" + libFile);
-                                if (lib.exists() && lib.isFile() && lib.length() != 0) {
-                                    /* file already exists on disk, so we can use it */
-                                    it.remove();
-                                    break;
-                                } else if (lib.exists() && lib.isFile() && lib.length() == 0) {
-                                    /* dummy library, we have to wait for update */
-                                    throw new UpdateRequiredClassNotFoundException(libFile);
-                                } else if (!lib.exists()) {
-                                    /*
-                                     * library file not existing, create a new one if wished, so the update system replaces it with correct
-                                     * one
-                                     */
-                                    if (createDummyLibs) lib.createNewFile();
-                                    throw new UpdateRequiredClassNotFoundException(libFile);
-                                }
-                                throw new ClassNotFoundException(name);
-                            }
-                        }
-                    }
-                }
-                if (isCheckStableCompatibility() && name.equals(pluginClass) == false && !name.startsWith(pluginClass + "$")) {
-                    boolean check = true;
-                    if (check) check = !name.equals("jd.plugins.hoster.RTMPDownload");/* available in 09581 Stable */
-                    if (check) check = !name.equals("org.appwork.utils.speedmeter.SpeedMeterInterface");/* available in 09581 Stable */
-                    if (check) check = !name.equals("org.appwork.utils.net.throttledconnection.MeteredThrottledInputStream");/*
-                                                                                                                              * available in
-                                                                                                                              * 09581 Stable
-                                                                                                                              */
-                    if (check) check = !name.equals("org.appwork.utils.net.throttledconnection.ThrottledConnection");/*
-                                                                                                                      * available in 09581
-                                                                                                                      * Stable
-                                                                                                                      */
-                    if (check) {
-                        if (name.startsWith("org.appwork") || name.startsWith("jd.plugins.hoster") || name.startsWith("jd.plugins.decrypter")) {
-                            System.out.println("Check for Stable Compatibility!!!: " + getPluginClass() + " wants to load " + name);
-                        }
-                    }
-                }
-                if (!name.startsWith("jd.plugins.hoster") && !name.startsWith("jd.plugins.decrypter")) { return super.loadClass(name); }
-                if (name.startsWith("jd.plugins.hoster.RTMPDownload")) { return super.loadClass(name); }
-                Class<?> c = null;
-                boolean sharedClass = name.endsWith("StringContainer");
-                if (sharedClass) {
-                    c = findSharedClass(name);
-                } else {
-                    c = findLoadedClass(name);
-                }
-                if (c != null) {
-                    // System.out.println("Class has already been loaded by this PluginClassLoaderChild");
-                    return c;
-                }
-                synchronized (this) {
-                    /*
-                     * we have to synchronize this because concurrent defineClass for same class throws exception
-                     */
-                    if (sharedClass) {
-                        c = findSharedClass(name);
-                    } else {
-                        c = findLoadedClass(name);
-                    }
-                    if (c != null) return c;
-                    URL myUrl = Application.getRessourceURL(name.replace(".", "/") + ".class");
-                    if (myUrl == null) throw new ClassNotFoundException("Class does not exist(anymore): " + name);
-                    byte[] data;
-                    if (sharedClass) {
-                        synchronized (sharedClasses) {
-                            c = findSharedClass(name);
-                            if (c == null) {
-                                data = IO.readURL(myUrl);
-                                c = parent.defineClass(name, data, 0, data.length);
-                                sharedClasses.put(c, name);
-                            }
-                        }
-                    } else {
-                        data = IO.readURL(myUrl);
-                        c = defineClass(name, data, 0, data.length);
-                    }
-                    return c;
-                }
-            } catch (Exception e) {
-                if (e instanceof UpdateRequiredClassNotFoundException) throw (UpdateRequiredClassNotFoundException) e;
-                if (e instanceof ClassNotFoundException) throw (ClassNotFoundException) e;
-                throw new ClassNotFoundException(name, e);
-            }
+            return Class.forName(name);
+            // try {
+            //     if (jared) {
+            //         synchronized (DYNAMIC_LOADABLE_LOBRARIES) {
+            //             Iterator<Entry<String, String>> it = DYNAMIC_LOADABLE_LOBRARIES.entrySet().iterator();
+            //             while (it.hasNext()) {
+            //                 Entry<String, String> next = it.next();
+            //                 String dynamicPackage = next.getKey();
+            //                 String libFile = next.getValue();
+            //                 if (name.startsWith(dynamicPackage)) {
+            //                     /* dynamic Library in use */
+            //                     /* check if the library is already available on disk */
+            //                     File lib = Application.getResource("libs/" + libFile);
+            //                     if (lib.exists() && lib.isFile() && lib.length() != 0) {
+            //                         /* file already exists on disk, so we can use it */
+            //                         it.remove();
+            //                         break;
+            //                     } else if (lib.exists() && lib.isFile() && lib.length() == 0) {
+            //                         /* dummy library, we have to wait for update */
+            //                         throw new UpdateRequiredClassNotFoundException(libFile);
+            //                     } else if (!lib.exists()) {
+            //                         /*
+            //                          * library file not existing, create a new one if wished, so the update system replaces it with correct
+            //                          * one
+            //                          */
+            //                         if (createDummyLibs) lib.createNewFile();
+            //                         throw new UpdateRequiredClassNotFoundException(libFile);
+            //                     }
+            //                     throw new ClassNotFoundException(name);
+            //                 }
+            //             }
+            //         }
+            //     }
+            //     if (isCheckStableCompatibility() && name.equals(pluginClass) == false && !name.startsWith(pluginClass + "$")) {
+            //         boolean check = true;
+            //         if (check) check = !name.equals("jd.plugins.hoster.RTMPDownload");/* available in 09581 Stable */
+            //         if (check) check = !name.equals("org.appwork.utils.speedmeter.SpeedMeterInterface");/* available in 09581 Stable */
+            //         if (check) check = !name.equals("org.appwork.utils.net.throttledconnection.MeteredThrottledInputStream");/*
+            //                                                                                                                   * available in
+            //                                                                                                                   * 09581 Stable
+            //                                                                                                                   */
+            //         if (check) check = !name.equals("org.appwork.utils.net.throttledconnection.ThrottledConnection");
+            //                                                                                                           * available in 09581
+            //                                                                                                           * Stable
+                                                                                                                      
+            //         if (check) {
+            //             if (name.startsWith("org.appwork") || name.startsWith("jd.plugins.hoster") || name.startsWith("jd.plugins.decrypter")) {
+            //                 System.out.println("Check for Stable Compatibility!!!: " + getPluginClass() + " wants to load " + name);
+            //             }
+            //         }
+            //     }
+            //     if (!name.startsWith("jd.plugins.hoster") && !name.startsWith("jd.plugins.decrypter")) { return super.loadClass(name); }
+            //     if (name.startsWith("jd.plugins.hoster.RTMPDownload")) { return super.loadClass(name); }
+            //     Class<?> c = null;
+            //     boolean sharedClass = name.endsWith("StringContainer");
+            //     if (sharedClass) {
+            //         c = findSharedClass(name);
+            //     } else {
+            //         c = findLoadedClass(name);
+            //     }
+            //     if (c != null) {
+            //         // System.out.println("Class has already been loaded by this PluginClassLoaderChild");
+            //         return c;
+            //     }
+            //     synchronized (this) {
+            //         /*
+            //          * we have to synchronize this because concurrent defineClass for same class throws exception
+            //          */
+            //         if (sharedClass) {
+            //             c = findSharedClass(name);
+            //         } else {
+            //             c = findLoadedClass(name);
+            //         }
+            //         if (c != null) return c;
+            //         URL myUrl = Application.getRessourceURL(name.replace(".", "/") + ".class");
+            //         if (myUrl == null) throw new ClassNotFoundException("Class does not exist(anymore): " + name);
+            //         byte[] data;
+            //         if (sharedClass) {
+            //             synchronized (sharedClasses) {
+            //                 c = findSharedClass(name);
+            //                 if (c == null) {
+            //                     data = IO.readURL(myUrl);
+            //                     c = parent.defineClass(name, data, 0, data.length);
+            //                     sharedClasses.put(c, name);
+            //                 }
+            //             }
+            //         } else {
+            //             data = IO.readURL(myUrl);
+            //             c = defineClass(name, data, 0, data.length);
+            //         }
+            //         return c;
+            //     }
+            // } catch (Exception e) {
+            //     if (e instanceof UpdateRequiredClassNotFoundException) throw (UpdateRequiredClassNotFoundException) e;
+            //     if (e instanceof ClassNotFoundException) throw (ClassNotFoundException) e;
+            //     throw new ClassNotFoundException(name, e);
+            // }
 
         }
 
@@ -229,7 +229,6 @@ public class PluginClassLoader extends URLClassLoader {
 
     private PluginClassLoader() {
         super(new URL[] { /*Application.getRootUrlByClass(jd.SecondLevelLaunch.class, null)*/ }, PluginClassLoader.class.getClassLoader());
-        //jdget TODO
     }
 
     public PluginClassLoaderChild getChild() {

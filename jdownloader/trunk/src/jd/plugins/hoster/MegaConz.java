@@ -37,7 +37,7 @@ import jd.plugins.download.RAFDownload;
 import jd.utils.JDUtilities;
 import jd.utils.locale.JDL;
 
-import org.jdownloader.images.NewTheme;
+// import org.jdownloader.images.NewTheme;
 import org.jdownloader.plugins.PluginTaskID;
 
 @HostPlugin(revision = "$Revision$", interfaceVersion = 2, names = { "mega.co.nz" }, urls = { "https?://(www\\.)?mega\\.co\\.nz/#N?(!|%21)[a-zA-Z0-9]+(!|%21)[a-zA-Z0-9_,\\-]+" }, flags = { 0 })
@@ -341,7 +341,7 @@ public class MegaConz extends PluginForHost {
 
             };
             progress.setProgressSource(this);
-            progress.setIcon(NewTheme.I().getIcon("lock", 16));
+            // progress.setIcon(NewTheme.I().getIcon("lock", 16));
             link.setPluginProgress(progress);
             fis = new FileInputStream(src);
             if (tmp != null) {

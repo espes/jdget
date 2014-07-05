@@ -22,7 +22,7 @@ JARS = \
 
 classpathify = $(subst $(eval) ,:,$(wildcard $1))
 
-JDGet:
+JDGet.class: JDGet.java
 	$(JC) $(JFLAGS) \
 		-sourcepath $(call classpathify,$(SOURCEPATHS)) \
 		-classpath $(call classpathify,$(JARS)) \
@@ -32,3 +32,4 @@ JDGet:
 .PHONY: clean
 clean:
 	find $(SOURCEPATHS) -name '*.class' -exec rm {} \;
+	rm -f JDGet.class
