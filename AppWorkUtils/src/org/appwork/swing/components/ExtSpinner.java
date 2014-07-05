@@ -10,6 +10,8 @@
 package org.appwork.swing.components;
 
 import java.awt.event.MouseListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
@@ -27,22 +29,34 @@ public class ExtSpinner extends JSpinner {
 
     /**
      * @param spinnerNumberModel
-     * @param maximum 
-     * @param minimium 
+     * @param maximum
+     * @param minimium
      */
     public ExtSpinner(SpinnerNumberModel spinnerNumberModel) {
         super(spinnerNumberModel);
+        this.addMouseWheelListener(new MouseWheelListener() {
 
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                e.consume();
+                if (e.getPreciseWheelRotation() <= 0) {
+                    ExtSpinner.this.setValue(ExtSpinner.this.getNextValue());
+                } else {
+                    ExtSpinner.this.setValue(ExtSpinner.this.getPreviousValue());
+                }
+            }
+        });
     }
 
+    @Override
     public synchronized void addMouseListener(MouseListener l) {
         super.addMouseListener(l);
-        ((JSpinner.DefaultEditor) getEditor()).getTextField().addMouseListener(l);
+        ((JSpinner.DefaultEditor) this.getEditor()).getTextField().addMouseListener(l);
 
     }
 
     @Override
-    public Object getNextValue() { 
+    public Object getNextValue() {
         return super.getNextValue();
     }
 
@@ -51,13 +65,14 @@ public class ExtSpinner extends JSpinner {
      */
     public int getIntValue() {
         // TODO Auto-generated method stub
-      
-        return ((Number) getValue()).intValue();
+
+        return ((Number) this.getValue()).intValue();
     }
+
     public long getLongValue() {
         // TODO Auto-generated method stub
 
-        return ((Number) getValue()).longValue();
+        return ((Number) this.getValue()).longValue();
     }
 
 }

@@ -19,6 +19,11 @@ public class StringUtils {
         return name.toLowerCase(Locale.ENGLISH).endsWith(jdPkgRule.toLowerCase(Locale.ENGLISH));
     }
 
+    public static boolean containsIgnoreCase(String input, String contains) {
+        if (input == null || contains == null) { return false; }
+        return input.toLowerCase(Locale.ENGLISH).contains(contains.toLowerCase(Locale.ENGLISH));
+    }
+
     /**
      * @param pass
      * @param pass2

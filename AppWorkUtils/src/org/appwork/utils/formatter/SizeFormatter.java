@@ -29,85 +29,102 @@ public class SizeFormatter {
      * @return
      */
     public static String formatBytes(long fileSize) {
-        long abs = Math.abs(fileSize);
+        final long abs = Math.abs(fileSize);
         final DecimalFormat c = new DecimalFormat("0.00");
-        if (abs >= 1024 * 1024 * 1024 * 1024l) { return _AWU.T.literally_tebibyte(c.format(fileSize / (1024 * 1024 * 1024 * 1024.0))); }
-        if (abs >= 1024 * 1024 * 1024l) { return _AWU.T.literally_gibibyte(c.format(fileSize / (1024 * 1024 * 1024.0))); }
-        if (abs >= 1024 * 1024l) { return _AWU.T.literally_mebibyte(c.format(fileSize / (1024 * 1024.0))); }
-        if (abs >= 1024l) { return _AWU.T.literally_kibibyte(c.format(fileSize / 1024.0)); }
+        if (abs >= Unit.TB.getBytes1024()) { return _AWU.T.literally_tebibyte(c.format(fileSize / (double) Unit.TB.getBytes1024())); }
+        if (abs >= Unit.GB.getBytes1024()) { return _AWU.T.literally_gibibyte(c.format(fileSize / (double) Unit.GB.getBytes1024())); }
+        if (abs >= Unit.MB.getBytes1024()) { return _AWU.T.literally_mebibyte(c.format(fileSize / (double) Unit.MB.getBytes1024())); }
+        if (abs >= Unit.KB.getBytes1024()) { return _AWU.T.literally_kibibyte(c.format(fileSize / (double) Unit.KB.getBytes1024())); }
         return _AWU.T.literally_byte(fileSize);
     }
 
     public static enum Unit {
-        TB(1024l * 1024l * 1024l * 1024l),
-        GB(1024l * 1024l * 1024l),
-        MB(1024l * 1024l),
-        KB(1024l),
-        B(1l);
-        private long bytes;
+        TB(1024l * 1024l * 1024l * 1024l, 1000l * 1000l * 1000l * 1000l),
+        GB(1024l * 1024l * 1024l, 1000l * 1000l * 1000l),
+        MB(1024l * 1024l, 1000l * 1000l),
+        KB(1024l, 1000l),
+        B(1l, 1l);
+        private final long bytes;
+        private final long kibytes;
 
-        private Unit(long bytes) {
-            this.bytes = bytes;
+        public final long getBytes1024() {
+            return this.kibytes;
         }
 
-        public long getBytes() {
-            return bytes;
+        private Unit(long kibytes, long bytes) {
+            this.bytes = bytes;
+            this.kibytes = kibytes;
+
+        }
+
+        public final long getBytes1000() {
+            return this.bytes;
         }
     }
 
+    public static Unit getSmallerUnit(Unit unit) {
+        return Unit.values()[Math.min(Unit.values().length - 1, unit.ordinal() + 1)];
+    }
+
+    public static Unit getBiggerUnit(Unit unit) {
+        return Unit.values()[Math.max(0, unit.ordinal() - 1)];
+    }
+
     public static Unit getBestUnit(long fileSize) {
-        long abs = Math.abs(fileSize);
-        if (abs >= 1024 * 1024 * 1024 * 1024l) { return Unit.TB; }
-        if (abs >= 1024 * 1024 * 1024l) { return Unit.GB; }
-        if (abs >= 1024 * 1024l) { return Unit.MB; }
-        if (abs >= 1024l) { return Unit.KB; }
+        final long abs = Math.abs(fileSize);
+        if (abs >= Unit.TB.getBytes1024()) { return Unit.TB; }
+        if (abs >= Unit.GB.getBytes1024()) { return Unit.GB; }
+        if (abs >= Unit.MB.getBytes1024()) { return Unit.MB; }
+        if (abs >= Unit.KB.getBytes1024()) { return Unit.KB; }
         return Unit.B;
     }
 
     public static long getSize(final String string) {
-       
         return SizeFormatter.getSize(string, true, false);
     }
 
+    private static final Pattern DOUBLE = Pattern.compile("([\\d]+)[.,:]([\\d]+)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern NUMBER = Pattern.compile("([\\d]+)", Pattern.CASE_INSENSITIVE);
+
     public static long getSize(String string, boolean kibi, boolean allowNegative) {
-        boolean negative = false;
+        final boolean negative;
         if (allowNegative) {
             negative = Pattern.compile("\\D*\\-.*").matcher(string).matches();
+        } else {
+            negative = false;
         }
-        int unit = 1000;
-        if (kibi) {
-            unit = 1024;
-        }
-        String[][] matches = new Regex(string, Pattern.compile("([\\d]+)[\\.|\\,|\\:]([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches();
-
+        String[][] matches = new Regex(string, SizeFormatter.DOUBLE).getMatches();
         if (matches == null || matches.length == 0) {
-            matches = new Regex(string, Pattern.compile("([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches();
+            matches = new Regex(string, SizeFormatter.NUMBER).getMatches();
         }
-        if (matches == null || matches.length == 0) { return -1; }
+        if (matches != null && matches.length >= 1) {
+            final long unitLong = kibi ? SizeFormatter.getBestUnit(string).getBytes1024() : SizeFormatter.getBestUnit(string).getBytes1000();
+            if (matches[0].length == 2 && Long.parseLong(matches[0][1]) > 0) {
+                final double ret = Double.parseDouble(matches[0][0] + "." + matches[0][1]) * unitLong;
+                return negative ? -Math.round(ret) : Math.round(ret);
+            } else {
+                final long ret = Long.parseLong(matches[0][0]) * unitLong;
+                return negative ? -ret : ret;
+            }
+        }
+        return -1;
+    }
 
-        double res = 0;
-        if (matches[0].length == 1) {
-            res = Double.parseDouble(matches[0][0]);
-        }
-        if (matches[0].length == 2) {
-            res = Double.parseDouble(matches[0][0] + "." + matches[0][1]);
-        }
-        if (Regex.matches(string, Pattern.compile("(tb|tbyte|tig|tib)", Pattern.CASE_INSENSITIVE))) {
-            res *= unit * unit * unit * unit;
-        } else if (Regex.matches(string, Pattern.compile("(gb|gbyte|gig|gib)", Pattern.CASE_INSENSITIVE))) {
-            res *= unit * unit * unit;
-        } else if (Regex.matches(string, Pattern.compile("(mb|mbyte|megabyte|mib)", Pattern.CASE_INSENSITIVE))) {
-            res *= unit * unit;
-        } else if (Regex.matches(string, Pattern.compile("(kb|kbyte|kilobyte|kib)", Pattern.CASE_INSENSITIVE))) {
-            res *= unit;
-        }
+    private static final Pattern TB = Pattern.compile("(tb|tbyte|tig|tib)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern GB = Pattern.compile("(gb|gbyte|gig|gib)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern MB = Pattern.compile("(mb|mbyte|megabyte|mib)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern KB = Pattern.compile("(kb|kbyte|kilobyte|kib)", Pattern.CASE_INSENSITIVE);
 
-        return negative ? -1 * Math.round(res) : Math.round(res);
-
+    private static Unit getBestUnit(String unitText) {
+        if (new Regex(unitText, SizeFormatter.TB).matches()) { return Unit.TB; }
+        if (new Regex(unitText, SizeFormatter.GB).matches()) { return Unit.GB; }
+        if (new Regex(unitText, SizeFormatter.MB).matches()) { return Unit.MB; }
+        if (new Regex(unitText, SizeFormatter.KB).matches()) { return Unit.KB; }
+        return Unit.B;
     }
 
     public static long getSize(final String string, final boolean kibi) {
-        return getSize(string, kibi, false);
+        return SizeFormatter.getSize(string, kibi, false);
 
     }
 }

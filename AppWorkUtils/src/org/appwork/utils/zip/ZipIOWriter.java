@@ -177,11 +177,11 @@ public class ZipIOWriter {
             }
             fin = new FileInputStream(addFile);
             this.zipStream.putNextEntry(zipAdd);
-            zipEntryAdded = true;
             int len;
             while ((len = fin.read(this.buf)) > 0) {
                 this.zipStream.write(this.buf, 0, len);
             }
+            zipEntryAdded = true;
         } finally {
             if (zipEntryAdded) {
                 this.zipStream.closeEntry();
@@ -248,6 +248,12 @@ public class ZipIOWriter {
             }
             try {
                 this.zipStream.close();
+            } catch (final Throwable e2) {
+            }
+            try {
+                if (this.fileStream instanceof FileOutputStream) {
+                    ((FileOutputStream) this.fileStream).getChannel().force(true);
+                }
             } catch (final Throwable e2) {
             }
             try {

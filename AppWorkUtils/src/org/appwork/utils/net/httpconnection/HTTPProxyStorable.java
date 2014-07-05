@@ -33,6 +33,9 @@ public class HTTPProxyStorable implements Storable {
     private boolean useConnectMethod           = false;
     private boolean preferNativeImplementation = false;
 
+    public HTTPProxyStorable(/* storable */) {
+    }
+
     public String getAddress() {
         return this.address;
     }

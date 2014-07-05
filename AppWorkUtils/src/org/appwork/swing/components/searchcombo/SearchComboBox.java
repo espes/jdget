@@ -530,11 +530,8 @@ public abstract class SearchComboBox<T> extends JComboBox {
         if (plugins != null) {
             this.setList(plugins);
         }
-
         this.setEditor(new Editor(this));
-
         this.setEditable(true);
-
         // we extends the existing renderer. this avoids LAF incompatibilities
         final ListCellRenderer org = this.getRenderer();
         this.addPopupMenuListener(new PopupMenuListener() {

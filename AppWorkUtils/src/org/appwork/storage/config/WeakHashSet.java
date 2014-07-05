@@ -23,47 +23,45 @@ import java.util.Set;
  */
 public class WeakHashSet<E> extends AbstractSet<E> implements Set<E> {
 
-    protected ReferenceQueue<Object>                          queue = new ReferenceQueue<Object>();
-    protected HashMap<WeakHashSetElement, WeakHashSetElement> map   = new HashMap<WeakHashSetElement, WeakHashSetElement>();
+    protected final ReferenceQueue<Object>                          queue = new ReferenceQueue<Object>();
+    protected final HashMap<WeakHashSetElement, WeakHashSetElement> map   = new HashMap<WeakHashSetElement, WeakHashSetElement>();
 
     @Override
     public boolean contains(Object o) {
-        return map.containsKey(WeakHashSetElement.create(o));
+        return this.map.containsKey(WeakHashSetElement.create(o));
     }
 
     @Override
     public boolean add(E e) {
-        cleanUp();
-        WeakHashSetElement item = WeakHashSetElement.create(e, queue);
-        return map.put(item, item) == null;
+        this.cleanUp();
+        WeakHashSetElement item = WeakHashSetElement.create(e, this.queue);
+        return this.map.put(item, item) == null;
     }
 
     @SuppressWarnings("unchecked")
     public E getDuplicateOrAdd(E e) {
         WeakHashSetElement item = WeakHashSetElement.create(e);
-        WeakHashSetElement exists = map.get(item);
+        WeakHashSetElement exists = this.map.get(item);
         Object ret = null;
-        if (exists != null && (ret = exists.get()) != null) {            
-            return (E) ret;
-        }
-        cleanUp();
-        map.put(item, item);
+        if (exists != null && (ret = exists.get()) != null) { return (E) ret; }
+        this.cleanUp();
+        this.map.put(item, item);
         return e;
     }
 
     @Override
     public boolean remove(Object o) {
         WeakHashSetElement removeItem = WeakHashSetElement.create(o);
-        WeakHashSetElement removedItem = map.remove(removeItem);
-        cleanUp();
-        if (removedItem == null) return false;
+        WeakHashSetElement removedItem = this.map.remove(removeItem);
+        this.cleanUp();
+        if (removedItem == null) { return false; }
         return removedItem.equals(removeItem);
     }
 
     private void cleanUp() {
         Object item = null;
-        while ((item = queue.poll()) != null) {
-            map.remove((WeakHashSetElement) item);
+        while ((item = this.queue.poll()) != null) {
+            this.map.remove(item);
         }
     }
 
@@ -73,43 +71,44 @@ public class WeakHashSet<E> extends AbstractSet<E> implements Set<E> {
 
         private WeakHashSetElement(Object o) {
             super(o);
-            weakHashSetElementHash = o.hashCode();
+            this.weakHashSetElementHash = o.hashCode();
         }
 
         private WeakHashSetElement(Object o, ReferenceQueue<Object> q) {
             super(o, q);
-            weakHashSetElementHash = o.hashCode();
+            this.weakHashSetElementHash = o.hashCode();
         }
 
         private static WeakHashSetElement create(Object o) {
-            return (o == null) ? null : new WeakHashSetElement(o);
+            return o == null ? null : new WeakHashSetElement(o);
         }
 
         private static WeakHashSetElement create(Object o, ReferenceQueue<Object> q) {
-            return (o == null) ? null : new WeakHashSetElement(o, q);
+            return o == null ? null : new WeakHashSetElement(o, q);
         }
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof WeakHashSetElement)) return false;
+            if (this == o) { return true; }
+            if (!(o instanceof WeakHashSetElement)) { return false; }
             Object t = this.get();
             Object u = ((WeakHashSetElement) o).get();
-            if (t == u) return true;
-            if ((t == null) || (u == null)) return false;
+            if (t == u) { return true; }
+            if (t == null || u == null) { return false; }
             return t.equals(u);
         }
 
         @Override
         public int hashCode() {
-            return weakHashSetElementHash;
+            return this.weakHashSetElementHash;
         }
 
     }
 
     @Override
     public Iterator<E> iterator() {
-        final Iterator<WeakHashSetElement> i = map.keySet().iterator();
+        this.cleanUp();
+        final Iterator<WeakHashSetElement> i = this.map.keySet().iterator();
 
         return new Iterator<E>() {
             public boolean hasNext() {
@@ -117,7 +116,7 @@ public class WeakHashSet<E> extends AbstractSet<E> implements Set<E> {
             }
 
             public E next() {
-                return (E) ((WeakHashSetElement) i.next()).get();
+                return (E) i.next().get();
             }
 
             public void remove() {
@@ -128,7 +127,7 @@ public class WeakHashSet<E> extends AbstractSet<E> implements Set<E> {
 
     @Override
     public int size() {
-        return map.size();
+        return this.map.size();
     }
 
     public static void main(String[] args) {

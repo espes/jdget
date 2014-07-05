@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.appwork.exceptions.WTFException;
+import org.appwork.storage.config.annotations.CustomStorageName;
 import org.appwork.storage.config.handler.StorageHandler;
 import org.appwork.utils.Application;
 // import org.appwork.utils.swing.dialog.Dialog;
@@ -66,26 +67,30 @@ public class JsonConfig {
      */
     @SuppressWarnings("unchecked")
     public static <T extends ConfigInterface> T create(final Class<T> configInterface) {
-        final String id = configInterface.getName();
+        String path = configInterface.getName();
+        CustomStorageName anno = configInterface.getAnnotation(CustomStorageName.class);
+        if (anno != null) {
+            path = anno.value();
+        }
         synchronized (JsonConfig.CACHE) {
-            final ConfigInterface ret = JsonConfig.CACHE.get(id);
+            final ConfigInterface ret = JsonConfig.CACHE.get(path);
             if (ret != null) { return (T) ret; }
         }
-        final LockObject lock = JsonConfig.requestLock(id);
+        final LockObject lock = JsonConfig.requestLock(path);
         synchronized (lock) {
             try {
                 synchronized (JsonConfig.CACHE) {
-                    final ConfigInterface ret = JsonConfig.CACHE.get(id);
+                    final ConfigInterface ret = JsonConfig.CACHE.get(path);
                     if (ret != null) { return (T) ret; }
                 }
                 final ClassLoader cl = configInterface.getClassLoader();
                 if (lock.getStorageHandler() == null) {
-                    lock.setStorageHandler(new StorageHandler<T>(Application.getResource("cfg/" + configInterface.getName()), configInterface));
+                    lock.setStorageHandler(new StorageHandler<T>(Application.getResource("cfg/" + path), configInterface));
                 }
                 final T ret = (T) Proxy.newProxyInstance(cl, new Class<?>[] { configInterface }, lock.getStorageHandler());
                 synchronized (JsonConfig.CACHE) {
                     if (lock.getLock().get() == 1) {
-                        JsonConfig.CACHE.put(id, ret);
+                        JsonConfig.CACHE.put(path, ret);
                     }
                 }
                 return ret;

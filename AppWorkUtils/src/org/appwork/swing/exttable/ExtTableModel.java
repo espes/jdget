@@ -506,7 +506,9 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     protected ExtColumn<E> getDefaultSortColumn() {
         for (final ExtColumn<E> c : this.columns) {
-            if (c.isSortable(null)) { return c; }
+            if (c.isSortable(null)) {
+
+            return c; }
         }
         return null;
     }
@@ -589,10 +591,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param sortOrderIdentifier
      */
     public String getNextSortIdentifier(final String sortOrderIdentifier) {
-        if (sortOrderIdentifier == null || sortOrderIdentifier.equals(ExtColumn.SORT_ASC)) {
-            return ExtColumn.SORT_DESC;
-        } else {
+        if (sortOrderIdentifier == null || sortOrderIdentifier.equals(ExtColumn.SORT_DESC)) {
             return ExtColumn.SORT_ASC;
+        } else {
+            return ExtColumn.SORT_DESC;
         }
 
     }
@@ -1187,7 +1189,11 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             } catch (final Exception e) {
                 Log.exception(e);
             }
-            Collections.sort(data, column.getRowSorter());
+            try {
+                Collections.sort(data, column.getRowSorter());
+            } catch (final Throwable e) {
+                Log.exception(e);
+            }
         } else {
             try {
                 this.getStorage().put(ExtTableModel.SORT_ORDER_ID_KEY, (String) null);

@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 import org.appwork.utils.BinaryLogic;
@@ -40,13 +41,16 @@ public class TimeFormatter {
             sdf.setLenient(false);
             TimeFormatter.dateformats.add(sdf = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z", Locale.UK));
             sdf.setLenient(true);
+            TimeFormatter.dateformats.add(sdf = new SimpleDateFormat("EEE MMM dd yyyy HH:mm:ss 'GMT+0000'", Locale.UK));
+            sdf.setTimeZone(TimeZone.getTimeZone("GMT+0000"));
+            sdf.setLenient(false);
         } catch (final Throwable e) {
             e.printStackTrace();
         }
     }
-    public static final int                          HIDE_SECONDS = 1 << 1;
-    public static final int                          HIDE_MARKER  = 1 << 2;
-    public static final int                          CLOCK        = 1 << 3;
+    public static final int                               HIDE_SECONDS = 1 << 1;
+    public static final int                               HIDE_MARKER  = 1 << 2;
+    public static final int                               CLOCK        = 1 << 3;
 
     public static String formatMilliSeconds(final long totalSeconds, final int flags) {
         return TimeFormatter.formatSeconds(totalSeconds / 1000, flags);
@@ -158,7 +162,7 @@ public class TimeFormatter {
 
     public static long getMilliSeconds(final String dateString, final String timeformat, final Locale l) {
         if (dateString != null) {
-            final SimpleDateFormat dateFormat = l != null ? new SimpleDateFormat(timeformat, l) : new SimpleDateFormat(timeformat,Locale.ENGLISH);
+            final SimpleDateFormat dateFormat = l != null ? new SimpleDateFormat(timeformat, l) : new SimpleDateFormat(timeformat, Locale.ENGLISH);
             try {
                 return dateFormat.parse(dateString).getTime();
             } catch (final Exception e) {

@@ -45,6 +45,10 @@ public class IO {
     }
 
     public static void copyFile(final File in, final File out, final SYNC sync) throws IOException {
+        copyFile(null, in, out, sync);
+    }
+
+    public static void copyFile(ProgressFeedback progress, final File in, final File out, final SYNC sync) throws IOException {
         try {
             FileInputStream fis = null;
             FileOutputStream fos = null;
@@ -55,6 +59,9 @@ public class IO {
                 if (!in.exists()) { throw new FileNotFoundException(in.getAbsolutePath()); }
                 inChannel = (fis = new FileInputStream(in)).getChannel();
                 outChannel = (fos = new FileOutputStream(out)).getChannel();
+                if (progress != null) {
+                    progress.setBytesTotal(in.length());
+                }
                 if (CrossSystem.isWindows()) {
                     // magic number for Windows, 64Mb - 32Kb)
                     // On the Windows plateform, you can't copy a file bigger
@@ -68,11 +75,16 @@ public class IO {
                     //
                     // For a discussion about this see :
                     // http://forum.java.sun.com/thread.jspa?threadID=439695&messageID=2917510
+
                     final int maxCount = 64 * 1024 * 1024 - 32 * 1024;
                     final long size = inChannel.size();
                     long position = 0;
+
                     while (position < size) {
                         position += inChannel.transferTo(position, maxCount, outChannel);
+                        if (progress != null) {
+                            progress.setBytesProcessed(position);
+                        }
                     }
                 } else {
                     /* we also loop here to make sure all data got transfered! */
@@ -81,6 +93,9 @@ public class IO {
                     long position = 0;
                     while (position < size) {
                         position += inChannel.transferTo(position, maxCount, outChannel);
+                        if (progress != null) {
+                            progress.setBytesProcessed(position);
+                        }
                     }
                 }
                 if (sync != null) {

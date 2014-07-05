@@ -50,6 +50,11 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
         return UIOManager.I().show(InputDialogInterface.class, this);
     }
 
+    @Override
+    public boolean isRemoteAPIEnabled() {
+        return true;
+    }
+
     public InputDialog(final int flag, final String title, final String message, final String defaultMessage, final Icon icon, final String okOption, final String cancelOption) {
         super(flag, title, icon, okOption, cancelOption);
         Log.L.fine("Dialog    [" + okOption + "][" + cancelOption + "]\r\nflag:  " + Integer.toBinaryString(flag) + "\r\ntitle: " + title + "\r\nmsg:   \r\n" + message + "\r\ndef:   \r\n" + defaultMessage);

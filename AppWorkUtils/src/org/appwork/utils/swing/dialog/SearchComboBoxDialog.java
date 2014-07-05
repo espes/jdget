@@ -9,9 +9,11 @@
  */
 package org.appwork.utils.swing.dialog;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -19,12 +21,14 @@ import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
 
+import org.appwork.storage.JSonStorage;
 import org.appwork.swing.MigPanel;
 import org.appwork.swing.components.searchcombo.SearchComboBox;
-import org.appwork.uio.ComboBoxDialogInterface;
+import org.appwork.utils.images.IconIO;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.net.Base64OutputStream;
 
-public class SearchComboBoxDialog<Type> extends AbstractDialog<Type> implements ComboBoxDialogInterface {
+public class SearchComboBoxDialog<Type> extends AbstractDialog<Type> implements IconComboBoxDialogInterface {
 
     /**
      * Stores an additional message
@@ -43,6 +47,11 @@ public class SearchComboBoxDialog<Type> extends AbstractDialog<Type> implements 
      */
     private final Type[]         options;
     private SearchComboBox<Type> box;
+
+    @Override
+    public boolean isRemoteAPIEnabled() {
+        return true;
+    }
 
     /**
      * 
@@ -182,10 +191,95 @@ public class SearchComboBoxDialog<Type> extends AbstractDialog<Type> implements 
     public int getSelectedIndex() {
         if ((getReturnmask() & Dialog.RETURN_OK) == 0) { return -1; }
         if (box != null) { return box.getSelectedIndex(); }
-        if (defaultAnswer == null) {
-            return -1;
-        }
+        if (defaultAnswer == null) { return -1; }
         return Arrays.binarySearch(options, defaultAnswer);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.uio.ConfirmDialogInterface#getMessage()
+     */
+    @Override
+    public String getMessage() {
+
+        return message;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.uio.ComboBoxDialogInterface#getLabels()
+     */
+    @Override
+    public String[] getLabels() {
+        String[] ret = new String[options.length];
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = JSonStorage.toString(getStringByValue(options[i]));
+
+        }
+        return ret;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.uio.ComboBoxDialogInterface#getPreSelectedIndex()
+     */
+    @Override
+    public int getPreSelectedIndex() {
+        for (int i = 0; i < options.length; i++) {
+
+            if (options[i].equals(defaultAnswer)) { return i; }
+        }
+        return -1;
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.utils.swing.dialog.IconComboBoxDialogInterface#getIconDataUrls
+     * ()
+     */
+    @Override
+    public String[] getIconDataUrls() {
+        String[] ret = new String[options.length];
+        for (int i = 0; i < ret.length; i++) {
+            Icon ic = getIconByValue(options[i]);
+            if (ic == null) {
+                ret[i] = null;
+            } else {
+                Base64OutputStream b64os = null;
+                ByteArrayOutputStream bos = null;
+
+                try {
+                    bos = new ByteArrayOutputStream();
+                    b64os = new Base64OutputStream(bos);
+                    ImageIO.write(IconIO.convertIconToBufferedImage(ic), "png", b64os);
+                    b64os.flush(true);
+                    ret[i] = "png;base64," + bos.toString("UTF-8");
+
+                } catch (final Exception e) {
+                    e.printStackTrace();
+                    return null;
+                } finally {
+                    try {
+                        b64os.close();
+                    } catch (final Throwable e) {
+                    }
+                    try {
+                        bos.close();
+                    } catch (final Throwable e) {
+                    }
+
+                }
+            }
+
+        }
+        return ret;
+
     }
 
 }

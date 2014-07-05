@@ -10,88 +10,108 @@
 package org.appwork.utils.net;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author daniel
  * 
  */
 public class HeaderCollection implements Iterable<HTTPHeader> {
-    private ArrayList<HTTPHeader>          headers;
-    private static HashMap<String, Boolean> DUPES_ALLOWED = new HashMap<String, Boolean>();
-    static {
-        HeaderCollection.DUPES_ALLOWED.put("Set-Cookies".toLowerCase(Locale.ENGLISH), true);
+    private final CopyOnWriteArrayList<HTTPHeader> collection            = new CopyOnWriteArrayList<HTTPHeader>();
+    private final CopyOnWriteArraySet<String>      allowedDuplicatedKeys = new CopyOnWriteArraySet<String>();
+
+    public HeaderCollection() {
+        this.allowedDuplicatedKeys.add("Set-Cookies".toLowerCase(Locale.ENGLISH));
     }
 
     public void add(final HTTPHeader header) {
-        HTTPHeader existingHeader = null;
-        if ((existingHeader = get(header.getKey())) != null) {
-            if (!HeaderCollection.DUPES_ALLOWED.containsKey(header.getKey().toLowerCase(Locale.ENGLISH))) {
-                // overwrite
-                if (existingHeader.isAllowOverwrite()) {
-                    // Log.L.warning("Overwrite Header: " + header);
-                    headers.remove(existingHeader);
-                } else {
-                    // Log.L.warning("Header must not be overwritten: " +
-                    // header);
-                    return;
-                }
+        final HTTPHeader existingHeader = this.get(header.getKey());
+        if (existingHeader != null) {
+            if (!this.allowedDuplicatedKeys.contains(header.getKey().toLowerCase(Locale.ENGLISH))) {
+                if (!existingHeader.isAllowOverwrite()) { return; }
+                this.remove(existingHeader);
             }
         }
-        this.headers.add(header);
-    }
-
-    public boolean remove(final HTTPHeader header) {
-        return remove(header.getKey());
-    }
-
-    public boolean remove(final String key) {
-        HTTPHeader existingHeader = get(key);
-        if (existingHeader != null) {
-            headers.remove(existingHeader);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public HeaderCollection clone() {
-        HeaderCollection ret = new HeaderCollection();
-        ret.headers = new ArrayList<HTTPHeader>(this.headers);
-        return ret;
-    }
-
-    public HeaderCollection() {
-        this.headers = new ArrayList<HTTPHeader>();
-    }
-
-    public String toString() {
-        return headers.toString();
+        this.collection.add(header);
     }
 
     public void clear() {
-        headers = new ArrayList<HTTPHeader>();
+        this.collection.clear();
+    }
+
+    @Override
+    public HeaderCollection clone() {
+        final HeaderCollection ret = new HeaderCollection();
+        ret.collection.addAll(this.collection);
+        return ret;
+    }
+
+    public HTTPHeader get(final int index) {
+        return this.collection.get(index);
     }
 
     public HTTPHeader get(final String key) {
-        for (final Iterator<HTTPHeader> it = this.headers.iterator(); it.hasNext();) {
-            HTTPHeader elem;
-            if ((elem = it.next()).getKey().equalsIgnoreCase(key)) { return elem; }
+        if (key == null) { return null; }
+        for (final HTTPHeader header : this.collection) {
+            if (header.getKey().equalsIgnoreCase(key)) { return header; }
         }
         return null;
     }
 
+    public List<HTTPHeader> getAll(final String key) {
+        final ArrayList<HTTPHeader> ret = new ArrayList<HTTPHeader>();
+        for (final HTTPHeader header : this.collection) {
+            if (header.getKey().equalsIgnoreCase(key)) {
+                ret.add(header);
+            }
+        }
+        if (ret.size() > 0) { return ret; }
+        return null;
+    }
+
+    public CopyOnWriteArraySet<String> getAllowedDuplicatedKeys() {
+        return this.allowedDuplicatedKeys;
+    }
+
     public String getValue(final String key) {
-        final HTTPHeader ret = get(key);
+        final HTTPHeader ret = this.get(key);
         if (ret != null) { return ret.getValue(); }
         return null;
     }
 
     @Override
     public Iterator<HTTPHeader> iterator() {
-        return this.headers.iterator();
+        return this.collection.iterator();
+    }
+
+    public boolean remove(final HTTPHeader header) {
+        if (this.collection.remove(header)) {
+            return true;
+        } else {
+            return this.remove(header.getKey());
+        }
+    }
+
+    public boolean remove(final String key) {
+        final HTTPHeader existingHeader = this.get(key);
+        if (existingHeader != null) {
+            return this.collection.remove(existingHeader);
+        } else {
+            return false;
+        }
+    }
+
+    public int size() {
+        return this.collection.size();
+    }
+
+    @Override
+    public String toString() {
+        return this.collection.toString();
     }
 
 }

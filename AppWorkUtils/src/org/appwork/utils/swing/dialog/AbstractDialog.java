@@ -137,6 +137,16 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         return ret;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.uio.UserIODefinition#isRemoteAPIEnabled()
+     */
+    @Override
+    public boolean isRemoteAPIEnabled() {
+        return false;
+    }
+
     private static WindowStack getWindowStackByRoot(final Window desiredRootFrame) {
 
         Object key = desiredRootFrame;
@@ -526,7 +536,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 }
 
                 @Override
-                public void componentResized(final ComponentEvent e) {                    
+                public void componentResized(final ComponentEvent e) {
                 }
 
                 @Override
@@ -557,8 +567,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                             public void componentShown(final ComponentEvent e) {
                             }
                         });
-                    }else if (CrossSystem.isMac()) { 
-                        AbstractDialog.this.getDialog().pack();                       
+                    } else if (CrossSystem.isMac()) {
+                        AbstractDialog.this.getDialog().pack();
                     }
                 }
             });

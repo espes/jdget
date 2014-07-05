@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.net;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -16,12 +17,13 @@ import java.io.InputStream;
  * @author daniel, ChunkedInputStream, see rfc2616#section-3.6
  * 
  */
-public class ChunkedInputStream extends InputStream {
+public class ChunkedInputStream extends InputStream implements StreamValidEOF {
 
     private final InputStream is;
     private volatile int      nextChunkSize = 0;
     private volatile int      nextChunkLeft = 0;
     private volatile long     completeSize  = 0;
+    private boolean           EOF           = false;
 
     public ChunkedInputStream(final InputStream is) {
         this.is = is;
@@ -104,7 +106,10 @@ public class ChunkedInputStream extends InputStream {
         boolean gotNL = false;
         while ((read = this.is.read()) >= 0) {
             if (gotNL) {
-                if (read == 10) { return; }
+                if (read == 10) {
+                    this.EOF = true;
+                    return;
+                }
                 gotNL = false;
             }
             if (read == 13) {
@@ -134,7 +139,7 @@ public class ChunkedInputStream extends InputStream {
                 this.nextChunkLeft--;
                 return ret;
             }
-            throw new IOException("premature EOF");
+            throw new EOFException("premature EOF");
         }
         return -1;
     }
@@ -148,7 +153,7 @@ public class ChunkedInputStream extends InputStream {
                 this.nextChunkLeft -= ret;
                 return ret;
             }
-            throw new IOException("premature EOF");
+            throw new EOFException("premature EOF");
         }
         return -1;
     }
@@ -160,6 +165,11 @@ public class ChunkedInputStream extends InputStream {
      */
     private void readTrailers() throws IOException {
         this.exhaustInputStream();
+    }
+
+    @Override
+    public boolean isValidEOF() {
+        return this.EOF;
     }
 
 }

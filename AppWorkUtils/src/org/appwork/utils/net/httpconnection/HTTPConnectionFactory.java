@@ -10,11 +10,7 @@ public class HTTPConnectionFactory {
         if (proxy.isNone() || proxy.isDirect()) { return new HTTPConnectionImpl(url, proxy); }
         if (proxy.getType().equals(HTTPProxy.TYPE.SOCKS5)) { return new Socks5HTTPConnectionImpl(url, proxy); }
         if (proxy.getType().equals(HTTPProxy.TYPE.SOCKS4)) { return new Socks4HTTPConnectionImpl(url, proxy); }
-        if (proxy.getType().equals(HTTPProxy.TYPE.HTTP)) {
-            final HTTPProxyHTTPConnectionImpl ret = new HTTPProxyHTTPConnectionImpl(url, proxy);
-            ret.setPreferConnectMethod(proxy.isConnectMethodPrefered());
-            return ret;
-        }
+        if (proxy.getType().equals(HTTPProxy.TYPE.HTTP)) { return new HTTPProxyHTTPConnectionImpl(url, proxy); }
         throw new RuntimeException("unsupported proxy type: " + proxy.getType().name());
     }
 }

@@ -18,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
 
+import org.appwork.storage.JSonStorage;
 import org.appwork.swing.MigPanel;
 import org.appwork.uio.ComboBoxDialogInterface;
 import org.appwork.utils.logging.Log;
@@ -47,6 +48,11 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
      * Listrenderer to render the optionobjects
      */
     private final ListCellRenderer renderer;
+
+    @Override
+    public boolean isRemoteAPIEnabled() {
+        return true;
+    }
 
     /**
      * 
@@ -154,11 +160,41 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
         return getReturnIndex();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.uio.ConfirmDialogInterface#getMessage()
+     */
+    @Override
+    public String getMessage() {
 
+        return message;
+    }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.uio.ComboBoxDialogInterface#getLabels()
+     */
+    @Override
+    public String[] getLabels() {
+        String[] ret = new String[options.length];
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = JSonStorage.toString(options[i]);
 
+        }
+        return ret;
+    }
 
-
- 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.uio.ComboBoxDialogInterface#getPreSelectedIndex()
+     */
+    @Override
+    public int getPreSelectedIndex() {
+        // TODO Auto-generated method stub
+        return defaultAnswer;
+    }
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2009 - 2011 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
+ * Copyright (c) 2009 - 2013 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
  * 
  * This file is part of org.appwork.utils.swing.dialog
  * 
@@ -9,18 +9,17 @@
  */
 package org.appwork.uio;
 
+import org.appwork.utils.swing.dialog.OKCancelCloseUserIODefinition;
+
 /**
  * @author Thomas
  * 
  */
-public interface ComboBoxDialogInterface extends ConfirmDialogInterface {
-    @In
-    public int getSelectedIndex();
+public interface ExceptionDialogInterface extends OKCancelCloseUserIODefinition {
+    @Out
+    public String getMessage();
 
     @Out
-    public int getPreSelectedIndex();
-
-    @Out
-    public String[] getLabels();
+    public String getStacktrace();
 
 }

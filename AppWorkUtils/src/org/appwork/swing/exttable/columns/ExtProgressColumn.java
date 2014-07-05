@@ -178,6 +178,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
                     m /= factor;
                 }
             }
+            v = Math.min(m, v);
             // take care to set the maximum before the value!!
             this.renderer.setMaximum((int) m);
             this.renderer.setValue((int) v);

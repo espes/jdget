@@ -10,11 +10,11 @@ import java.util.Comparator;
  */
 public class ExtDefaultRowSorter<E> implements Comparator<E> {
 
-    private String sortOrderIdentifier = ExtColumn.SORT_ASC;
+    protected String sortOrderIdentifier = ExtColumn.SORT_ASC;
 
     @SuppressWarnings("unchecked")
     public int compare(final E o1, final E o2) {
-        if (ExtColumn.SORT_ASC.equals(getSortOrderIdentifier())) {
+        if (ExtColumn.SORT_ASC.equals(this.getSortOrderIdentifier())) {
             if (o1 instanceof Comparable<?>) { return ((Comparable<E>) o1).compareTo(o2); }
             return o1.toString().compareTo(o2.toString());
         } else {
