@@ -165,9 +165,7 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
                     wait = wait / this.onems;
                     this.wait(wait, (int) ns);
                 } catch (final InterruptedException e) {
-                    IOException e2 = new IOException("throttle interrupted");
-                    e2.initCause(e);
-                    throw e2;
+                    throw new IOException("throttle interrupted", e);
                 }
             }
             /* refill Limit */

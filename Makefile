@@ -9,15 +9,17 @@ SOURCEPATHS = \
 	jdownloader/MyJDownloaderClient/src
 
 JARS = \
+	AppWorkUtils/ant/joda-time-1.6.2.jar \
 	AppWorkUtils/libs/jackson-core.jar \
 	AppWorkUtils/libs/jackson-mapper.jar \
-	jdownloader/trunk/ressourcen/libs/sevenzipjbinding.jar \
-	jdownloader/trunk/ressourcen/libs/Filters.jar \
+	AppWorkUtils/libs/proxyVole.jar \
 	jdownloader/trunk/ressourcen/libs/bcprov-jdk15on-147.jar \
-	AppWorkUtils/ant/joda-time-1.6.2.jar \
 	jdownloader/trunk/ressourcen/libs/cobra.jar \
+	jdownloader/trunk/ressourcen/libs/Filters.jar \
+	jdownloader/trunk/ressourcen/libs/htmlunit-core-js.jar \
 	jdownloader/trunk/ressourcen/libs/js.jar \
-	jdownloader/trunk/ressourcen/libs/savemytube.jar
+	jdownloader/trunk/ressourcen/libs/savemytube.jar \
+	jdownloader/trunk/ressourcen/libs/sevenzipjbinding.jar
 
 
 classpathify = $(subst $(eval) ,:,$(wildcard $1))

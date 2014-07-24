@@ -1524,18 +1524,18 @@ public abstract class PluginForHost extends Plugin {
         }
         try {
             getLogger().info("Move " + old + " to " + newFile);
-            if (CrossSystem.isWindows() && Application.getJavaVersion() >= Application.JAVA17) {
+            /*if (CrossSystem.isWindows() && Application.getJavaVersion() >= Application.JAVA17) {
                 java.nio.file.Files.move(java.nio.file.Paths.get(old.toURI()), java.nio.file.Paths.get(newFile.toURI()), java.nio.file.StandardCopyOption.ATOMIC_MOVE);
-            } else if (!old.renameTo(newFile)) {
+            } else */if (!old.renameTo(newFile)) {
                 throw new CouldNotRenameException(old, newFile);
             }
         } catch (CouldNotRenameException e) {
             getLogger().log(e);
             copyMove(progress, downloadLink, old, newFile);
-        } catch (IOException e) {
+        }/* catch (IOException e) {
             getLogger().log(e);
             copyMove(progress, downloadLink, old, newFile);
-        }
+        }*/
         // TODO copy optimiz
         if (!newFile.getParentFile().equals(old.getParentFile())) {
             // check if we have to delete the old path;
@@ -1557,7 +1557,7 @@ public abstract class PluginForHost extends Plugin {
         } else {
             throw new IOException("Cannot move " + old + " to " + newFile + ". The File does not exist!");
         }
-        // Thread thread = null;
+        Thread thread = null;
         // if (JSonStorage.getPlainStorage("Dialogs").get(COPY_MOVE_FILE, -1) < 0) {
         //     // System.out.println("Thread start");
         //     thread = new Thread() {

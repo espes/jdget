@@ -12,7 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import jd.SecondLevelLaunch;
+// import jd.SecondLevelLaunch;
 import jd.controlling.downloadcontroller.DownloadController;
 import jd.controlling.downloadcontroller.DownloadSession;
 import jd.controlling.downloadcontroller.DownloadWatchDog;
@@ -36,6 +36,7 @@ import org.jdownloader.controlling.FileCreationManager;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.plugins.FinalLinkState;
 import org.jdownloader.plugins.controller.LazyPlugin;
+import org.jdownloader.plugins.controller.PluginClassLoader;
 import org.jdownloader.plugins.controller.PluginClassLoader.PluginClassLoaderChild;
 import org.jdownloader.plugins.controller.PluginController;
 import org.jdownloader.plugins.controller.PluginInfo;
@@ -186,82 +187,82 @@ public class HostPluginController extends PluginController<PluginForHost> {
             logger.close();
         }
         System.gc();
-        SecondLevelLaunch.INIT_COMPLETE.executeWhenReached(new Runnable() {
+        // SecondLevelLaunch.INIT_COMPLETE.executeWhenReached(new Runnable() {
 
-            @Override
-            public void run() {
-                DownloadWatchDog.getInstance().enqueueJob(new DownloadWatchDogJob() {
-                    private final PluginFinder finder = new PluginFinder();
+        //     @Override
+        //     public void run() {
+        //         DownloadWatchDog.getInstance().enqueueJob(new DownloadWatchDogJob() {
+        //             private final PluginFinder finder = new PluginFinder();
 
-                    private final LogSource    logger = LogController.CL(false);
+        //             private final LogSource    logger = LogController.CL(false);
 
-                    @Override
-                    public void execute(DownloadSession currentSession) {
-                        DownloadController.getInstance().getChildrenByFilter(new AbstractPackageChildrenNodeFilter<DownloadLink>() {
+        //             @Override
+        //             public void execute(DownloadSession currentSession) {
+        //                 DownloadController.getInstance().getChildrenByFilter(new AbstractPackageChildrenNodeFilter<DownloadLink>() {
 
-                            @Override
-                            public int returnMaxResults() {
-                                return 0;
-                            }
+        //                     @Override
+        //                     public int returnMaxResults() {
+        //                         return 0;
+        //                     }
 
-                            private final void updatePluginInstance(DownloadLink link) {
-                                final long currentDefaultVersion;
-                                final String currentDefaultHost;
-                                final PluginForHost defaultPlugin = link.getDefaultPlugin();
-                                if (defaultPlugin != null) {
-                                    currentDefaultHost = defaultPlugin.getLazyP().getHost();
-                                    currentDefaultVersion = defaultPlugin.getLazyP().getVersion();
-                                } else {
-                                    currentDefaultHost = null;
-                                    currentDefaultVersion = -1;
-                                }
-                                final PluginForHost newDefaultPlugin = finder.assignPlugin(link, true, logger);
-                                final long newDefaultVersion;
-                                final String newDefaultHost;
-                                if (newDefaultPlugin != null) {
-                                    newDefaultVersion = newDefaultPlugin.getLazyP().getVersion();
-                                    newDefaultHost = newDefaultPlugin.getLazyP().getHost();
-                                } else {
-                                    newDefaultVersion = -1;
-                                    newDefaultHost = null;
-                                }
-                                if (newDefaultPlugin != null && (currentDefaultVersion != newDefaultVersion || !StringUtils.equals(currentDefaultHost, newDefaultHost))) {
-                                    logger.info("Update Plugin for: " + link.getName() + ":" + link.getHost() + " to " + newDefaultPlugin.getLazyP().getDisplayName() + ":" + newDefaultPlugin.getLazyP().getVersion());
-                                    link.setDefaultPlugin(newDefaultPlugin);
-                                    if (link.getFinalLinkState() == FinalLinkState.PLUGIN_DEFECT) {
-                                        link.setFinalLinkState(null);
-                                    }
-                                }
-                            }
+        //                     private final void updatePluginInstance(DownloadLink link) {
+        //                         final long currentDefaultVersion;
+        //                         final String currentDefaultHost;
+        //                         final PluginForHost defaultPlugin = link.getDefaultPlugin();
+        //                         if (defaultPlugin != null) {
+        //                             currentDefaultHost = defaultPlugin.getLazyP().getHost();
+        //                             currentDefaultVersion = defaultPlugin.getLazyP().getVersion();
+        //                         } else {
+        //                             currentDefaultHost = null;
+        //                             currentDefaultVersion = -1;
+        //                         }
+        //                         final PluginForHost newDefaultPlugin = finder.assignPlugin(link, true, logger);
+        //                         final long newDefaultVersion;
+        //                         final String newDefaultHost;
+        //                         if (newDefaultPlugin != null) {
+        //                             newDefaultVersion = newDefaultPlugin.getLazyP().getVersion();
+        //                             newDefaultHost = newDefaultPlugin.getLazyP().getHost();
+        //                         } else {
+        //                             newDefaultVersion = -1;
+        //                             newDefaultHost = null;
+        //                         }
+        //                         if (newDefaultPlugin != null && (currentDefaultVersion != newDefaultVersion || !StringUtils.equals(currentDefaultHost, newDefaultHost))) {
+        //                             logger.info("Update Plugin for: " + link.getName() + ":" + link.getHost() + " to " + newDefaultPlugin.getLazyP().getDisplayName() + ":" + newDefaultPlugin.getLazyP().getVersion());
+        //                             link.setDefaultPlugin(newDefaultPlugin);
+        //                             if (link.getFinalLinkState() == FinalLinkState.PLUGIN_DEFECT) {
+        //                                 link.setFinalLinkState(null);
+        //                             }
+        //                         }
+        //                     }
 
-                            @Override
-                            public boolean acceptNode(final DownloadLink node) {
-                                if (node.getDownloadLinkController() != null) {
-                                    node.getDownloadLinkController().getJobsAfterDetach().add(new DownloadWatchDogJob() {
+        //                     @Override
+        //                     public boolean acceptNode(final DownloadLink node) {
+        //                         if (node.getDownloadLinkController() != null) {
+        //                             node.getDownloadLinkController().getJobsAfterDetach().add(new DownloadWatchDogJob() {
 
-                                        @Override
-                                        public void execute(DownloadSession currentSession) {
-                                            updatePluginInstance(node);
-                                        }
+        //                                 @Override
+        //                                 public void execute(DownloadSession currentSession) {
+        //                                     updatePluginInstance(node);
+        //                                 }
 
-                                        @Override
-                                        public void interrupt() {
-                                        }
-                                    });
-                                } else {
-                                    updatePluginInstance(node);
-                                }
-                                return false;
-                            }
-                        });
-                    }
+        //                                 @Override
+        //                                 public void interrupt() {
+        //                                 }
+        //                             });
+        //                         } else {
+        //                             updatePluginInstance(node);
+        //                         }
+        //                         return false;
+        //                     }
+        //                 });
+        //             }
 
-                    @Override
-                    public void interrupt() {
-                    }
-                });
-            }
-        });
+        //             @Override
+        //             public void interrupt() {
+        //             }
+        //         });
+        //     }
+        // });
         return list;
     }
 
@@ -347,7 +348,8 @@ public class HostPluginController extends PluginController<PluginForHost> {
                             //
                             throw new WTFException("names.length=0");
                         }
-                        final PluginClassLoaderChild classLoader = (PluginClassLoaderChild) c.getClazz().getClassLoader();
+                        // final PluginClassLoaderChild classLoader = (PluginClassLoaderChild) c.getClazz().getClassLoader();
+                        final PluginClassLoaderChild classLoader = PluginClassLoader.getInstance().getChild();
                         /* during init we dont want dummy libs being created */
                         classLoader.setCreateDummyLibs(false);
                         for (int i = 0; i < names.length; i++) {

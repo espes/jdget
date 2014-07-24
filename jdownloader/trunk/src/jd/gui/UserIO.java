@@ -34,11 +34,11 @@ import jd.plugins.PluginForDecrypt;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.storage.config.JsonConfig;
-import org.appwork.uio.ComboBoxDialogInterface;
-import org.appwork.uio.ConfirmDialogInterface;
-import org.appwork.uio.InputDialogInterface;
-import org.appwork.uio.MultiSelectionDialog;
-import org.appwork.uio.MultiSelectionDialogInterface;
+// import org.appwork.uio.ComboBoxDialogInterface;
+// import org.appwork.uio.ConfirmDialogInterface;
+// import org.appwork.uio.InputDialogInterface;
+// import org.appwork.uio.MultiSelectionDialog;
+// import org.appwork.uio.MultiSelectionDialogInterface;
 // import org.appwork.uio.UIOManager;
 import org.appwork.uio.UserIODefinition;
 import org.appwork.utils.BinaryLogic;
@@ -465,9 +465,9 @@ public class UserIO {
     //     return response;
     // }
 
-    public File[] requestFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final Boolean multiSelection) {
-        return this.requestFileChooser(id, title, fileSelectionMode, fileFilter, multiSelection, null, null);
-    }
+    // public File[] requestFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final Boolean multiSelection) {
+    //     return this.requestFileChooser(id, title, fileSelectionMode, fileFilter, multiSelection, null, null);
+    // }
 
     /**
      * Requests a FileChooserDialog.

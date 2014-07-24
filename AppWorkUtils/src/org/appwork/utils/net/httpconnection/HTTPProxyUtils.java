@@ -35,12 +35,12 @@ public class HTTPProxyUtils {
             while (nets.hasMoreElements()) {
                 /* find all network interfaces and their addresses */
                 NetworkInterface cur = nets.nextElement();
-                // if (!cur.isUp()) {
-                //     continue;
-                // }
-                // if (cur.isLoopback() && allowLoopback == false) {
-                //     continue;
-                // }
+                if (!cur.isUp()) {
+                    continue;
+                }
+                if (cur.isLoopback() && allowLoopback == false) {
+                    continue;
+                }
                 Enumeration<InetAddress> addrs = cur.getInetAddresses();
                 InetAddress addr;
                 while (addrs.hasMoreElements()) {
@@ -55,28 +55,28 @@ public class HTTPProxyUtils {
                     ipsLocal.add(addr);
                 }
                 /* find all subinterfaces for each network interface, eg. eth0.1 */
-                // final Enumeration<NetworkInterface> nets2 = cur.getSubInterfaces();
-                // while (nets2.hasMoreElements()) {
-                //     cur = nets2.nextElement();
-                //     if (!cur.isUp()) {
-                //         continue;
-                //     }
-                //     if (cur.isLoopback() && allowLoopback == false) {
-                //         continue;
-                //     }
-                //     addrs = cur.getInetAddresses();
-                //     while (addrs.hasMoreElements()) {
-                //         addr = addrs.nextElement();
-                //         if (addr == null) {
-                //             continue;
-                //         }
-                //         /* only show ipv4 addresses and non loopback */
-                //         if (!(addr instanceof Inet4Address)) {
-                //             continue;
-                //         }
-                //         ipsLocal.add(addr);
-                //     }
-                // }
+                final Enumeration<NetworkInterface> nets2 = cur.getSubInterfaces();
+                while (nets2.hasMoreElements()) {
+                    cur = nets2.nextElement();
+                    if (!cur.isUp()) {
+                        continue;
+                    }
+                    if (cur.isLoopback() && allowLoopback == false) {
+                        continue;
+                    }
+                    addrs = cur.getInetAddresses();
+                    while (addrs.hasMoreElements()) {
+                        addr = addrs.nextElement();
+                        if (addr == null) {
+                            continue;
+                        }
+                        /* only show ipv4 addresses and non loopback */
+                        if (!(addr instanceof Inet4Address)) {
+                            continue;
+                        }
+                        ipsLocal.add(addr);
+                    }
+                }
             }
         } catch (final Throwable e) {
             e.printStackTrace();

@@ -51,9 +51,9 @@ public class TrustALLSSLFactory {
             sc.init(null, TrustALLSSLFactory.trustAllCerts, new java.security.SecureRandom());
             return sc.getSocketFactory();
         } catch (final NoSuchAlgorithmException e) {
-            IOException e2 = new IOException(); e2.initCause(e); throw e2;
+            throw new IOException(e);
         } catch (final KeyManagementException e) {
-            IOException e2 = new IOException(); e2.initCause(e); throw e2;
+            throw new IOException(e);
         }
     }
 

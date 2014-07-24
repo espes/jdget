@@ -223,7 +223,7 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
             // this.icon = icon2;
         }
 
-        public static PluginState create(String message, Icon icon) {
+        public static PluginState create(String message/*, Icon icon*/) {
             if (StringUtils.isEmpty(message) /*&& icon == null*/) {
                 return null;
             }
@@ -614,9 +614,9 @@ public class FilePackageView extends ChildrenView<DownloadLink> {
     @Override
     public boolean updateRequired() {
         boolean ret = updatesRequired.get() != updatesDone;
-        if (ret == false) {
-            ret = fp.isEnabled() && (System.currentTimeMillis() - lastUpdateTimestamp > GUIUPDATETIMEOUT) && DownloadWatchDog.getInstance().hasRunningDownloads(fp);
-        }
+        // if (ret == false) {
+        //     ret = fp.isEnabled() && (System.currentTimeMillis() - lastUpdateTimestamp > GUIUPDATETIMEOUT) && DownloadWatchDog.getInstance().hasRunningDownloads(fp);
+        // }
         return ret;
     }
 

@@ -278,34 +278,35 @@ public abstract class Plugin implements ActionListener {
      * @throws PluginException
      */
     protected Login requestLogins(String message, DownloadLink link) throws PluginException {
-        if (message == null) {
-            message = _JDT._.Plugin_requestLogins_message();
-        }
-        final UserIOProgress prg = new UserIOProgress(message);
-        prg.setProgressSource(this);
-        prg.setDisplayInProgressColumnEnabled(false);
-        try {
-            link.addPluginProgress(prg);
-            AskUsernameAndPasswordDialogInterface handle = UIOManager.I().show(AskUsernameAndPasswordDialogInterface.class, new AskForUserAndPasswordDialog(message, link));
-            if (handle.getCloseReason() == CloseReason.OK) {
-                String password = handle.getPassword();
+        // if (message == null) {
+        //     message = _JDT._.Plugin_requestLogins_message();
+        // }
+        // final UserIOProgress prg = new UserIOProgress(message);
+        // prg.setProgressSource(this);
+        // prg.setDisplayInProgressColumnEnabled(false);
+        // try {
+        //     link.addPluginProgress(prg);
+        //     AskUsernameAndPasswordDialogInterface handle = UIOManager.I().show(AskUsernameAndPasswordDialogInterface.class, new AskForUserAndPasswordDialog(message, link));
+        //     if (handle.getCloseReason() == CloseReason.OK) {
+        //         String password = handle.getPassword();
 
-                if (StringUtils.isEmpty(password)) {
-                    throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword());
-                }
+        //         if (StringUtils.isEmpty(password)) {
+        //             throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword());
+        //         }
 
-                String username = handle.getUsername();
-                if (StringUtils.isEmpty(username)) {
-                    throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongusername());
-                }
-                return new Login(username, password);
-            } else {
-                throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword());
-            }
+        //         String username = handle.getUsername();
+        //         if (StringUtils.isEmpty(username)) {
+        //             throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongusername());
+        //         }
+        //         return new Login(username, password);
+        //     } else {
+        //         throw new PluginException(LinkStatus.ERROR_FATAL, _JDT._.plugins_errors_wrongpassword());
+        //     }
 
-        } finally {
-            link.removePluginProgress(prg);
-        }
+        // } finally {
+        //     link.removePluginProgress(prg);
+        // }
+        throw new UnsupportedOperationException("jdget TODO");
     }
 
     /**

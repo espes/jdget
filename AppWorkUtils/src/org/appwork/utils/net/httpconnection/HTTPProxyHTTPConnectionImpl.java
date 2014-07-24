@@ -57,7 +57,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                 long startTime = System.currentTimeMillis();
                 for (final InetAddress host : hosts) {
                     this.resetConnection();
-                    this.connectionSocket = new Socket(/*Proxy.NO_PROXY*/);
+                    this.connectionSocket = new Socket(Proxy.NO_PROXY);
                     this.connectionSocket.setSoTimeout(this.readTimeout);
                     try {
                         /* create and connect to socks5 proxy */

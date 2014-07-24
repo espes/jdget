@@ -54,9 +54,9 @@ import org.appwork.utils.net.httpconnection.HTTPProxy;
 import org.appwork.utils.net.httpconnection.HTTPProxy.TYPE;
 import org.appwork.utils.net.httpconnection.ProxyAuthException;
 import org.appwork.utils.net.httpconnection.ProxyConnectException;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogNoAnswerException;
-import org.appwork.utils.swing.dialog.ProxyDialog;
+// import org.appwork.utils.swing.dialog.Dialog;
+// import org.appwork.utils.swing.dialog.DialogNoAnswerException;
+// import org.appwork.utils.swing.dialog.ProxyDialog;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.plugins.controller.host.LazyHostPlugin;
 import org.jdownloader.translate._JDT;
@@ -735,34 +735,34 @@ public class ProxyController implements ProxySelectorInterface {
         if (selector.isProxyBannedFor(selectedProxy, url, plugin, false) == false) {
             HTTPProxy proxy = null;
             boolean rememberCheckBox = false;
-            try {
-                final ProxyDialog pd = new ProxyDialog(selectedProxy, msg) {
-                    {
-                        this.flagMask |= flags;
-                    }
+            // try {
+            //     final ProxyDialog pd = new ProxyDialog(selectedProxy, msg) {
+            //         {
+            //             this.flagMask |= flags;
+            //         }
 
-                    @Override
-                    protected boolean isShowRemember() {
-                        return true;
-                    }
+            //         @Override
+            //         protected boolean isShowRemember() {
+            //             return true;
+            //         }
 
-                    @Override
-                    public void pack() {
-                        getDialog().setMinimumSize(new Dimension(450, getPreferredSize().height));
-                        super.pack();
-                    }
-                };
-                pd.setTimeout(5 * 60 * 1000);
-                pd.setAuthRequired(true);
-                pd.setTypeEditable(typeEditable);
-                pd.setHostEditable(typeEditable);
-                pd.setPortEditable(typeEditable);
-                pd.setTitle(title);
-                proxy = Dialog.getInstance().showDialog(pd);
-                rememberCheckBox = pd.isRememberChecked();
-            } catch (DialogNoAnswerException e) {
-                proxy = null;
-            }
+            //         @Override
+            //         public void pack() {
+            //             getDialog().setMinimumSize(new Dimension(450, getPreferredSize().height));
+            //             super.pack();
+            //         }
+            //     };
+            //     pd.setTimeout(5 * 60 * 1000);
+            //     pd.setAuthRequired(true);
+            //     pd.setTypeEditable(typeEditable);
+            //     pd.setHostEditable(typeEditable);
+            //     pd.setPortEditable(typeEditable);
+            //     pd.setTitle(title);
+            //     proxy = Dialog.getInstance().showDialog(pd);
+            //     rememberCheckBox = pd.isRememberChecked();
+            // } catch (DialogNoAnswerException e) {
+            //     proxy = null;
+            // }
             final String userName;
             final String passWord;
             if (proxy != null) {

@@ -898,7 +898,7 @@ public class LnkCrptWs extends PluginForDecrypt {
                     //     out = "CANCEL";
                     // }
                     // marray.addAll(vC.mouseArray);
-                    if (1 == 1) throw new UnsupportedOperationException("jdget TODO");
+                    if (true) throw new UnsupportedOperationException("jdget TODO");
                 } else {
                     // final KeyCaptchaDialogForStable vC = new KeyCaptchaDialogForStable("KeyCaptcha - " + br.getHost(), new String[] { stImgs[1], sscStc[1] }, fmsImg, rcBr, mmUrlReq);
                     // // Warten bis der KeyCaptcha-Dialog geschlossen ist
@@ -911,7 +911,7 @@ public class LnkCrptWs extends PluginForDecrypt {
                     //     }
                     // }
                     // out = vC.POSITION;
-                    if (1 == 1) throw new UnsupportedOperationException("jdget TODO");
+                    if (true) throw new UnsupportedOperationException("jdget TODO");
                 }
                 if (out == null) {
                     return null;

@@ -1,4 +1,3 @@
-#GCJ = gcj-mp-4.7
 GCJ = gcj
 GCJFLAGS = -g
 
@@ -7,22 +6,24 @@ SOURCEPATHS = \
 	AppWorkUtils/src \
 	jdownloader/browser/src \
 	jdownloader/trunk/src \
-	jdownloader/MyJDownloaderClient/src \
+	jdownloader/MyJDownloaderClient/src
 
 JARS = \
+	AppWorkUtils/ant/joda-time-1.6.2.jar \
 	AppWorkUtils/libs/jackson-core.jar \
 	libs/jackson-mapper-fix.jar \
-	jdownloader/trunk/ressourcen/libs/sevenzipjbinding.jar \
-	jdownloader/trunk/ressourcen/libs/Filters.jar \
+	AppWorkUtils/libs/proxyVole.jar \
 	libs/bcprov-jdk14-150.jar \
-	AppWorkUtils/ant/joda-time-1.6.2.jar \
+	libs/cobra-fix.jar \
+	jdownloader/trunk/ressourcen/libs/Filters.jar \
+	jdownloader/trunk/ressourcen/libs/htmlunit-core-js.jar \
 	libs/script-api.jar \
 	libs/script-js.jar \
 	libs/extra.jar \
-	libs/cobra-fix.jar \
 	jdownloader/trunk/ressourcen/libs/js.jar \
 	libs/xbean-fix.jar \
-	jdownloader/trunk/ressourcen/libs/savemytube.jar
+	jdownloader/trunk/ressourcen/libs/savemytube.jar \
+	jdownloader/trunk/ressourcen/libs/sevenzipjbinding.jar
 
 classpathify = $(subst $(eval) ,:,$1)
 
@@ -36,6 +37,9 @@ jdget: JDGet.java $(OBJECTS)
 	$(GCJ) $(GCJFLAGS) --classpath $(CLASSPATH) --main=JDGet JDGet.java $(OBJECTS_STR) -static-libgcc -o '$@'
 
 jdownloader/trunk/ressourcen/libs/sevenzipjbinding.o: jdownloader/trunk/ressourcen/libs/sevenzipjbinding.jar
+	$(GCJ) $(GCJFLAGS) --classpath $(CLASSPATH) -c '$<' -o '$@' -fjni
+
+AppWorkUtils/libs/proxyVole.o: AppWorkUtils/libs/proxyVole.jar
 	$(GCJ) $(GCJFLAGS) --classpath $(CLASSPATH) -c '$<' -o '$@' -fjni
 
 libs/jackson-mapper-fix.jar: AppWorkUtils/libs/jackson-mapper.jar

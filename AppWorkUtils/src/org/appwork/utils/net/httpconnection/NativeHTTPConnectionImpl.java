@@ -154,8 +154,7 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
             // } catch (final Throwable e) {
             //     /* sun/oracle java only? */
             // }
-            // this.con = (HttpURLConnection) this.httpURL.openConnection(this.nativeProxy);
-            throw new UnsupportedOperationException("jdget TODO");
+            this.con = (HttpURLConnection) this.httpURL.openConnection(this.nativeProxy);
         } else {
             synchronized (NativeHTTPConnectionImpl.availableProxies) {
                 NativeHTTPConnectionImpl.availableProxies.remove(Thread.currentThread());

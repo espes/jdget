@@ -267,7 +267,7 @@ class SplitUtil {
                             try {
                                 Thread.sleep(priority.getTime());
                             } catch (InterruptedException e) {
-                                IOException e2 = new IOException(); e2.initCause(e); throw e2;
+                                throw new IOException(e);
                             }
                         }
                     }

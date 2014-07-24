@@ -140,7 +140,7 @@ public class PluginClassLoader extends URLClassLoader {
 
         @Override
         public Class<?> loadClass(String name) throws ClassNotFoundException {
-            return Class.forName(name);
+            return parent.loadClass(name);
             // try {
             //     if (jared) {
             //         synchronized (DYNAMIC_LOADABLE_LOBRARIES) {

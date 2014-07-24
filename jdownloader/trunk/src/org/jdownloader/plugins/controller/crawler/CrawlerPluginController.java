@@ -24,6 +24,7 @@ import org.appwork.utils.logging2.LogSource;
 import org.jdownloader.controlling.FileCreationManager;
 import org.jdownloader.logging.LogController;
 import org.jdownloader.plugins.controller.LazyPlugin;
+import org.jdownloader.plugins.controller.PluginClassLoader;
 import org.jdownloader.plugins.controller.PluginClassLoader.PluginClassLoaderChild;
 import org.jdownloader.plugins.controller.PluginController;
 import org.jdownloader.plugins.controller.PluginInfo;
@@ -207,8 +208,8 @@ public class CrawlerPluginController extends PluginController<PluginForDecrypt> 
 
     static public byte[] KEY = new byte[] { 0x01, 0x03, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 };
 
-    private List<PluginInfo<PluginForDecrypt>> scanCrawlerPlugins(HashMap<String, ArrayList<LazyPlugin>> pluginCache) {
-        // scan("jd/plugins/decrypter", pluginCache)
+    private List<PluginInfo<PluginForDecrypt>> scanCrawlerPlugins(Map<String, ArrayList<LazyPlugin>> updateCacheMap) {
+        // scan("jd/plugins/decrypter", updateCacheMap)
         return StaticCrawlerPlugins.list();
     }
 
@@ -267,7 +268,8 @@ public class CrawlerPluginController extends PluginController<PluginForDecrypt> 
                             //
                             throw new WTFException("names.length=0");
                         }
-                        final PluginClassLoaderChild classLoader = (PluginClassLoaderChild) c.getClazz().getClassLoader();
+                        // final PluginClassLoaderChild classLoader = (PluginClassLoaderChild) c.getClazz().getClassLoader();
+                        final PluginClassLoaderChild classLoader = PluginClassLoader.getInstance().getChild();
                         /* during init we dont want dummy libs being created */
                         classLoader.setCreateDummyLibs(false);
                         for (int i = 0; i < names.length; i++) {

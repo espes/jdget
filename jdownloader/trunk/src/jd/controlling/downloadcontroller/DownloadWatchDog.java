@@ -4040,7 +4040,6 @@ public class DownloadWatchDog implements DownloadControllerListener, StateMachin
         } catch (Throwable e) {
             logger.log(e);
             // UIOManager.I().show(ExceptionDialogInterface.class, new ExceptionDialog(UIOManager.BUTTONS_HIDE_CANCEL, _GUI._.lit_error_occured(), e.getMessage(), e, _GUI._.lit_close(), null));
-            throw e;
         }
     }
 }

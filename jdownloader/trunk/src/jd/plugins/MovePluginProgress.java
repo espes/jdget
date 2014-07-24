@@ -2,8 +2,8 @@ package jd.plugins;
 
 import java.io.File;
 
-import org.jdownloader.gui.IconKey;
-import org.jdownloader.images.AbstractIcon;
+// import org.jdownloader.gui.IconKey;
+// import org.jdownloader.images.AbstractIcon;
 import org.jdownloader.plugins.PluginTaskID;
 import org.jdownloader.translate._JDT;
 
@@ -14,7 +14,7 @@ public class MovePluginProgress extends PluginProgress {
 
     public MovePluginProgress() {
         super(-1, 100, null);
-        setIcon(new AbstractIcon(IconKey.ICON_SAVETO, 18));
+        // setIcon(new AbstractIcon(IconKey.ICON_SAVETO, 18));
     }
 
     @Override

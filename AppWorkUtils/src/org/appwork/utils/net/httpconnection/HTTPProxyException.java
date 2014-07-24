@@ -30,8 +30,7 @@ abstract class HTTPProxyException extends IOException {
     }
 
     public HTTPProxyException(final Throwable cause) {
-        super();
-        initCause(cause);
+        super(cause);
     }
 
     public HTTPProxy getProxy() {
